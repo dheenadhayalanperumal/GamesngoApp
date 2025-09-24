@@ -8,13 +8,13 @@
 
   display: grid;
   grid-template-rows: 20px 1fr 20px;
-  align-items: center;
-  justify-items: center;
+  align-items: start;
+  justify-items: start;
   min-height: 100svh;
   padding-left: 15px;
   padding-right: 15px;
   padding-top: 35px;
-  gap: 64px;
+  gap: 65px;
   font-family: var(--font-geist-sans);
   
 }
