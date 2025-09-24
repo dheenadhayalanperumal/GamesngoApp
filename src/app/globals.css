@@ -40,3 +40,13 @@ a {
     color-scheme: dark;
   }
 }
+
+.gradient-body {
+  background: linear-gradient(to bottom, #6E6EFF 0%, #FDFDFD 100%);
+  background-size: 100%;
+  background-repeat: no-repeat;
+}
+
+.content-container {
+  padding: 0 15px;
+}
