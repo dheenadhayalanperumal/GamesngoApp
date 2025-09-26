@@ -1,6 +1,7 @@
 import React from 'react';
 import { Avatar, Box, Typography, IconButton } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 
 interface ProfileAvatarProps {
@@ -11,7 +12,7 @@ interface ProfileAvatarProps {
 }
 
 const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
-  size = 80,
+  size = 60,
   src,
   alt = "Profile Avatar",
   userName,
@@ -48,15 +49,18 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
           )}
         </Avatar>
 
-        <Box>
-          <Typography variant="h6">Good Morning</Typography>
-          <Typography variant="h5">{userName || "Guest"}</Typography>
+        <Box sx={{
+          color:'white'}}>
+          <Typography variant="h6" >Good Morning</Typography>
+          <Typography variant="h5" sx={{
+          fontWeight:'bold'}}>{userName || "Guest"}</Typography>
         </Box>
       </Box>
 
       {/* Right side (Notification icon) */}
       <IconButton>
-        <NotificationsIcon   sx={{
+        <NotificationsNoneIcon   sx={{
+          color:'white',
                 width:'50px',
                 height:'50px'
               }}/>

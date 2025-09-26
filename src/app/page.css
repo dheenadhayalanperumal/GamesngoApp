@@ -1,0 +1,13 @@
+
+.layout {
+    display: flex;
+    flex-direction: column; 
+    justify-content: start;
+    align-items: center;
+    height: 100vh;
+    gap: 30px;
+    margin-top: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
+    
+    }
