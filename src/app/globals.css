@@ -42,7 +42,7 @@ a {
 }
 
 .gradient-body {
-  background: linear-gradient(to bottom, #6E6EFF 0%, #FDFDFD 50%);
+  background: linear-gradient(to bottom, #6E6EFF 0%, #FDFDFD 70%);
   background-size: 100%;
   background-repeat: no-repeat;
 }

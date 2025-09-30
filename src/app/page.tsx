@@ -6,15 +6,22 @@ import BannerSlider from "@/components/Banner";
 import TabBar from "@/components/TabBar";
 import CoinBox from "@/components/CoinBox";
 import DailyCheckin from "@/components/DailyCheckin";
+import ScratchAndWin from "@/components/ScratchAndWin";
+import ShakeAndWin from "@/components/ShakeAndWin";
 
 export default function Home() {
   return (
     <div className="layout">
       <Header/>
       <ProfileAvatar/>
-      
+
       <BannerSlider/>
       <DailyCheckin/>
+      <ScratchAndWin/>
+     
+     
+      <ShakeAndWin/>
+      <ScratchAndWin/>
       <TabBar/>
 
     </div>

@@ -7,8 +7,8 @@ import logo from '../assets/images/logo.png'; // Importing logo from asset
 
 const Header: React.FC = () => {
   return (
-    <AppBar position="sticky" sx={{ margin: 0, padding: 0, backgroundColor: 'transparent', boxShadow: 'none' }}>
-      <Toolbar sx={{ padding: '0 !important', margin: 0, minHeight: 'auto !important' }}>
+    <AppBar position="sticky" sx={{ marginTop: 0, padding: 0, backgroundColor: 'transparent', boxShadow: 'none' }}>
+      <Toolbar sx={{ padding: '0 !important', marginTop: '10px', minHeight: 'auto !important' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, padding: 0, margin: 0 }}>
           <img src={logo.src} alt="Logo" style={{ width: '168px', height: '42px' }} />
         </Box>

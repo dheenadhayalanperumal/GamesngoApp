@@ -20,13 +20,13 @@ const CoinBox: React.FC<CoinBoxProps> = ({ coinCount = 1250 }) => {
       sx={{
         background: 'linear-gradient(135deg, #FC78A2 100%, #F32868 100%)',
         borderRadius: '12px',
-        padding: '4px',
+        padding: '2px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '6px',
-        minWidth: '42px',
+        gap: '4px',
+        minWidth: '25px',
         boxShadow: '0 4px 12px rgba(252, 120, 162, 0.3)',
       }}
     >
@@ -36,7 +36,7 @@ const CoinBox: React.FC<CoinBoxProps> = ({ coinCount = 1250 }) => {
         sx={{
           color: 'white',
           fontWeight: 'bold',
-          fontSize: '12px',
+          fontSize: '8px',
           textAlign: 'center',
         }}
       >
