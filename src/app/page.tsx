@@ -8,6 +8,9 @@ import CoinBox from "@/components/CoinBox";
 import DailyCheckin from "@/components/DailyCheckin";
 import ScratchAndWin from "@/components/ScratchAndWin";
 import ShakeAndWin from "@/components/ShakeAndWin";
+import QuickAction from "@/components/QuickAction";
+import PopularToday from "@/components/PopularToday";
+import RestaurantGame from "@/components/RestaurantGame";
 
 export default function Home() {
   return (
@@ -17,10 +20,14 @@ export default function Home() {
 
       <BannerSlider/>
       <DailyCheckin/>
+      <QuickAction/>
+      <PopularToday/>
+      <RestaurantGame/>        
       <ScratchAndWin/>
      
      
       <ShakeAndWin/>
+      
       <ScratchAndWin/>
       <TabBar/>
 

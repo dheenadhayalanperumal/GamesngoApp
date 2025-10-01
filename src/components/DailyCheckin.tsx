@@ -11,8 +11,8 @@ interface DailyCheckinProps {
 
 const DailyCheckin: React.FC<DailyCheckinProps> = ({
   onClaim,
-  currentDay = 2,
-  claimedDays = [1]
+  currentDay = 5,
+  claimedDays = [1,2,3,4]
 }) => {
     const dailyRewards = [10, 15, 20, 25, 30, 35, 50];
 
