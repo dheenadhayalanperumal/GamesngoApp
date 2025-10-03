@@ -3,11 +3,13 @@
 import React, { useState } from "react";
 import { AppBar, Toolbar, Button, Box, Typography } from "@mui/material";
 import logo from "../assets/images/logo.png";
+import CurrencyButton from "./CurrencyButton";
 
 const Header: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [coins, setCoins] = useState(120);
-  const [strikes, setStrikes] = useState(3);
+  const [strikes, setStrikes] = useState(13);
+  const [cupons, setcupons] = useState(5);
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -57,12 +59,8 @@ const Header: React.FC = () => {
             </Button>
           ) : (
             <>
-              <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                🪙 {coins}
-              </Typography>
-              <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                ⚡ {strikes}
-              </Typography>
+              <CurrencyButton type="strikes" value={strikes} />
+              <CurrencyButton type="Wallet" coins={coins} coupons={cupons} />
             </>
           )}
         </Box>

@@ -62,7 +62,8 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
         <NotificationsNoneIcon   sx={{
           color:'white',
                 width:'50px',
-                height:'50px'
+                height:'50px',
+                 // zIndex:'0',
               }}/>
       </IconButton>
     </Box>
