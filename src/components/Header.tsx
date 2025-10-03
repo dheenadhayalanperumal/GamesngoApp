@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AppBar, Toolbar, Button, Box, Typography } from "@mui/material";
 import logo from "../assets/images/logo.png";
 import CurrencyButton from "./CurrencyButton";
@@ -10,25 +10,47 @@ const Header: React.FC = () => {
   const [coins, setCoins] = useState(120);
   const [strikes, setStrikes] = useState(13);
   const [cupons, setcupons] = useState(5);
+  const [isFixed, setIsFixed] = useState(false);
 
   const handleLogin = () => {
     setIsLoggedIn(true);
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      const viewportHeight = window.innerHeight;
+
+      if (scrollPosition >= viewportHeight) {
+        setIsFixed(true);
+      } else {
+        setIsFixed(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <AppBar
-      position="sticky"
+      position={isFixed ? "fixed" : "absolute"}
       sx={{
-        marginTop: 0,
-        padding: 0,
-        backgroundColor: "transparent",
+        top: 0,
+        // marginTop: '15px',
+        // paddingLeft:'15px',
+        // paddingRight:'15px',
+        backgroundColor: "#4848db",
+
         boxShadow: "none",
+        transition: "all 0.3s ease",
+        // marginBottom:'50px',
       }}
     >
       <Toolbar
         sx={{
-          padding: "0 !important",
-          marginTop: "10px",
+          padding: "15px !important",
+          // marginTop: "10px",
           minHeight: "auto !important",
         }}
       >
