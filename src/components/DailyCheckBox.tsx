@@ -59,6 +59,9 @@ const DailyCheckBox: React.FC<DailyCheckBoxProps> = ({
     }
   };
 
+  // Check if box should have blur overlay (claimed, missed, or locked)
+  const shouldBlur = isClaimed || (isCompleted && !isClaimed) || !isUnlocked;
+
   return (
     <Box
       sx={{
@@ -88,6 +91,7 @@ const DailyCheckBox: React.FC<DailyCheckBoxProps> = ({
         transition: 'all 0.3s ease',
         cursor: isUnlocked && !isCompleted ? 'pointer' : 'default',
         position: 'relative',
+        overflow: 'hidden',
         '&:hover': isUnlocked && !isCompleted ? {
           transform: 'translateY(-2px)',
           boxShadow: '0 6px 16px rgba(252, 120, 162, 0.4)',
@@ -139,14 +143,14 @@ const DailyCheckBox: React.FC<DailyCheckBoxProps> = ({
             left: '50%',
             transform: 'translate(-50%, -60%)',
             width: {
-              xs: '20px',
-              sm: '24px',
-              md: '28px'
+              xs: '24px',
+              sm: '28.5px',
+              md: '33px'
             },
             height: {
-              xs: '20px',
-              sm: '24px',
-              md: '28px'
+              xs: '24px',
+              sm: '28.5px',
+              md: '33px'
             },
             display: 'flex',
             alignItems: 'center',
@@ -154,9 +158,25 @@ const DailyCheckBox: React.FC<DailyCheckBoxProps> = ({
             backgroundColor: 'rgba(0, 0, 0, 0.2)',
             borderRadius: '50%',
             backdropFilter: 'blur(2px)',
+            zIndex: 2,
           }}
         >
-          <LockSVG />
+          <Box
+            sx={{
+              width: {
+                xs: '15px',
+                sm: '18px',
+                md: '21px'
+              },
+              height: {
+                xs: '15px',
+                sm: '18px',
+                md: '21px'
+              },
+            }}
+          >
+            <LockSVG />
+          </Box>
         </Box>
       )}
 
@@ -168,14 +188,14 @@ const DailyCheckBox: React.FC<DailyCheckBoxProps> = ({
             left: '50%',
             transform: 'translate(-50%, -60%)',
             width: {
-              xs: '20px',
-              sm: '24px',
-              md: '28px'
+              xs: '24px',
+              sm: '28.5px',
+              md: '33px'
             },
             height: {
-              xs: '20px',
-              sm: '24px',
-              md: '28px'
+              xs: '24px',
+              sm: '28.5px',
+              md: '33px'
             },
             display: 'flex',
             alignItems: 'center',
@@ -183,10 +203,48 @@ const DailyCheckBox: React.FC<DailyCheckBoxProps> = ({
             backgroundColor: 'rgba(0, 0, 0, 0.2)',
             borderRadius: '50%',
             backdropFilter: 'blur(2px)',
+            zIndex: 2,
           }}
         >
-          <TickSVG />
+          <Box
+            sx={{
+              width: {
+                xs: '15px',
+                sm: '18px',
+                md: '21px'
+              },
+              height: {
+                xs: '15px',
+                sm: '18px',
+                md: '21px'
+              },
+            }}
+          >
+            <TickSVG />
+          </Box>
         </Box>
+      )}
+
+      {/* Blur overlay for claimed, missed, or locked states */}
+      {shouldBlur && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(1px)',
+            borderRadius: {
+              xs: '8px',
+              sm: '10px',
+              md: '12px'
+            },
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        />
       )}
     </Box>
   );

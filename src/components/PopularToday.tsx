@@ -1,13 +1,14 @@
+'use client';
+
 import { Box, Typography, Button } from '@mui/material';
 import React from 'react';
-import BubbleShooterImg from '../assets/images/banner/bubble_shooter.svg';
-import BurgerMasterImg from '../assets/images/banner/burger_master.svg';
+import { useRouter } from 'next/navigation';
 
 const popularGames = [
   {
     id: 1,
     name: 'Bubble Shooter',
-    image: BubbleShooterImg,
+    image: '/images/banner/bubble_shooter.svg',
     rating: 4.8,
     genre: 'Arcade',
     duration: '5 min',
@@ -15,7 +16,7 @@ const popularGames = [
   {
     id: 2,
     name: 'Burger Maker',
-    image: BurgerMasterImg,
+    image: '/images/banner/burger_master.svg',
     rating: 4.6,
     genre: 'Cooking',
     duration: '7 min',
@@ -23,7 +24,7 @@ const popularGames = [
   {
     id: 3,
     name: 'Chef Master',
-    image: BurgerMasterImg,
+    image: '/images/banner/burger_master.svg',
     rating: 4.7,
     genre: 'Simulation',
     duration: '6 min',
@@ -31,7 +32,7 @@ const popularGames = [
   {
     id: 4,
     name: 'Chef Master',
-    image: BurgerMasterImg,
+    image: '/images/banner/burger_master.svg',
     rating: 4.7,
     genre: 'Simulation',
     duration: '6 min',
@@ -40,6 +41,12 @@ const popularGames = [
 
 
 const PopularToday = () => {
+  const router = useRouter();
+
+  const handleGameClick = (gameId: number) => {
+    router.push(`/games/${gameId}`);
+  };
+
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 2 }}>
@@ -87,6 +94,7 @@ const PopularToday = () => {
         {popularGames.map((game) => (
           <Box
             key={game.id}
+            onClick={() => handleGameClick(game.id)}
             sx={{
               minWidth: { xs: 152, sm: 180, md: 200, lg: 220 },
               maxWidth: { xs: 152, sm: 220, md: 240, lg: 260 },
@@ -94,6 +102,11 @@ const PopularToday = () => {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'flex-start',
+              cursor: 'pointer',
+              transition: 'transform 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'scale(1.02)',
+              },
               /*background: '#fff',
               borderRadius: 4,
               boxShadow: 2,
@@ -115,7 +128,7 @@ const PopularToday = () => {
               }}
             >
               <img
-                src={game.image.src}
+                src={game.image}
                 alt={game.name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 18 }}
               />
