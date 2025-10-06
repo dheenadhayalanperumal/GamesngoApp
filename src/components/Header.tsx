@@ -1,11 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { AppBar, Toolbar, Button, Box, Typography } from "@mui/material";
+import { AppBar, Toolbar, Button, Box, Typography, SxProps, Theme } from "@mui/material";
 import logo from "../assets/images/logo.png";
 import CurrencyButton from "./CurrencyButton";
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  sx?: SxProps<Theme>;
+}
+
+const Header: React.FC<HeaderProps> = ({ sx }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [coins, setCoins] = useState(120);
   const [strikes, setStrikes] = useState(13);
@@ -45,6 +49,7 @@ const Header: React.FC = () => {
         boxShadow: "none",
         transition: "all 0.3s ease",
         // marginBottom:'50px',
+        ...sx,
       }}
     >
       <Toolbar
@@ -70,7 +75,7 @@ const Header: React.FC = () => {
               sx={{
                 height: "42px",
                 margin: 0,
-                padding: "0 20%",
+                // padding: "0 20%",
                 color: "inherit",
                 borderColor: "currentColor",
                 borderRadius: "5px",

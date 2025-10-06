@@ -15,7 +15,19 @@ import RestaurantGame from "@/components/RestaurantGame";
 export default function Home() {
   return (
     <div className="layout">
-      <Header/>
+       <Header sx={{
+        backgroundColor: '#4848DB',
+        // paddingTop: '15px',
+        textAlign: 'center',
+        color: 'white',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1100,
+      }} />
+
+      
       <ProfileAvatar/>
 
       <BannerSlider/>

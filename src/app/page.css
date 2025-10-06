@@ -5,6 +5,7 @@
     justify-content: start;
     align-items: center;
     height: 100vh;
+    /* background: linear-gradient(to bottom, #6E6EFF 0%, #FDFDFD 70%); */
     gap: 25px;
     margin-top: 95px;
     margin-left: 2px;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
 import {
   SportsEsports as GamesIcon,
@@ -9,9 +9,49 @@ import {
   Redeem as RedeemIcon,
   Event as EventsIcon
 } from '@mui/icons-material';
+import { useRouter, usePathname } from 'next/navigation';
 
 const TabBar: React.FC = () => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [value, setValue] = useState(2); // Home is initially active (index 2)
+
+  // Update active tab based on current route
+  useEffect(() => {
+    if (pathname === '/') {
+      setValue(2); // Home
+    } else if (pathname.startsWith('/games')) {
+      setValue(0); // Games
+    } else if (pathname.startsWith('/leaderboard')) {
+      setValue(1); // Leader
+    } else if (pathname.startsWith('/profile')) {
+      setValue(3); // Redeem
+    } else if (pathname.startsWith('/tournaments')) {
+      setValue(4); // Events
+    }
+  }, [pathname]);
+
+  const handleNavigation = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
+
+    switch (newValue) {
+      case 0:
+        router.push('/games');
+        break;
+      case 1:
+        router.push('/leaderboard');
+        break;
+      case 2:
+        router.push('/');
+        break;
+      case 3:
+        router.push('/profile');
+        break;
+      case 4:
+        router.push('/tournaments');
+        break;
+    }
+  };
 
   return (
     <Paper
@@ -29,9 +69,7 @@ const TabBar: React.FC = () => {
       <BottomNavigation
         showLabels
         value={value}
-        onChange={(event, newValue) => {
-          setValue(newValue);
-        }}
+        onChange={handleNavigation}
         sx={{
           backgroundColor: 'transparent',
           borderRadius: '20px 20px 0 0',
