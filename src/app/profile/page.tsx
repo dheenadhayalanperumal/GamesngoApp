@@ -1,10 +1,20 @@
 import Header from "@/components/Header";
 import ProfileAvatar from "@/components/ProfileAvatar";
+import TabBar from "@/components/TabBar";
 
 export default function Profile() {
   return (
     <div>
-      <Header />
+      <Header sx={{
+        backgroundColor: '#4848DB',
+        textAlign: 'center',
+        color: 'white',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1100,
+      }} />
       <div style={{ padding: '20px' }}>
         <h1>Profile</h1>
         <div style={{ marginBottom: '20px' }}>
@@ -22,6 +32,7 @@ export default function Profile() {
           </ul>
         </div>
       </div>
+      <TabBar />
     </div>
   );
 }

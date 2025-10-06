@@ -1,9 +1,19 @@
 import Header from "@/components/Header";
+import TabBar from "@/components/TabBar";
 
 export default function Tournaments() {
   return (
     <div>
-      <Header />
+       <Header sx={{
+        backgroundColor: '#4848DB',
+        textAlign: 'center',
+        color: 'white',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1100,
+      }} />
       <div style={{ padding: '20px' }}>
         <h1>Tournaments</h1>
         <p>Join exciting tournaments and compete with players from around the world.</p>
@@ -18,6 +28,7 @@ export default function Tournaments() {
           </ul>
         </div>
       </div>
+      <TabBar />
     </div>
   );
 }

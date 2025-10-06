@@ -1,9 +1,19 @@
 import Header from "@/components/Header";
+import TabBar from "@/components/TabBar";
 
 export default function Games() {
   return (
     <div>
-      <Header />
+       <Header sx={{
+        backgroundColor: '#4848DB',
+        textAlign: 'center',
+        color: 'white',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1100,
+      }} />
       <div style={{ padding: '20px' }}>
         <h1>Games</h1>
         <p>Browse and discover various games available on our platform.</p>
@@ -18,6 +28,7 @@ export default function Games() {
           </ul>
         </div>
       </div>
+      <TabBar />
     </div>
   );
 }
