@@ -9,7 +9,6 @@ interface PodiumCardProps {
   avatar: string;
   coins: number;
   crownIcon?: StaticImageData;
-  isWinner?: boolean;
 }
 
 export default function PodiumCard({
@@ -18,7 +17,6 @@ export default function PodiumCard({
   avatar,
   coins,
   crownIcon,
-  isWinner = false,
 }: PodiumCardProps) {
   const isFirstPlace = rank === 1;
   const avatarSize = isFirstPlace ? 100 : 80;

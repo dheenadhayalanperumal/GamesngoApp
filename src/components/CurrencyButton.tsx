@@ -25,7 +25,7 @@ const CurrencyButton: React.FC<CurrencyButtonProps> = ({
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+  const handleClick = () => {
     if (isWallet) {
       setAnchorEl(buttonRef.current);
     }

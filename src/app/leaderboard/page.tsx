@@ -51,14 +51,14 @@ const allTimeWinners = [
   },
 ];
 
-const allTimePlayers = [
-  { rank: 1, name: 'Sarah', avatar: '/avatar2.jpg', score: 125000, coins: 9200 },
-  { rank: 2, name: 'Alex', avatar: '/avatar1.jpg', score: 118500, coins: 8500 },
-  { rank: 3, name: 'Mike', avatar: '/avatar3.jpg', score: 112000, coins: 7800 },
-  { rank: 4, name: 'Emma', avatar: '/avatar4.jpg', score: 98000, coins: 6500 },
-  { rank: 5, name: 'John', avatar: '/avatar4.jpg', score: 89000, coins: 5800 },
-  { rank: 6, name: 'Lisa', avatar: '/avatar4.jpg', score: 82000, coins: 5200 },
-];
+// const allTimePlayers = [
+//   { rank: 1, name: 'Sarah', avatar: '/avatar2.jpg', score: 125000, coins: 9200 },
+//   { rank: 2, name: 'Alex', avatar: '/avatar1.jpg', score: 118500, coins: 8500 },
+//   { rank: 3, name: 'Mike', avatar: '/avatar3.jpg', score: 112000, coins: 7800 },
+//   { rank: 4, name: 'Emma', avatar: '/avatar4.jpg', score: 98000, coins: 6500 },
+//   { rank: 5, name: 'John', avatar: '/avatar4.jpg', score: 89000, coins: 5800 },
+//   { rank: 6, name: 'Lisa', avatar: '/avatar4.jpg', score: 82000, coins: 5200 },
+// ];
 
 const thisWeekPlayers = [
   { rank: 1, name: 'saj', avatar: '/avatar4.jpg', score: 2651, coins: 500 },

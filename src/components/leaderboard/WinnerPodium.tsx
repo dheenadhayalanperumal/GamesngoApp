@@ -89,7 +89,6 @@ export default function WinnerPodium({ winners, title }: WinnerPodiumProps) {
             avatar={firstPlace.avatar}
             coins={firstPlace.coins}
             crownIcon={getCrown(firstPlace.rank)}
-            isWinner
           />
         )}
 
