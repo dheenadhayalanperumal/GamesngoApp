@@ -12,10 +12,10 @@ interface ProfileAvatarProps {
 }
 
 const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
-  size = 60,
+  size = 50,
   src,
   alt = "Profile Avatar",
-  userName,
+  userName="Gamesngo"
 }) => {
   return (
     <Box
@@ -42,27 +42,28 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
           {!src && (
             <PersonIcon
               sx={{
-                fontSize: size * 0.6,
+                fontSize: size * 0.7,
                 color: "#9E9E9E",
               }}
             />
           )}
         </Avatar>
 
-        <Box sx={{
+        <Box sx={{display:'flex', flexDirection:'column',gap:'0px',
           color:'white'}}>
-          <Typography variant="h6" >Good Morning</Typography>
-          <Typography variant="h5" sx={{
-          fontWeight:'bold'}}>{userName || "Guest"}</Typography>
+          <Typography variant="h6"  >Good Morning</Typography>
+          <Typography variant="h6" sx={{
+          fontWeight:'bold',color:'#FAC200;'}}>{userName || "Guest"}</Typography>
         </Box>
       </Box>
+      
 
       {/* Right side (Notification icon) */}
       <IconButton>
         <NotificationsNoneIcon   sx={{
           color:'white',
-                width:'50px',
-                height:'50px',
+                width:'40px',
+                height:'40px',
                  // zIndex:'0',
               }}/>
       </IconButton>

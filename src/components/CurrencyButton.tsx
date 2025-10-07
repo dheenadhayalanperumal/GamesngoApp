@@ -2,9 +2,10 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Box, Typography, Popover } from "@mui/material";
+import Image from "next/image";
 import WalletIcon from "../assets/images/svg/wallet.svg";
 import StrikesIcon from "../assets/images/svg/strikes.svg";
-import CoinsIcon from "../assets/images/svg/gamecoin.svg";
+import CoinIcon from "../assets/icons/coin.png";
 import CouponsIcon from "../assets/images/svg/coupons.svg";
 
 interface CurrencyButtonProps {
@@ -153,10 +154,11 @@ const CurrencyButton: React.FC<CurrencyButtonProps> = ({
                 borderRadius: "12px",
               }}
             >
-              <img
-                src={CoinsIcon.src}
+              <Image
+                src={CoinIcon}
                 alt="Coins"
-                style={{ width: "20px", height: "20px" }}
+                width={20}
+                height={20}
               />
               <Typography
                 sx={{

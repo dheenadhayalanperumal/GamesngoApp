@@ -2,17 +2,16 @@
 
 import React from 'react';
 import { Box, Typography } from '@mui/material';
+import Image from 'next/image';
+import CoinIcon from '@/assets/icons/coin.png';
 
 const GameCoinSVG: React.FC = () => (
-  <div
-    style={{
-      width: '100%',
-      height: '100%',
-      backgroundImage: `url('/gamecoin.svg')`,
-      backgroundSize: 'contain',
-      backgroundRepeat: 'no-repeat',
-      backgroundPosition: 'center',
-    }}
+  <Image
+    src={CoinIcon}
+    alt="Coin"
+    width={28}
+    height={28}
+    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
   />
 );
 
