@@ -4,6 +4,11 @@ import React, { useState } from 'react';
 import { Box, Typography, Button, Avatar } from '@mui/material';
 import Header from '@/components/Header';
 import TabBar from '@/components/TabBar';
+import Image from 'next/image';
+import Crown1 from '@/assets/images/crown/crown1.svg';
+import Crown2 from '@/assets/images/crown/crown2.svg';
+import Crown3 from '@/assets/images/crown/crown3.svg';
+import CoinIcon from '@/assets/icons/coin.png';
 
 
 
@@ -30,6 +35,36 @@ const pastWeekWinners = [
   },
 ];
 
+const allTimeWinners = [
+  {
+    rank: 2,
+    name: 'Alex',
+    avatar: '/avatar1.jpg',
+    coins: 8500,
+  },
+  {
+    rank: 1,
+    name: 'Sarah',
+    avatar: '/avatar2.jpg',
+    coins: 9200,
+  },
+  {
+    rank: 3,
+    name: 'Mike',
+    avatar: '/avatar3.jpg',
+    coins: 7800,
+  },
+];
+
+const allTimePlayers = [
+  { rank: 1, name: 'Sarah', avatar: '/avatar2.jpg', score: 125000, coins: 9200 },
+  { rank: 2, name: 'Alex', avatar: '/avatar1.jpg', score: 118500, coins: 8500 },
+  { rank: 3, name: 'Mike', avatar: '/avatar3.jpg', score: 112000, coins: 7800 },
+  { rank: 4, name: 'Emma', avatar: '/avatar4.jpg', score: 98000, coins: 6500 },
+  { rank: 5, name: 'John', avatar: '/avatar4.jpg', score: 89000, coins: 5800 },
+  { rank: 6, name: 'Lisa', avatar: '/avatar4.jpg', score: 82000, coins: 5200 },
+];
+
 const thisWeekPlayers = [
   { rank: 1, name: 'sanjay', avatar: '/avatar4.jpg', score: 2651, coins: 500 },
   { rank: 2, name: 'sanjay', avatar: '/avatar4.jpg', score: 2651, coins: 500 },
@@ -49,6 +84,8 @@ const prizes = [
 
 export default function Leaderboard() {
   const [activeTab, setActiveTab] = useState<'weekly' | 'alltime'>('weekly');
+
+  const currentWinners = activeTab === 'weekly' ? pastWeekWinners : allTimeWinners;
 
   return (
     <>
@@ -74,7 +111,7 @@ export default function Leaderboard() {
       }} />
 
       {/* Main Content */}
-      <Box sx={{ px: 2, pt: 6, pb: 10 }}>
+      <Box sx={{ px: "0px", pt: 6, pb: 10 }}>
         {/* Title */}
         <Typography
           variant="h4"
@@ -163,7 +200,7 @@ export default function Leaderboard() {
           </Button>
         </Box>
 
-        {/* Past Week Result */}
+        {/* Past Week Result / All Time Result */}
         <Typography
           variant="h6"
           sx={{
@@ -172,7 +209,7 @@ export default function Leaderboard() {
             fontSize: { xs: 16, sm: 18 },
           }}
         >
-          Past Week Result
+          {activeTab === 'weekly' ? 'Past Week Result' : 'All Time Result'}
         </Typography>
 
         {/* Winner Badge */}
@@ -195,26 +232,26 @@ export default function Leaderboard() {
           {/* 2nd Place */}
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, maxWidth: 120 }}>
             <Box sx={{ position: 'relative', mb: 1 }}>
-              <Box
+            <Box
                 sx={{
-                  width: 40,
-                  height: 40,
+                  width: 50,
+                  height: 50,
                   position: 'absolute',
-                  top: -20,
+                  top: -25,
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
                   zIndex: 1,
                 }}
               >
-                <Typography sx={{ fontSize: 24 }}>🔥</Typography>
+               <Image
+      src={Crown1}
+      alt="Crown"
+      width={50}
+      height={50}
+    />
               </Box>
               <Avatar
-                src={pastWeekWinners[0].avatar}
+                src={currentWinners[0].avatar}
                 sx={{
                   width: 80,
                   height: 80,
@@ -245,11 +282,11 @@ export default function Leaderboard() {
               </Box>
             </Box>
             <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 18, mt: 2 }}>
-              {pastWeekWinners[0].name}
+              {currentWinners[0].name}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Typography sx={{ fontSize: 20 }}>🪙</Typography>
-              <Typography sx={{ color: 'white', fontSize: 14 }}>{pastWeekWinners[0].coins} Coins</Typography>
+              <Image src={CoinIcon} alt="Coin" width={20} height={20} />
+              <Typography sx={{ color: 'white', fontSize: 14 }}>{currentWinners[0].coins} Coins</Typography>
             </Box>
           </Box>
 
@@ -267,10 +304,15 @@ export default function Leaderboard() {
                   zIndex: 1,
                 }}
               >
-                <Typography sx={{ fontSize: 50 }}>👑</Typography>
+               <Image 
+      src={Crown2}
+      alt="Crown"
+      width={50}
+      height={50}
+    />
               </Box>
               <Avatar
-                src={pastWeekWinners[1].avatar}
+                src={currentWinners[1].avatar}
                 sx={{
                   width: 100,
                   height: 100,
@@ -301,37 +343,37 @@ export default function Leaderboard() {
               </Box>
             </Box>
             <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 20, mt: 2 }}>
-              {pastWeekWinners[1].name}
+              {currentWinners[1].name}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Typography sx={{ fontSize: 22 }}>🪙</Typography>
-              <Typography sx={{ color: 'white', fontSize: 16 }}>{pastWeekWinners[1].coins} Coins</Typography>
+              <Image src={CoinIcon} alt="Coin" width={22} height={22} />
+              <Typography sx={{ color: 'white', fontSize: 16 }}>{currentWinners[1].coins} Coins</Typography>
             </Box>
           </Box>
 
           {/* 3rd Place */}
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, maxWidth: 120 }}>
             <Box sx={{ position: 'relative', mb: 1 }}>
-              <Box
+            <Box
                 sx={{
-                  width: 40,
-                  height: 40,
+                  width: 50,
+                  height: 50,
                   position: 'absolute',
-                  top: -20,
+                  top: -25,
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
                   zIndex: 1,
                 }}
               >
-                <Typography sx={{ fontSize: 24 }}>🔥</Typography>
+               <Image
+      src={Crown3}
+      alt="Crown"
+      width={50}
+      height={50}
+    />
               </Box>
               <Avatar
-                src={pastWeekWinners[2].avatar}
+                src={currentWinners[2].avatar}
                 sx={{
                   width: 80,
                   height: 80,
@@ -362,11 +404,11 @@ export default function Leaderboard() {
               </Box>
             </Box>
             <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 18, mt: 2 }}>
-              {pastWeekWinners[2].name}
+              {currentWinners[2].name}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Typography sx={{ fontSize: 20 }}>🪙</Typography>
-              <Typography sx={{ color: 'white', fontSize: 14 }}>{pastWeekWinners[2].coins} Coins</Typography>
+              <Image src={CoinIcon} alt="Coin" width={20} height={20} />
+              <Typography sx={{ color: 'white', fontSize: 14 }}>{currentWinners[2].coins} Coins</Typography>
             </Box>
           </Box>
         </Box>
@@ -377,19 +419,19 @@ export default function Leaderboard() {
           sx={{
             color: 'white',
             mb: 2,
-            fontSize: { xs: 16, sm: 18 },
+            fontSize: { xs: 20, sm: 24 },
           }}
         >
           Prizes
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1.5, mb: 4, justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', gap: 1, mb: 4, justifyContent: 'space-evenly', width:"100%" }}>
           {prizes.map((prize) => (
             <Box
               key={prize.rank}
               sx={{
-                backgroundColor: 'rgba(255,255,255,0.15)',
-                borderRadius: 3,
-                py: 2,
+                backgroundColor: 'rgba(33, 23, 91, 0.20)',
+                borderRadius: 5,
+                py: 1,
                 px: 1,
                 flex: 1,
                 display: 'flex',
@@ -402,10 +444,10 @@ export default function Leaderboard() {
                 {prize.rank}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 16 }}>
+                <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 12 }}>
                   {prize.coins}
                 </Typography>
-                <Typography sx={{ fontSize: 18 }}>🪙</Typography>
+                <Image src={CoinIcon} alt="Coin" width={18} height={18} />
               </Box>
             </Box>
           ))}
@@ -490,7 +532,7 @@ export default function Leaderboard() {
                     gap: 0.5,
                   }}
                 >
-                  <Typography sx={{ fontSize: 18 }}>🪙</Typography>
+                  <Image src={CoinIcon} alt="Coin" width={18} height={18} />
                   <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 16 }}>
                     {player.coins}
                   </Typography>

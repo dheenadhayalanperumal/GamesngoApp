@@ -61,7 +61,7 @@ const TabBar: React.FC = () => {
         left: 0,
         right: 0,
         zIndex: 1000,
-        borderRadius: '20px 20px 0 0',
+        borderRadius: '10px 10px 0 0',
         backgroundColor: '#f5f5f5'
       }}
       elevation={3}
@@ -73,7 +73,7 @@ const TabBar: React.FC = () => {
         sx={{
           backgroundColor: 'transparent',
           borderRadius: '20px 20px 0 0',
-          paddingTop: '12px',
+          paddingTop: '5px',
           paddingBottom: '0px',
           height: 'auto',
           '& .MuiBottomNavigationAction-root': {
