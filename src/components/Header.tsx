@@ -21,6 +21,8 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
   };
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
       const viewportHeight = window.innerHeight;

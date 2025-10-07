@@ -50,8 +50,8 @@ export default function WinnerPodium({ winners, title }: WinnerPodiumProps) {
         <Typography
           sx={{
             color: '#FFD700',
-            fontWeight: 900,
-            fontSize: { xs: 24, sm: 28 },
+            fontWeight: 1000,
+            fontSize: { xs: 28, sm: 32 },
             textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
             letterSpacing: 2,
           }}
