@@ -34,16 +34,17 @@ const GamesDescription: React.FC<GamesDescriptionProps> = ({ game }) => {
   };
 
   return (
-    <Box sx={{ width: '100%', p: 1 }}>
+    <Box sx={{ width: '100%', }}>
       {/* Header with back button */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 , background:'#4848db', py:2, px:6, mx:-6}}>
+
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={handleBack}
           sx={{
             color: '#fff',
             textTransform: 'none',
-            fontWeight: 600,
+            fontWeight: 800,
             '&:hover': {
               backgroundColor: 'rgba(45, 35, 80, 0.1)',
             },

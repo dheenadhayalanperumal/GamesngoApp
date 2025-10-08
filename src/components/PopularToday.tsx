@@ -46,6 +46,9 @@ const PopularToday = () => {
   const handleGameClick = (gameId: number) => {
     router.push(`/games/${gameId}`);
   };
+  const handleViewAll = () => {
+    router.push('/games');
+  };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -65,6 +68,7 @@ const PopularToday = () => {
         <Button
           variant="text"
           size="small"
+          onClick={handleViewAll}
           sx={{
             textTransform: 'none',
             ml: 'auto',

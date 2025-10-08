@@ -1,8 +1,10 @@
+'use client';
+
 import { Box, Typography, Button } from '@mui/material';
 import React from 'react';
 import DindugalImg from '../assets/images/banner/dindugal.svg';
 import NadanaImg from '../assets/images/banner/nadana.svg';
-
+import { useRouter } from 'next/navigation';
 const popularGames = [
   {
     id: 1,
@@ -38,8 +40,13 @@ const popularGames = [
   },
 ];
 
-
 const RestaurantGame = () => {
+  const router = useRouter();
+
+  const handleViewAll1 = () => {
+    router.push('/games?tab=restaurant');
+  };
+
   return (
     <Box sx={{ paddingBottom: '18px', width: '100%',    background: '#FDDFFF',
     paddingTop: '18px',
@@ -64,6 +71,7 @@ const RestaurantGame = () => {
         <Button
           variant="text"
           size="small"
+          onClick={handleViewAll1}
           sx={{
             textTransform: 'none',
             ml: 'auto',
