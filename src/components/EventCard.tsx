@@ -50,7 +50,7 @@ const EventCard: React.FC<EventCardProps> = ({
       {isPrize && (
         <Box
           sx={{
-            background: 'linear-gradient(90deg,rgb(32, 21, 21) 0%,rgb(9, 9, 28) 100%)',
+            background: '#170C38',
             padding: '12px 20px',
             display: 'flex',
             alignItems: 'center',
