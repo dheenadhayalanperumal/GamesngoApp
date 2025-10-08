@@ -1,5 +1,7 @@
+import EventCard from "@/components/EventCard";
 import Header from "@/components/Header";
 import TabBar from "@/components/TabBar";
+
 
 export default function Tournaments() {
   return (
@@ -28,6 +30,17 @@ export default function Tournaments() {
           </ul>
         </div>
       </div>
+
+      {/* <EventCard
+        id="1"
+        title="Summer Championship"
+        description="Compete in the Summer Championship for a chance to win big prizes!"
+        image="/images/summer-championship.jpg"
+        date="2024-07-15"
+        location="Online"
+        prizePool="$10,000"
+        link="/tournaments/summer-championship"
+      /> */}
       <TabBar />
     </div>
   );

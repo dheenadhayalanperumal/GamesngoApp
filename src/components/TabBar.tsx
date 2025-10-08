@@ -26,7 +26,7 @@ const TabBar: React.FC = () => {
       setValue(1); // Leader
     } else if (pathname.startsWith('/profile')) {
       setValue(3); // Redeem
-    } else if (pathname.startsWith('/tournaments')) {
+    } else if (pathname.startsWith('/events')) {
       setValue(4); // Events
     }
   }, [pathname]);
@@ -48,7 +48,7 @@ const TabBar: React.FC = () => {
         router.push('/profile');
         break;
       case 4:
-        router.push('/tournaments');
+        router.push('/events');
         break;
     }
   };
