@@ -8,13 +8,15 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import StarIcon from '@mui/icons-material/Star';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import BottomTabBar from '@/components/BottomTabBar';
+import TabBar from '@/components/TabBar';
+import DindugalImg from '../assets/images/banner/dindugal.svg';
+import NadanaImg from '../assets/images/banner/nadana.svg';
 
 const restaurantGameData = {
   1: {
     id: 1,
     name: 'Dindigul Thalapakatti',
-    image: '/images/banner/dindugal.svg',
+    image: DindugalImg,
     rating: 5.0,
     genre: 'Score Based Coins + Coupons',
     description: 'Experience authentic South Indian cuisine in this exciting restaurant game!',
@@ -34,7 +36,7 @@ const restaurantGameData = {
   2: {
     id: 2,
     name: 'Nandana Palace',
-    image: '/images/banner/nadana.svg',
+    image: NadanaImg,
     rating: 4.8,
     genre: 'Score Based Coins + Coupons',
     description: 'Master the art of royal cooking in this palace kitchen simulation!',
@@ -133,10 +135,12 @@ const RestaurantGameDetailPage = () => {
 
   return (
     <Box sx={{ 
-      width: '100%', 
+      // width: '100%', 
       minHeight: '100vh',
       backgroundColor: '#f5f5f5',
       paddingBottom: '100px',
+      mx: '-15px',
+      
       '@keyframes fadeIn': {
         from: { opacity: 0 },
         to: { opacity: 1 }
@@ -156,6 +160,7 @@ const RestaurantGameDetailPage = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           position: 'sticky',
+          
           top: 0,
           zIndex: 1000
         }}
@@ -175,11 +180,11 @@ const RestaurantGameDetailPage = () => {
           Back
         </Button>
         
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AccountBalanceWalletIcon sx={{ color: 'white' }} />
           <Typography sx={{ color: 'white', fontWeight: 600 }}>Wallet</Typography>
           <KeyboardArrowDownIcon sx={{ color: 'white' }} />
-        </Box>
+        </Box> */}
       </Box>
 
       {/* Game Banner */}
@@ -187,23 +192,26 @@ const RestaurantGameDetailPage = () => {
         sx={{
           width: '100%',
           height: '200px',
+          // mt: '1px',
           background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)',
           borderRadius: '0 0 20px 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          mb: 3
+          mb: 3,
+          overflow: 'hidden'
         }}
       >
-        <Typography
-          sx={{
-            color: 'white',
-            fontSize: '24px',
-            fontWeight: 700
+        <img
+          src={game.image.src}
+          alt={game.name}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            padding: '20px'
           }}
-        >
-          Game Banner
-        </Typography>
+        />
       </Box>
 
       <Box sx={{ px: 2 }}>
@@ -481,7 +489,7 @@ const RestaurantGameDetailPage = () => {
       )}
 
       {/* Bottom Navigation Bar */}
-      <BottomTabBar activeTab="games" />
+      <TabBar />
     </Box>
   );
 };

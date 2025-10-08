@@ -47,6 +47,10 @@ const RestaurantGame = () => {
     router.push('/games?tab=restaurant');
   };
 
+  const handleGameClick = (gameId: number) => {
+    router.push(`/restaurant-games/${gameId}`);
+  };
+
   return (
     <Box sx={{ paddingBottom: '18px', width: '100%',    background: '#FDDFFF',
     paddingTop: '18px',
@@ -101,6 +105,7 @@ const RestaurantGame = () => {
         {popularGames.map((game) => (
           <Box
             key={game.id}
+            onClick={() => handleGameClick(game.id)}
             sx={{
               minWidth: { xs: 152, sm: 180, md: 200, lg: 220 },
               maxWidth: { xs: 152, sm: 220, md: 240, lg: 260 },
@@ -113,6 +118,12 @@ const RestaurantGame = () => {
               boxShadow: 2,
               p: 1,
               mb: 1,
+              cursor: 'pointer',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: 4,
+              },
             }}
           >
             <Box
