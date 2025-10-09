@@ -4,13 +4,18 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Box, Typography, Button, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import StarIcon from '@mui/icons-material/Star';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import TabBar from '@/components/TabBar';
 import DindugalImg from '../assets/images/banner/dindugal.svg';
 import NadanaImg from '../assets/images/banner/nadana.svg';
+
+interface Outlet {
+  id: number;
+  name: string;
+  address: string;
+}
 
 const restaurantGameData = {
   1: {
@@ -116,10 +121,6 @@ const RestaurantGameDetailPage = () => {
     router.back();
   };
 
-  const handlePlayGame = () => {
-    console.log(`Playing restaurant game: ${game.name}`);
-  };
-
   const handleShowOutletSheet = () => {
     setShowOutletSheet(true);
   };
@@ -128,7 +129,7 @@ const RestaurantGameDetailPage = () => {
     setShowOutletSheet(false);
   };
 
-  const handleSelectOutlet = (outlet: any) => {
+  const handleSelectOutlet = (outlet: Outlet) => {
     console.log(`Selected outlet: ${outlet.name}`);
     setShowOutletSheet(false);
   };
