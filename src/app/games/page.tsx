@@ -1,32 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Box, Typography, Tabs, Tab } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AllGamesCard from '@/components/AllGamesCard';
 import SearchBar from '@/components/SearchBar';
 import Header from '@/components/Header';
 import TabBar from '@/components/TabBar';
-
-// Game type interfaces
-interface BaseGame {
-  id: number;
-  name: string;
-  image: string;
-  rating: number;
-  action: string;
-  duration: string;
-  category: string;
-}
-
-interface RestaurantGame extends BaseGame {
-  gameType?: string;
-  location?: string;
-  outlets?: string;
-  discount?: string;
-}
-
-type GameData = BaseGame | RestaurantGame;
 
 // Original game data for Popular Today
 const allGamesData = [
@@ -186,7 +166,7 @@ const restaurantGamesData = [
   },
 ];
 
-const AllGamesContent = () => {
+const AllGamesPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(0); // Default to first tab
@@ -468,29 +448,29 @@ const AllGamesContent = () => {
                     mb: 2
                   }}
                 >
-                  {(game as RestaurantGame).gameType || game.action}
+                  {(game as any).gameType || game.action}
                 </Typography>
 
                 {/* Details Row */}
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
-                  {(game as RestaurantGame).location && (
+                  {(game as any).location && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <Typography sx={{ fontSize: '12px', color: '#888' }}>📍</Typography>
-                      <Typography sx={{ fontSize: '12px', color: '#666' }}>{(game as RestaurantGame).location}</Typography>
+                      <Typography sx={{ fontSize: '12px', color: '#666' }}>{(game as any).location}</Typography>
                     </Box>
                   )}
                   
-                  {(game as RestaurantGame).outlets && (
+                  {(game as any).outlets && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <Typography sx={{ fontSize: '12px', color: '#888' }}>🍽️</Typography>
-                      <Typography sx={{ fontSize: '12px', color: '#666' }}>{(game as RestaurantGame).outlets}</Typography>
+                      <Typography sx={{ fontSize: '12px', color: '#666' }}>{(game as any).outlets}</Typography>
                     </Box>
                   )}
                   
-                  {(game as RestaurantGame).discount && (
+                  {(game as any).discount && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <Typography sx={{ fontSize: '12px', color: '#888' }}>%</Typography>
-                      <Typography sx={{ fontSize: '12px', color: '#666' }}>{(game as RestaurantGame).discount}</Typography>
+                      <Typography sx={{ fontSize: '12px', color: '#666' }}>{(game as any).discount}</Typography>
                     </Box>
                   )}
                   
@@ -602,14 +582,6 @@ const AllGamesContent = () => {
       {/* Bottom Navigation Bar */}
       {/* <TabBar /> */}
     </Box>
-  );
-};
-
-const AllGamesPage = () => {
-  return (
-    <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>Loading...</Box>}>
-      <AllGamesContent />
-    </Suspense>
   );
 };
 
