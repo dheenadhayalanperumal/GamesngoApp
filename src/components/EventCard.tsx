@@ -32,14 +32,22 @@ const EventCard: React.FC<EventCardProps> = ({
   onBuyTickets,
 }) => {
   return (
+    <Box sx={{ width: '100%', padding: '18px', backgroundColor: '#3920A6',borderRadius: '10px'}}>
     <Box
       sx={{
         width: '100%',
-        minWidth: 380,
-        background: 'linear-gradient(180deg, #1a0a3e 0%, #2d1554 100%)',
-        borderRadius: 4,
-        border: '4px solid',
-        borderColor: '#ffa726',
+        // minWidth: 380,
+        backgroundImage: 'url(/images/product/bg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        
+        borderRadius: '10px',
+        border: '3px solid #FFD015',
+        // borderColor: '#ffa726',
+        // background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.40) 100%)',
+
+
         boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
         overflow: 'hidden',
         position: 'relative',
@@ -50,18 +58,19 @@ const EventCard: React.FC<EventCardProps> = ({
       {isPrize && (
         <Box
           sx={{
-            background: '#170C38',
+            // background: '#170C38',
             padding: '12px 20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '2px solid #ffa726',
+            // borderBottom: '2px solid #ffa726',
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography
               sx={{
-                fontSize: 28,
+                // Font sizes: xs: 18px, sm: 22px, md: 28px
+                fontSize: { xs: 18, sm: 22, md: 28 },
                 fontWeight: 900,
                 color: '#ffa726',
                 textTransform: 'uppercase',
@@ -72,7 +81,7 @@ const EventCard: React.FC<EventCardProps> = ({
               🏆 GRAND PRIZE EVENT
             </Typography>
           </Box>
-          {isLive && (
+          {/* {isLive && (
             <Chip
               label="LIVE"
               size="small"
@@ -89,15 +98,18 @@ const EventCard: React.FC<EventCardProps> = ({
                 },
               }}
             />
-          )}
+          )} */}
         </Box>
       )}
 
       {/* Event Content */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #8b1a1a 0%, #5a0a0a 100%)',
-          borderRadius: 3,
+          borderRadius: '10px',
+        border: '1px solid #A9A2FF',
+background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA2 100%)',
+          // background: 'linear-gradient(135deg, #8b1a1a 0%, #5a0a0a 100%)',
+          // borderRadius: 3,
           margin: 2,
           padding: 2.5,
           position: 'relative',
@@ -108,8 +120,8 @@ const EventCard: React.FC<EventCardProps> = ({
           {/* Event Image */}
           <Box
             sx={{
-              width: 100,
-              height: 100,
+              width:{xs: 80, sm: 100, md: 100},
+              height:{xs: 80, sm: 100, md: 100},
               borderRadius: 2,
               overflow: 'hidden',
               flexShrink: 0,
@@ -128,34 +140,41 @@ const EventCard: React.FC<EventCardProps> = ({
           </Box>
 
           {/* Event Details */}
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ flex: 1,height: '100px', display: 'flex', 
+            flexDirection: 'column',justifyContent: 'space-evenly' }}>
+              <Box>
             <Typography
               sx={{
-                fontSize: 28,
-                fontWeight: 900,
-                color: '#ffd540',
-                mb: 0.5,
-                lineHeight: 1.2,
+                // Font sizes: xs: 18px, sm: 22px, md: 26px
+                fontSize: { xs: '18px', sm: '22px', md: '26px' },
+                fontWeight: 400,
+                color: '#FFDC2E',
+                mb: 1,
+                letterSpacing: '0.52px',
+                lineHeight: '25px',
               }}
             >
               {title}
             </Typography>
             <Typography
               sx={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#ffd54f',
+                // Font sizes: xs: 8px, sm: 9px, md: 10px
+                fontSize: { xs: 9, sm: 10, md: 12 },
+                fontWeight: 400,
+                color: '#ffffff',
                 mb: 1,
                 lineHeight: 1.3,
               }}
             >
               {description}
             </Typography>
+            </Box>
             <Typography
               sx={{
-                fontSize: 11,
-                fontWeight: 500,
-                color: 'rgba(255,255,255,0.85)',
+                // Font sizes: xs: 12px, sm: 13px, md: 15px
+                fontSize: { xs: 11, sm: 13, md: 15 },
+                fontWeight: 600,
+                color: '#FFF4C0',
                 lineHeight: 1.4,
               }}
             >
@@ -177,9 +196,10 @@ const EventCard: React.FC<EventCardProps> = ({
         <Box sx={{ textAlign: 'center', flex: 1 }}>
           <Typography
             sx={{
-              fontSize: 28,
+              // Font sizes: xs: 20px, sm: 24px, md: 28px
+              fontSize: { xs: 20, sm: 24, md: 28 },
               fontWeight: 900,
-              color: '#ffd54f',
+              color: '#ffffff',
               lineHeight: 1,
               mb: 0.5,
             }}
@@ -188,7 +208,8 @@ const EventCard: React.FC<EventCardProps> = ({
           </Typography>
           <Typography
             sx={{
-              fontSize: 13,
+              // Font sizes: xs: 10px, sm: 11px, md: 13px
+              fontSize: { xs: 10, sm: 11, md: 13 },
               fontWeight: 600,
               color: 'rgba(255,255,255,0.9)',
             }}
@@ -200,9 +221,10 @@ const EventCard: React.FC<EventCardProps> = ({
         <Box sx={{ textAlign: 'center', flex: 1 }}>
           <Typography
             sx={{
-              fontSize: 28,
+              // Font sizes: xs: 20px, sm: 24px, md: 28px
+              fontSize: { xs: 20, sm: 24, md: 28 },
               fontWeight: 900,
-              color: '#ffd54f',
+              color: '#ffffff',
               lineHeight: 1,
               mb: 0.5,
             }}
@@ -211,7 +233,8 @@ const EventCard: React.FC<EventCardProps> = ({
           </Typography>
           <Typography
             sx={{
-              fontSize: 13,
+              // Font sizes: xs: 10px, sm: 11px, md: 13px
+              fontSize: { xs: 10, sm: 11, md: 13 },
               fontWeight: 600,
               color: 'rgba(255,255,255,0.9)',
             }}
@@ -224,9 +247,10 @@ const EventCard: React.FC<EventCardProps> = ({
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
             <Typography
               sx={{
-                fontSize: 28,
+                // Font sizes: xs: 20px, sm: 24px, md: 28px
+                fontSize: { xs: 20, sm: 24, md: 28 },
                 fontWeight: 900,
-                color: '#ffd54f',
+                color: '#ffffff',
                 lineHeight: 1,
               }}
             >
@@ -234,7 +258,8 @@ const EventCard: React.FC<EventCardProps> = ({
             </Typography>
             <Typography
               sx={{
-                fontSize: 20,
+                // Font sizes: xs: 16px, sm: 18px, md: 20px
+                fontSize: { xs: 16, sm: 18, md: 20 },
                 color: '#ffd54f',
                 lineHeight: 1,
               }}
@@ -244,7 +269,8 @@ const EventCard: React.FC<EventCardProps> = ({
           </Box>
           <Typography
             sx={{
-              fontSize: 13,
+              // Font sizes: xs: 10px, sm: 11px, md: 13px
+              fontSize: { xs: 10, sm: 11, md: 13 },
               fontWeight: 600,
               color: 'rgba(255,255,255,0.9)',
               mt: 0.5,
@@ -262,8 +288,9 @@ const EventCard: React.FC<EventCardProps> = ({
           onClick={() => onBuyTickets?.(id)}
           sx={{
             background: 'linear-gradient(180deg, #ffa726 0%, #ff8f00 100%)',
-            color: '#8b1a1a',
-            fontSize: 22,
+            color: '#ffffff',
+            // Font sizes: xs: 16px, sm: 18px, md: 22px
+            fontSize: { xs: 16, sm: 18, md: 22 },
             fontWeight: 900,
             textTransform: 'none',
             borderRadius: 2.5,
@@ -278,6 +305,7 @@ const EventCard: React.FC<EventCardProps> = ({
           Buy Tickets
         </Button>
       </Box>
+    </Box>
     </Box>
   );
 };

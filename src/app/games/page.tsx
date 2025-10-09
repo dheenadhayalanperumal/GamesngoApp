@@ -318,7 +318,9 @@ const AllGamesContent = () => {
             ref={tabsRef}
             sx={{ 
               display: 'flex', 
-              gap: 3, 
+            
+              justifyContent: 'space-between',
+              // gap: 3, 
               overflowX: 'auto',
               scrollBehavior: 'smooth',
               '&::-webkit-scrollbar': {
@@ -341,15 +343,17 @@ const AllGamesContent = () => {
                 key={index}
                 onClick={() => handleTabClick(index)}
                 sx={{
+               
                   cursor: 'pointer',
                   position: 'relative',
                   pb: 1,
-                  minWidth: 'fit-content'
+                  minWidth: 'fit-content',
+                  gap: 2
                 }}
               >
                 <Typography
                   sx={{
-                    fontSize: '16px',
+                    fontSize: '18px',
                     fontWeight: activeTab === index ? 700 : 400,
                     color: activeTab === index ? '#333' : '#888',
                     textTransform: 'none'
