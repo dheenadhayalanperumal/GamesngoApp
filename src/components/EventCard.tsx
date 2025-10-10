@@ -37,7 +37,7 @@ const EventCard: React.FC<EventCardProps> = ({
       sx={{
         width: '100%',
         // minWidth: 380,
-        backgroundImage: 'url(/images/product/bg.png)',
+        backgroundImage: 'url(/images/product/bgm.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -110,7 +110,7 @@ const EventCard: React.FC<EventCardProps> = ({
 background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA2 100%)',
           // background: 'linear-gradient(135deg, #8b1a1a 0%, #5a0a0a 100%)',
           // borderRadius: 3,
-          margin: 2,
+          marginX: 2,
           padding: 2.5,
           position: 'relative',
           overflow: 'hidden',
@@ -282,7 +282,7 @@ background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA
       </Box>
 
       {/* Buy Tickets Button */}
-      <Box sx={{ padding: '0 24px 24px' }}>
+      <Box sx={{ px:'11px', pb:'11px'}}>
         <Button
           fullWidth
           onClick={() => onBuyTickets?.(id)}
@@ -293,7 +293,7 @@ background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA
             fontSize: { xs: 16, sm: 18, md: 22 },
             fontWeight: 900,
             textTransform: 'none',
-            borderRadius: 2.5,
+            borderRadius: '30px',
             padding: '14px',
             boxShadow: '0 4px 12px rgba(255,152,0,0.4)',
             '&:hover': {

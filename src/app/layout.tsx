@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Rubik } from "next/font/google";
+import { Inter } from "next/font/google";
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import theme from '@/theme/theme';
 import "./globals.css";
 
-const rubik = Rubik({
-  variable: "--font-rubik",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   weight: ['300', '400', '500', '600', '700', '800', '900'],
 });
@@ -62,10 +65,13 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className={`${rubik.variable} gradient-body`}>
-        <div className="content-container">
-          {children}
-        </div>
+      <body className={`${inter.variable} gradient-body`}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <div className="content-container">
+            {children}
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );
