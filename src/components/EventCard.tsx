@@ -37,7 +37,7 @@ const EventCard: React.FC<EventCardProps> = ({
       sx={{
         width: '100%',
         // minWidth: 380,
-        backgroundImage: 'url(/images/product/bg.png)',
+        backgroundImage: 'url(/images/product/bg1.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
