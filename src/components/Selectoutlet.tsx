@@ -192,9 +192,9 @@ const RestaurantGameDetailPage = () => {
       <Box
         sx={{
           width: '100%',
-          height: '200px',
+          height: 'auto',
           // mt: '1px',
-          background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)',
+         // background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)',
           borderRadius: '0 0 20px 20px',
           display: 'flex',
           alignItems: 'center',
@@ -284,23 +284,30 @@ const RestaurantGameDetailPage = () => {
               textTransform: 'none',
               fontWeight: 700,
               px: 4,
-              py: 2,
+              py: 1,
               borderRadius: '12px',
-              fontSize: '18px',
+              fontSize: '16px',
               width: '100%',
               display: 'flex',
-              justifyContent: 'space-between',
+              justifyContent: 'center',
               alignItems: 'center',
+              position: 'relative',
+              boxShadow: 'none',
               '&:hover': {
                 backgroundColor: '#E6B000',
+                boxShadow: 'none',
               },
             }}
           >
-            <Typography sx={{ fontWeight: 700, color: '#333' }}>Play</Typography>
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
-              <PlayArrowIcon sx={{ color: '#333', fontSize: '20px' }} />
-              <PlayArrowIcon sx={{ color: '#333', fontSize: '20px' }} />
-              <PlayArrowIcon sx={{ color: '#333', fontSize: '20px' }} />
+            <Typography sx={{ fontWeight: 700,fontSize: '22px',color: '#fff' }}>Play</Typography>
+            <Box sx={{ 
+              position: 'absolute', 
+              right: '24px',
+              display: 'flex', 
+              gap: 0.5 
+            }}>
+              <img src="/images/banner/playarrow.svg" alt="play" />
+              
             </Box>
           </Button>
         </Box>

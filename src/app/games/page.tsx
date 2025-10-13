@@ -42,7 +42,7 @@ const allGamesData = [
   {
     id: 2,
     name: 'Burger Master',
-    image: '/images/banner/burger_master.svg',
+    image: '/images/banner/burger_maker.svg',
     rating: 4.6,
     action: 'Cooking',
     duration: '7 min',
@@ -51,7 +51,7 @@ const allGamesData = [
   {
     id: 3,
     name: 'Dindigul Thalappakatti',
-    image: '/images/banner/dindugal.svg',
+    image: '/images/banner/restaurant1.svg',
     rating: 4.7,
     action: 'Strategy',
     duration: '6 min',
@@ -69,7 +69,7 @@ const allGamesData = [
   {
     id: 5,
     name: 'Daily Game',
-    image: '/images/banner/Daily_game.svg',
+    image: '/images/banner/burger_maker.svg',
     rating: 4.9,
     action: 'Puzzle',
     duration: '4 min',
@@ -87,7 +87,7 @@ const allGamesData = [
   {
     id: 7,
     name: 'Word Puzzle',
-    image: '/images/banner/Daily_game.svg',
+    image: '/images/banner/burger_maker.svg',
     rating: 4.6,
     action: 'Brain',
     duration: '5 min',
@@ -109,7 +109,7 @@ const restaurantGamesData = [
   {
     id: 1,
     name: 'Dindukal Thalappakatti Biriyani',
-    image: '/images/banner/dindugal.svg',
+    image: '/images/banner/restaurant1.svg',
     rating: 5.0,
     action: 'Bubble Shooter',
     duration: '5 min',
@@ -122,7 +122,7 @@ const restaurantGamesData = [
   {
     id: 2,
     name: 'Dindukal Thalappakatti Biriyani',
-    image: '/images/banner/dindugal.svg',
+    image: '/images/banner/restaurant1.svg',
     rating: 5.0,
     action: 'Bubble Shooter',
     duration: '5 min',
@@ -135,7 +135,7 @@ const restaurantGamesData = [
   {
     id: 3,
     name: 'Dindukal Thalappakatti Biriyani',
-    image: '/images/banner/dindugal.svg',
+    image: '/images/banner/restaurant1.svg',
     rating: 5.0,
     action: 'Bubble Shooter',
     duration: '5 min',
@@ -148,7 +148,7 @@ const restaurantGamesData = [
   {
     id: 4,
     name: 'Dindukal Thalappakatti Biriyani',
-    image: '/images/banner/dindugal.svg',
+    image: '/images/banner/restaurant1.svg',
     rating: 5.0,
     action: 'Bubble Shooter',
     duration: '5 min',
@@ -161,7 +161,7 @@ const restaurantGamesData = [
   {
     id: 5,
     name: 'Dindukal Thalappakatti Biriyani',
-    image: '/images/banner/dindugal.svg',
+    image: '/images/banner/restaurant1.svg',
     rating: 5.0,
     action: 'Bubble Shooter',
     duration: '5 min',
@@ -174,7 +174,7 @@ const restaurantGamesData = [
   {
     id: 6,
     name: 'Dindukal Thalappakatti Biriyani',
-    image: '/images/banner/dindugal.svg',
+    image: '/images/banner/restaurant1.svg',
     rating: 5.0,
     action: 'Bubble Shooter',
     duration: '5 min',
@@ -318,9 +318,7 @@ const AllGamesContent = () => {
             ref={tabsRef}
             sx={{ 
               display: 'flex', 
-            
-              justifyContent: 'space-between',
-              // gap: 3, 
+              gap: 3, 
               overflowX: 'auto',
               scrollBehavior: 'smooth',
               '&::-webkit-scrollbar': {
@@ -343,17 +341,15 @@ const AllGamesContent = () => {
                 key={index}
                 onClick={() => handleTabClick(index)}
                 sx={{
-               
                   cursor: 'pointer',
                   position: 'relative',
                   pb: 1,
-                  minWidth: 'fit-content',
-                  gap: 2
+                  minWidth: 'fit-content'
                 }}
               >
                 <Typography
                   sx={{
-                    fontSize: '18px',
+                    fontSize: '16px',
                     fontWeight: activeTab === index ? 700 : 400,
                     color: activeTab === index ? '#333' : '#888',
                     textTransform: 'none'
@@ -433,9 +429,9 @@ const AllGamesContent = () => {
                 {/* Restaurant Logo */}
                 <Box
                   sx={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
+                    width: '100%',
+                    height: '200px',
+                    //borderRadius: '50%',
                     backgroundColor: '#f0f0f0',
                     display: 'flex',
                     alignItems: 'center',

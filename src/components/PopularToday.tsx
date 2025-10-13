@@ -16,7 +16,7 @@ const popularGames = [
   {
     id: 2,
     name: 'Burger Maker',
-    image: '/images/banner/burger_master.svg',
+    image: '/images/banner/burger_maker.svg',
     rating: 4.6,
     genre: 'Cooking',
     duration: '7 min',
@@ -24,7 +24,7 @@ const popularGames = [
   {
     id: 3,
     name: 'Chef Master',
-    image: '/images/banner/burger_master.svg',
+    image: '/images/banner/burger_maker.svg',
     rating: 4.7,
     genre: 'Simulation',
     duration: '6 min',
@@ -32,7 +32,7 @@ const popularGames = [
   {
     id: 4,
     name: 'Chef Master',
-    image: '/images/banner/burger_master.svg',
+    image: '/images/banner/burger_maker.svg',
     rating: 4.7,
     genre: 'Simulation',
     duration: '6 min',

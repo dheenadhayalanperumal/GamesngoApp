@@ -2,14 +2,12 @@
 
 import { Box, Typography, Button } from '@mui/material';
 import React from 'react';
-import DindugalImg from '../assets/images/banner/dindugal.svg';
-import NadanaImg from '../assets/images/banner/nadana.svg';
 import { useRouter } from 'next/navigation';
 const popularGames = [
   {
     id: 1,
     name: 'Dindigul Thalapakatti',
-    image: DindugalImg,
+    image: '/images/banner/restaurant1.svg',
     rating: 4.8,
     genre: 'Arcade',
     duration: '5 min',
@@ -17,7 +15,7 @@ const popularGames = [
   {
     id: 2,
     name: 'Nandana Palace',
-    image: NadanaImg,
+    image: '/images/banner/nadana.svg',
     rating: 4.6,
     genre: 'Cooking',
     duration: '7 min',
@@ -25,7 +23,7 @@ const popularGames = [
   {
     id: 3,
     name: 'Dindigul Thalapakatti',
-    image: DindugalImg,
+    image: '/images/banner/restaurant1.svg',
     rating: 4.7,
     genre: 'Simulation',
     duration: '6 min',
@@ -33,7 +31,7 @@ const popularGames = [
   {
     id: 4,
     name: 'Dindigul Thalapakatti',
-    image: DindugalImg,
+    image: '/images/banner/restaurant1.svg',
     rating: 4.7,
     genre: 'Simulation',
     duration: '6 min',
@@ -140,7 +138,7 @@ const RestaurantGame = () => {
               }}
             >
               <img
-                src={game.image.src}
+                src={game.image}
                 alt={game.name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 10 }}
               />

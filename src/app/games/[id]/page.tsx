@@ -26,7 +26,7 @@ const gameData = {
   2: {
     id: 2,
     name: 'Burger Maker',
-    image: '/images/banner/burger_master.svg',
+    image: '/images/banner/burger_maker.svg',
     rating: 4.6,
     duration: '7 min',
     genre: 'Cooking',
@@ -43,7 +43,7 @@ const gameData = {
   3: {
     id: 3,
     name: 'Chef Master',
-    image: '/images/banner/burger_master.svg',
+    image: '/images/banner/burger_maker.svg',
     rating: 4.7,
      duration: '6 min',
     genre: 'Simulation',
@@ -59,7 +59,7 @@ const gameData = {
   4: {
     id: 4,
     name: 'Chef Master',
-    image: '/images/banner/burger_master.svg',
+    image: '/images/banner/burger_maker.svg',
     rating: 4.7,
     duration: '6 min',
     genre: 'Simulation',
