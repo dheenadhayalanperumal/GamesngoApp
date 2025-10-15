@@ -30,9 +30,16 @@ function TabPanel(props: TabPanelProps) {
 
 const EventsPage = () => {
   const [activeTab, setActiveTab] = useState(0);
+  const [activeSubTab, setActiveSubTab] = useState(0);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
+    // Reset sub-tab when switching main tabs
+    setActiveSubTab(0);
+  };
+
+  const handleSubTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveSubTab(newValue);
   };
 
   const handleBuyTickets = (eventId: number) => {
@@ -198,39 +205,144 @@ const EventsPage = () => {
         </TabPanel>
 
         <TabPanel value={activeTab} index={1}>
+          {/* Sub-tabs for Your Events */}
           <Box
             sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 3,
+              color: '#fff',
+              padding: '0 0 20px 0',
+              position: 'sticky',
+              top: 0,
+              zIndex: 1000,
             }}
           >
-            {yourEvents.length > 0 ? (
-              yourEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  {...event}
-                  onBuyTickets={handleBuyTickets}
-                />
-              ))
-            ) : (
+            <Tabs
+              value={activeSubTab}
+              onChange={handleSubTabChange}
+              sx={{
+                minHeight: 40,
+                '& .MuiTabs-indicator': {
+                  height: 3,
+                  bgcolor: '#FFD015',
+                  borderRadius: '2px 2px 0 0',
+                },
+                '& .MuiTab-root': {
+                  color: 'rgba(33, 23, 91, 0.6)',
+                  fontSize: 16,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  minHeight: 40,
+                  flex: 1,
+                  maxWidth: 'none',
+                },
+                '& .MuiTab-root.Mui-selected': {
+                  color: '#21175b',
+                  fontWeight: 700,
+                },
+                borderRadius: '0',
+                overflow: 'visible',
+              }}
+            >
+              <Tab label="Event Details" />
+              <Tab label="Mission" />
+              <Tab label="Leaderboard" />
+            </Tabs>
+          </Box>
+
+          {/* Sub-tab Content */}
+          <Box sx={{ px: 2 }}>
+            {/* Event Details Sub-tab */}
+            <TabPanel value={activeSubTab} index={0}>
               <Box
                 sx={{
-                  textAlign: 'center',
-                  py: 8,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 3,
                 }}
               >
-                <Typography
+                {yourEvents.length > 0 ? (
+                  yourEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      {...event}
+                      onBuyTickets={handleBuyTickets}
+                    />
+                  ))
+                ) : (
+                  <Box
+                    sx={{
+                      textAlign: 'center',
+                      py: 8,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: 18,
+                        fontWeight: 600,
+                        color: '#666',
+                      }}
+                    >
+                      No events registered yet
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </TabPanel>
+
+            {/* Mission Sub-tab */}
+            <TabPanel value={activeSubTab} index={1}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 3,
+                }}
+              >
+                <Box
                   sx={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    color: '#666',
+                    textAlign: 'center',
+                    py: 8,
                   }}
                 >
-                  No events registered yet
-                </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: '#666',
+                    }}
+                  >
+                    Mission content will be displayed here
+                  </Typography>
+                </Box>
               </Box>
-            )}
+            </TabPanel>
+
+            {/* Leaderboard Sub-tab */}
+            <TabPanel value={activeSubTab} index={2}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 3,
+                }}
+              >
+                <Box
+                  sx={{
+                    textAlign: 'center',
+                    py: 8,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: '#666',
+                    }}
+                  >
+                    Leaderboard content will be displayed here
+                  </Typography>
+                </Box>
+              </Box>
+            </TabPanel>
           </Box>
         </TabPanel>
       </Box>
