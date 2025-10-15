@@ -261,11 +261,78 @@ const EventsPage = () => {
               >
                 {yourEvents.length > 0 ? (
                   yourEvents.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      {...event}
-                      onBuyTickets={handleBuyTickets}
-                    />
+                    <Box key={event.id}>
+                      <EventCard
+                        {...event}
+                        onBuyTickets={handleBuyTickets}
+                      />
+                      
+                      {/* Event Details Content */}
+                      <Box
+                        sx={{
+                          mt: 3,
+                          // p: 3,
+                          backgroundColor: 'transparent',
+                          borderRadius: '12px',
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: 20,
+                            fontWeight: 700,
+                            color: '#21175B',
+                            mb: 2,
+                          }}
+                        >
+                          Event Details
+                        </Typography>
+                        <Box  sx={{py:'24px', px:'24px',
+                          borderRadius: '10px', border: '1px solid rgba(0, 0, 0, 0.20)'}}>
+
+                        
+                        <Box
+                          component="ul"
+                          sx={{
+                            listStyle: 'none',
+                            padding: 0,
+                            margin: 0,
+                            '& li': {
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              mb: 2,
+                              color: '#21175B',
+                              fontSize: 16,
+                              lineHeight: 1.5,
+                            },
+                            '& li::before': {
+                              content: '"•"',
+                              color: '#21175B',
+                              fontWeight: 'bold',
+                              fontSize: 18,
+                              marginRight: '12px',
+                              marginTop: '2px',
+                            },
+                          }}
+                        >
+                          <li>
+                            The event will commence on Sunday, August 15 at 6:00 PM and conclude on Sunday, August 15 at 8:00 PM.
+                          </li>
+                          <li>
+                            The leaderboard will display real-time game scores earned during the event period.
+                          </li>
+                          <li>
+                            Players can participate in multiple games to accumulate points throughout the event.
+                          </li>
+                          <li>
+                            Winners will be officially announced on Monday, August 16 at 6:00 PM.
+                          </li>
+                          <li>
+                            The winners will be officially announced on the event page.
+                          </li>
+                        </Box>
+                        </Box>
+                      </Box>
+                    </Box>
                   ))
                 ) : (
                   <Box
