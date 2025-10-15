@@ -162,7 +162,7 @@ const EventsPage = () => {
     {
       rank: 1,
       name: "Alex Johnson",
-      avatar: "/images/product/p1.png",
+      avatar: "/images/crown/crown2.svg",
       score: 2450,
       coins: 1250
     },
@@ -231,7 +231,7 @@ const EventsPage = () => {
     }
   ];
 
-  // Sample event data
+  // Sample event data/Users/dheena/Projects/Gamesngo/gamesngo/src/assets/images/crown/crown2.svg
   const liveEvents = [
     {
       id: 1,
