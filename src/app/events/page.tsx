@@ -1,11 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Typography, Tabs, Tab } from '@mui/material';
+import { Box } from '@mui/material';
 import EventCard from '@/components/EventCard';
 import Header from '@/components/Header';
 import TabBar from '@/components/TabBar';
 import PlayersList from '@/components/leaderboard/PlayersList';
+import EventTabs from '@/components/events/EventTabs';
+import EventDetailsSection from '@/components/events/EventDetailsSection';
+import MissionSection, { MissionData } from '@/components/events/MissionSection';
+import EventsList, { EventData } from '@/components/events/EventsList';
+import EmptyState from '@/components/events/EmptyState';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -29,35 +34,17 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-// Mission data interface
-interface MissionData {
-  id: number;
-  title: string;
-  subtitle: string;
-  image: string;
-  playButtonText: string;
-  eventMission: {
-    title: string;
-    items: {
-      id: number;
-      title: string;
-      description: string;
-      emoji?: string;
-    }[];
-  };
-}
-
 const EventsPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [activeSubTab, setActiveSubTab] = useState(0);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
     // Reset sub-tab when switching main tabs
     setActiveSubTab(0);
   };
 
-  const handleSubTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleSubTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveSubTab(newValue);
   };
 
@@ -69,11 +56,6 @@ const EventsPage = () => {
   const handlePlayGame = (missionId: number) => {
     console.log(`Playing game for mission ${missionId}`);
     // Add your game play logic here
-  };
-
-  // Function to update mission data dynamically
-  const updateMissionData = (newData: Partial<MissionData>) => {
-    setMissionData(prev => ({ ...prev, ...newData }));
   };
 
   // Function to load mission data from API
@@ -231,8 +213,8 @@ const EventsPage = () => {
     }
   ];
 
-  // Sample event data/Users/dheena/Projects/Gamesngo/gamesngo/src/assets/images/crown/crown2.svg
-  const liveEvents = [
+  // Sample event data
+  const liveEvents: EventData[] = [
     {
       id: 1,
       title: 'Gaming Chair',
@@ -259,7 +241,7 @@ const EventsPage = () => {
     },
   ];
 
-  const yourEvents = [
+  const yourEvents: EventData[] = [
     {
       id: 3,
       title: 'My Gaming Event',
@@ -272,6 +254,15 @@ const EventsPage = () => {
       isLive: true,
       isPrize: false,
     },
+  ];
+
+  // Event details data
+  const eventDetails: string[] = [
+    'The event will commence on Sunday, August 15 at 6:00 PM and conclude on Sunday, August 15 at 8:00 PM.',
+    'The leaderboard will display real-time game scores earned during the event period.',
+    'Players can participate in multiple games to accumulate points throughout the event.',
+    'Winners will be officially announced on Monday, August 16 at 6:00 PM.',
+    'The winners will be officially announced on the event page.',
   ];
 
   return (
@@ -294,98 +285,16 @@ const EventsPage = () => {
         right: 0,
         zIndex: 1100,
       }}/>
-      <Box
-        sx={{
-          // bgcolor: '#3c3cd2',
-          color: '#fff',
-          padding: '20px 20px 0',
-          position: 'sticky',
-          top: 0,
-          zIndex: 1000,
-        }}
-      >
-        
-        {/* <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 2,
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: 20,
-              fontWeight: 700,
-            }}
-          >
-            Events
-          </Typography>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              cursor: 'pointer',
-            }}
-          >
-            <Typography sx={{ fontSize: 16, fontWeight: 600 }}>Wallet</Typography>
-            <Typography sx={{ fontSize: 14 }}>▼</Typography>
-          </Box>
-        </Box> */}
-
-        {/* Tabs */}
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          sx={{
-            minHeight: 48,
-            '& .MuiTabs-indicator': {
-              height: 4,
-              bgcolor: '#3c3cd2',
-              borderRadius: '4px 4px 0 0',
-            },
-            '& .MuiTab-root': {
-              color: 'rgba(33, 23, 91, 0.6)',
-              fontSize: 18,
-              fontWeight: 600,
-              textTransform: 'none',
-              minHeight: 48,
-              flex: 1,
-              maxWidth: 'none',
-            },
-            '& .MuiTab-root.Mui-selected': {
-              color: '#21175b',
-              fontWeight: 700,
-            },
-            // bgcolor: '#fff',
-            borderRadius: '0',
-            overflow: 'visible',
-          }}
-        >
-          <Tab label="Live Events" />
-          <Tab label="Your Events" />
-        </Tabs>
-      </Box>
+      <EventTabs
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        tabs={['Live Events', 'Your Events']}
+      />
 
       {/* Tab Content */}
       <Box sx={{ px: 2 }}>
         <TabPanel value={activeTab} index={0}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 3,
-            }}
-          >
-            {liveEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                {...event}
-                onBuyTickets={handleBuyTickets}
-              />
-            ))}
-          </Box>
+          <EventsList events={liveEvents} onBuyTickets={handleBuyTickets} />
         </TabPanel>
 
         <TabPanel value={activeTab} index={1}>
@@ -399,37 +308,12 @@ const EventsPage = () => {
               zIndex: 1000,
             }}
           >
-            <Tabs
-              value={activeSubTab}
-              onChange={handleSubTabChange}
-              sx={{
-                minHeight: 40,
-                '& .MuiTabs-indicator': {
-                  height: 3,
-                  bgcolor: '#FFD015',
-                  borderRadius: '2px 2px 0 0',
-                },
-                '& .MuiTab-root': {
-                  color: 'rgba(33, 23, 91, 0.6)',
-                  fontSize: 16,
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  minHeight: 40,
-                  flex: 1,
-                  maxWidth: 'none',
-                },
-                '& .MuiTab-root.Mui-selected': {
-                  color: '#21175b',
-                  fontWeight: 700,
-                },
-                borderRadius: '0',
-                overflow: 'visible',
-              }}
-            >
-              <Tab label="Event Details" />
-              <Tab label="Mission" />
-              <Tab label="Leaderboard" />
-            </Tabs>
+            <EventTabs
+              activeTab={activeSubTab}
+              onTabChange={handleSubTabChange}
+              tabs={['Event Details', 'Mission', 'Leaderboard']}
+              indicatorColor="#FFD015"
+            />
           </Box>
 
           {/* Sub-tab Content */}
@@ -450,266 +334,21 @@ const EventsPage = () => {
                         {...event}
                         onBuyTickets={handleBuyTickets}
                       />
-                      
-                      {/* Event Details Content */}
-                      <Box
-                        sx={{
-                          mt: 3,
-                          // p: 3,
-                          backgroundColor: 'transparent',
-                          borderRadius: '12px',
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            fontSize: 20,
-                            fontWeight: 700,
-                            color: '#21175B',
-                            mb: 2,
-                          }}
-                        >
-                          Event Details
-                        </Typography>
-                        <Box  sx={{py:'24px', px:'24px',
-                          borderRadius: '10px', border: '1px solid rgba(0, 0, 0, 0.20)'}}>
-
-                        
-                        <Box
-                          component="ul"
-                          sx={{
-                            listStyle: 'none',
-                            padding: 0,
-                            margin: 0,
-                            '& li': {
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              mb: 2,
-                              color: '#21175B',
-                              fontSize: 16,
-                              lineHeight: 1.5,
-                            },
-                            '& li::before': {
-                              content: '"•"',
-                              color: '#21175B',
-                              fontWeight: 'bold',
-                              fontSize: 18,
-                              marginRight: '12px',
-                              marginTop: '2px',
-                            },
-                          }}
-                        >
-                          <li>
-                            The event will commence on Sunday, August 15 at 6:00 PM and conclude on Sunday, August 15 at 8:00 PM.
-                          </li>
-                          <li>
-                            The leaderboard will display real-time game scores earned during the event period.
-                          </li>
-                          <li>
-                            Players can participate in multiple games to accumulate points throughout the event.
-                          </li>
-                          <li>
-                            Winners will be officially announced on Monday, August 16 at 6:00 PM.
-                          </li>
-                          <li>
-                            The winners will be officially announced on the event page.
-                          </li>
-                        </Box>
-                        </Box>
-                      </Box>
+                      <EventDetailsSection details={eventDetails} />
                     </Box>
                   ))
                 ) : (
-                  <Box
-                    sx={{
-                      textAlign: 'center',
-                      py: 8,
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontSize: 18,
-                        fontWeight: 600,
-                        color: '#666',
-                      }}
-                    >
-                      No events registered yet
-                    </Typography>
-                  </Box>
+                  <EmptyState message="No events registered yet" />
                 )}
               </Box>
             </TabPanel>
 
             {/* Mission Sub-tab */}
             <TabPanel value={activeSubTab} index={1}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 3,
-                }}
-              >
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: '280px',
-                    flexShrink: 0,
-                    borderRadius: '10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: 'lightgray',
-                  }}
-                >
-                  <img
-                    src="/images/product/p1.png"
-                    alt="Koriyaki Tiger"
-                    style={{
-                      maxHeight: '100%',
-                      maxWidth: '100%',
-                      borderRadius: '10px',
-                      objectFit: 'cover',
-                      display: 'block',
-                    }}
-                  />
-                </Box>
-                <Box>
-                <Typography
-                  sx={{
-                    color: '#21175B',
-                    fontFamily: 'Inter',
-                    fontSize: '24px',
-                    fontStyle: 'normal',
-                    fontWeight: 700,
-                    lineHeight: '15px',
-                    marginTop: '14px',
-                    // textAlign: 'center',
-                  }}
-                >
-                  {missionData.title}
-                </Typography>
-                 <Typography
-                   sx={{
-                     color: 'rgba(33, 23, 91, 0.70)',
-                     fontFamily: 'Inter',
-                     fontSize: '16px',
-                     fontStyle: 'normal',
-                     fontWeight: 500,
-                     lineHeight: '15px',
-                     marginTop: '18px',
-                     
-                   }}
-                 >
-                 {missionData.subtitle}
-                 </Typography>
-                 </Box>
-                 
-                 {/* Play Button */}
-                 <Box
-                   sx={{
-                     width: '100%',
-                     height: '60px',
-                     flexShrink: 0,
-                     borderRadius: '14px',
-                     background: '#FAC200',
-                     display: 'flex',
-                     alignItems: 'center',
-                     justifyContent: 'center',
-                     gap: 2,
-                     cursor: 'pointer',
-                       mt:'10px',
-                   }}
-                   onClick={() => handlePlayGame(missionData.id)}
-                 >
-                   <Typography
-                     sx={{
-                       color: '#FFF',
-                       fontFamily: 'Poppins',
-                       fontSize: '26px',
-                       fontStyle: 'normal',
-                       fontWeight: 700,
-                       lineHeight: 'normal',
-                     }}
-                   >
-                     {missionData.playButtonText}
-                   </Typography>
-                   {/* <svg
-                     width="24"
-                     height="24"
-                     viewBox="0 0 24 24"
-                     fill="none"
-                     xmlns="http://www.w3.org/2000/svg"
-                     style={{
-                       color: '#FFF',
-                       fontFamily: 'Poppins',
-                       fontSize: '26px',
-                       fontStyle: 'normal',
-                       fontWeight: 700,
-                       lineHeight: 'normal',
-                     }}
-                   >
-                     <path
-                       d="M8 5V19L19 12L8 5Z"
-                       fill="currentColor"
-                     />
-                   </svg> */}
-                 </Box>
-                 
-                 {/* Event Mission Content */}
-                 <Box sx={{ mt: 2 }}>
-
-                
-                   <Typography
-                     sx={{
-                       color: '#21175B',
-                       fontFamily: 'Inter',
-                       fontSize: '22px',
-                       fontStyle: 'normal',
-                       fontWeight: 600,
-                       lineHeight: '15px',
-                       mb: 3,
-                     }}
-                   >
-                     {missionData.eventMission.title}
-                   </Typography>
-
-                   
-                   {/* <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}> */}
-                   <Box  sx={{py:3, px:3,display: 'flex', flexDirection: 'column', gap: 3 ,
-                          borderRadius: '10px', border: '1px solid rgba(0, 0, 0, 0.20)'}}>
-                     {missionData.eventMission.items.map((item, index) => (
-                       <Box key={item.id}>
-                         <Typography
-                           sx={{
-                             color: '#21175B',
-                             fontFamily: 'Inter',
-                             fontSize: '20px',
-                             fontStyle: 'normal',
-                             fontWeight: 500,
-                             lineHeight: '15px',
-                             mb: 1.5,
-                           }}
-                         >
-                           {index + 1}. {item.title} {item.emoji && item.emoji}
-                         </Typography>
-                         <Typography
-                           sx={{
-                             color: '#21175B',
-                             fontFamily: 'Inter',
-                             fontSize: '16px',
-                             fontStyle: 'normal',
-                             fontWeight: 400,
-                             lineHeight: '20px',
-                             ml: 2,
-                           }}
-                         >
-                           • {item.description}
-                         </Typography>
-                       </Box>
-                     ))}
-                   </Box>
-                 </Box>
-              </Box>
-              
+              <MissionSection
+                missionData={missionData}
+                onPlayGame={handlePlayGame}
+              />
             </TabPanel>
 
             {/* Leaderboard Sub-tab */}
