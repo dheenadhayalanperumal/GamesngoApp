@@ -28,6 +28,24 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+// Mission data interface
+interface MissionData {
+  id: number;
+  title: string;
+  subtitle: string;
+  image: string;
+  playButtonText: string;
+  eventMission: {
+    title: string;
+    items: {
+      id: number;
+      title: string;
+      description: string;
+      emoji?: string;
+    }[];
+  };
+}
+
 const EventsPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [activeSubTab, setActiveSubTab] = useState(0);
@@ -46,6 +64,97 @@ const EventsPage = () => {
     console.log(`Buying tickets for event ${eventId}`);
     // Add your ticket buying logic here
   };
+
+  const handlePlayGame = (missionId: number) => {
+    console.log(`Playing game for mission ${missionId}`);
+    // Add your game play logic here
+  };
+
+  // Function to update mission data dynamically
+  const updateMissionData = (newData: Partial<MissionData>) => {
+    setMissionData(prev => ({ ...prev, ...newData }));
+  };
+
+  // Function to load mission data from API
+  const loadMissionData = async (missionId: number) => {
+    try {
+      // Replace with your actual API call
+      // const response = await fetch(`/api/missions/${missionId}`);
+      // const data = await response.json();
+      // setMissionData(data);
+      
+      // For now, using mock data
+      const mockData: MissionData = {
+        id: missionId,
+        title: "Dynamic Mission Title",
+        subtitle: "Dynamic Mission Subtitle",
+        image: "/images/product/p1.png",
+        playButtonText: "Start Mission",
+        eventMission: {
+          title: "Mission Objectives",
+          items: [
+            {
+              id: 1,
+              title: "Complete Tasks",
+              description: "Complete all assigned tasks to progress.",
+            },
+            {
+              id: 2,
+              title: "Earn Points",
+              description: "Accumulate points through gameplay.",
+              emoji: "⭐"
+            },
+            {
+              id: 3,
+              title: "Reach Goals",
+              description: "Achieve specific goals to unlock rewards.",
+              emoji: "🎯"
+            }
+          ]
+        }
+      };
+      setMissionData(mockData);
+    } catch (error) {
+      console.error('Failed to load mission data:', error);
+    }
+  };
+
+  // Dynamic mission data
+  const [missionData, setMissionData] = useState<MissionData>({
+    id: 1,
+    title: "Koriyaki Tiger",
+    subtitle: "Claws of Fury, Spirit of Flame",
+    image: "/images/product/p1.png",
+    playButtonText: "Play",
+    eventMission: {
+      title: "Event Mission",
+      items: [
+        {
+          id: 1,
+          title: "Ticket Access",
+          description: "Only users who buy a ticket can join the event.",
+        },
+        {
+          id: 2,
+          title: "Event Duration",
+          description: "Event will run for a limited time period.",
+          emoji: "⏳"
+        },
+        {
+          id: 3,
+          title: "Gameplay Participation",
+          description: "During the event time, eligible users can play the event games.",
+          emoji: "🎮"
+        },
+        {
+          id: 4,
+          title: "Leaderboard Tracking",
+          description: "All participant's scores are tracked and displayed on the leaderboard.",
+          emoji: "🏆"
+        }
+      ]
+    }
+  });
 
   // Sample event data
   const liveEvents = [
@@ -366,21 +475,166 @@ const EventsPage = () => {
               >
                 <Box
                   sx={{
-                    textAlign: 'center',
-                    py: 8,
+                    width: '100%',
+                    height: '280px',
+                    flexShrink: 0,
+                    borderRadius: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'lightgray',
                   }}
                 >
-                  <Typography
-                    sx={{
-                      fontSize: 18,
-                      fontWeight: 600,
-                      color: '#666',
+                  <img
+                    src="/images/product/p1.png"
+                    alt="Koriyaki Tiger"
+                    style={{
+                      maxHeight: '100%',
+                      maxWidth: '100%',
+                      borderRadius: '10px',
+                      objectFit: 'cover',
+                      display: 'block',
                     }}
-                  >
-                    Mission content will be displayed here
-                  </Typography>
+                  />
                 </Box>
+                <Box>
+                <Typography
+                  sx={{
+                    color: '#21175B',
+                    fontFamily: 'Inter',
+                    fontSize: '24px',
+                    fontStyle: 'normal',
+                    fontWeight: 700,
+                    lineHeight: '15px',
+                    marginTop: '14px',
+                    // textAlign: 'center',
+                  }}
+                >
+                  {missionData.title}
+                </Typography>
+                 <Typography
+                   sx={{
+                     color: 'rgba(33, 23, 91, 0.70)',
+                     fontFamily: 'Inter',
+                     fontSize: '16px',
+                     fontStyle: 'normal',
+                     fontWeight: 500,
+                     lineHeight: '15px',
+                     marginTop: '18px',
+                     
+                   }}
+                 >
+                 {missionData.subtitle}
+                 </Typography>
+                 </Box>
+                 
+                 {/* Play Button */}
+                 <Box
+                   sx={{
+                     width: '100%',
+                     height: '60px',
+                     flexShrink: 0,
+                     borderRadius: '14px',
+                     background: '#FAC200',
+                     display: 'flex',
+                     alignItems: 'center',
+                     justifyContent: 'center',
+                     gap: 2,
+                     cursor: 'pointer',
+                       mt:'10px',
+                   }}
+                   onClick={() => handlePlayGame(missionData.id)}
+                 >
+                   <Typography
+                     sx={{
+                       color: '#FFF',
+                       fontFamily: 'Poppins',
+                       fontSize: '26px',
+                       fontStyle: 'normal',
+                       fontWeight: 700,
+                       lineHeight: 'normal',
+                     }}
+                   >
+                     {missionData.playButtonText}
+                   </Typography>
+                   {/* <svg
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     xmlns="http://www.w3.org/2000/svg"
+                     style={{
+                       color: '#FFF',
+                       fontFamily: 'Poppins',
+                       fontSize: '26px',
+                       fontStyle: 'normal',
+                       fontWeight: 700,
+                       lineHeight: 'normal',
+                     }}
+                   >
+                     <path
+                       d="M8 5V19L19 12L8 5Z"
+                       fill="currentColor"
+                     />
+                   </svg> */}
+                 </Box>
+                 
+                 {/* Event Mission Content */}
+                 <Box sx={{ mt: 2 }}>
+
+                
+                   <Typography
+                     sx={{
+                       color: '#21175B',
+                       fontFamily: 'Inter',
+                       fontSize: '22px',
+                       fontStyle: 'normal',
+                       fontWeight: 600,
+                       lineHeight: '15px',
+                       mb: 3,
+                     }}
+                   >
+                     {missionData.eventMission.title}
+                   </Typography>
+
+                   
+                   {/* <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}> */}
+                   <Box  sx={{py:3, px:3,display: 'flex', flexDirection: 'column', gap: 3 ,
+                          borderRadius: '10px', border: '1px solid rgba(0, 0, 0, 0.20)'}}>
+                     {missionData.eventMission.items.map((item, index) => (
+                       <Box key={item.id}>
+                         <Typography
+                           sx={{
+                             color: '#21175B',
+                             fontFamily: 'Inter',
+                             fontSize: '20px',
+                             fontStyle: 'normal',
+                             fontWeight: 500,
+                             lineHeight: '15px',
+                             mb: 1.5,
+                           }}
+                         >
+                           {index + 1}. {item.title} {item.emoji && item.emoji}
+                         </Typography>
+                         <Typography
+                           sx={{
+                             color: '#21175B',
+                             fontFamily: 'Inter',
+                             fontSize: '16px',
+                             fontStyle: 'normal',
+                             fontWeight: 400,
+                             lineHeight: '20px',
+                             ml: 2,
+                           }}
+                         >
+                           • {item.description}
+                         </Typography>
+                       </Box>
+                     ))}
+                   </Box>
+                 </Box>
               </Box>
+              
             </TabPanel>
 
             {/* Leaderboard Sub-tab */}
