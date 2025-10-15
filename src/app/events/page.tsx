@@ -5,6 +5,7 @@ import { Box, Typography, Tabs, Tab } from '@mui/material';
 import EventCard from '@/components/EventCard';
 import Header from '@/components/Header';
 import TabBar from '@/components/TabBar';
+import PlayersList from '@/components/leaderboard/PlayersList';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -155,6 +156,80 @@ const EventsPage = () => {
       ]
     }
   });
+
+  // Dummy data for PlayersList component
+  const playerrank = [
+    {
+      rank: 1,
+      name: "Alex Johnson",
+      avatar: "/images/product/p1.png",
+      score: 2450,
+      coins: 1250
+    },
+    {
+      rank: 2,
+      name: "Sarah Wilson",
+      avatar: "/images/product/p1.png",
+      score: 2380,
+      coins: 1180
+    },
+    {
+      rank: 3,
+      name: "Mike Chen",
+      avatar: "/images/product/p1.png",
+      score: 2320,
+      coins: 1120
+    },
+    {
+      rank: 4,
+      name: "Emma Davis",
+      avatar: "/images/product/p1.png",
+      score: 2280,
+      coins: 1080
+    },
+    {
+      rank: 5,
+      name: "David Brown",
+      avatar: "/images/product/p1.png",
+      score: 2250,
+      coins: 1050
+    },
+    {
+      rank: 6,
+      name: "Lisa Garcia",
+      avatar: "/images/product/p1.png",
+      score: 2200,
+      coins: 1000
+    },
+    {
+      rank: 7,
+      name: "Tom Anderson",
+      avatar: "/images/product/p1.png",
+      score: 2180,
+      coins: 980
+    },
+    {
+      rank: 8,
+      name: "Anna Taylor",
+      avatar: "/images/product/p1.png",
+      score: 2150,
+      coins: 950
+    },
+    {
+      rank: 9,
+      name: "Chris Lee",
+      avatar: "/images/product/p1.png",
+      score: 2120,
+      coins: 920
+    },
+    {
+      rank: 10,
+      name: "Maria Rodriguez",
+      avatar: "/images/product/p1.png",
+      score: 2100,
+      coins: 900
+    }
+  ];
 
   // Sample event data
   const liveEvents = [
@@ -646,22 +721,7 @@ const EventsPage = () => {
                   gap: 3,
                 }}
               >
-                <Box
-                  sx={{
-                    textAlign: 'center',
-                    py: 8,
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: 18,
-                      fontWeight: 600,
-                      color: '#666',
-                    }}
-                  >
-                    Leaderboard content will be displayed here
-                  </Typography>
-                </Box>
+                <PlayersList players={playerrank} title="Event Leaderboard" removeMargins={true} />
               </Box>
             </TabPanel>
           </Box>
