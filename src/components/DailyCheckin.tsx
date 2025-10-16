@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import DailyCheckBox from './DailyCheckBox';
@@ -15,6 +17,23 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
   claimedDays = [1,2,3]
 }) => {
     const dailyRewards = [10, 15, 20, 25, 30, 35, 50];
+    const [localClaimedDays, setLocalClaimedDays] = useState<number[]>(claimedDays);
+    const [isClaiming, setIsClaiming] = useState(false);
+
+    const handleClaim = () => {
+      if (onClaim) {
+        onClaim();
+      }
+    };
+
+    const handleClaimed = () => {
+      setIsClaiming(true);
+      // Add current day to claimed days with animation
+      setTimeout(() => {
+        setLocalClaimedDays(prev => [...prev, currentDay]);
+        setIsClaiming(false);
+      }, 1000);
+    };
 
     return (
         <Box
@@ -78,7 +97,9 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
                     const dayNumber = index + 1;
                     const isUnlocked = dayNumber <= currentDay;
                     const isCompleted = dayNumber < currentDay;
-                    const isClaimed = claimedDays.includes(dayNumber);
+                    const isClaimed = localClaimedDays.includes(dayNumber);
+                    const isCurrentDay = dayNumber === currentDay;
+                    const isAnimating = isCurrentDay && isClaiming;
 
                     return (
                         <Box
@@ -92,7 +113,9 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
                                     sm: '6px',
                                     md: '8px'
                                 },
-                                width: '100%'
+                                width: '100%',
+                                transform: isAnimating ? 'scale(1.05)' : 'scale(1)',
+                                transition: 'transform 0.3s ease',
                             }}
                         >
                             <DailyCheckBox
@@ -100,6 +123,7 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
                                 isUnlocked={isUnlocked}
                                 isCompleted={isCompleted}
                                 isClaimed={isClaimed}
+                                isAnimating={isAnimating}
                             />
                             <Typography
                                 variant='body2'
@@ -123,8 +147,9 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
             </Box>
 
             <ClaimButton
-                onClick={onClaim}
-                disabled={currentDay > 7}
+                onClick={handleClaim}
+                onClaimed={handleClaimed}
+                disabled={currentDay > 7 || localClaimedDays.includes(currentDay)}
             />
         </Box>
     );

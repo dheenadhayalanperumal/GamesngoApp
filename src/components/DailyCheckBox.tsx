@@ -42,13 +42,15 @@ interface DailyCheckBoxProps {
   isUnlocked?: boolean;
   isCompleted?: boolean;
   isClaimed?: boolean;
+  isAnimating?: boolean; // Animation state for claiming
 }
 
 const DailyCheckBox: React.FC<DailyCheckBoxProps> = ({
   coinCount,
   isUnlocked = false,
   isCompleted = false,
-  isClaimed = false
+  isClaimed = false,
+  isAnimating = false
 }) => {
   const getBackgroundColor = () => {
     if (isCompleted) {
@@ -86,11 +88,28 @@ const DailyCheckBox: React.FC<DailyCheckBoxProps> = ({
         },
         width: '100%',
         aspectRatio: '1 / 1.2',
-        boxShadow: '0 4px 12px rgba(252, 120, 162, 0.3)',
+        boxShadow: isAnimating 
+          ? '0 8px 20px rgba(76, 175, 80, 0.4)'
+          : '0 4px 12px rgba(252, 120, 162, 0.3)',
         transition: 'all 0.3s ease',
         cursor: isUnlocked && !isCompleted ? 'pointer' : 'default',
         position: 'relative',
         overflow: 'hidden',
+        animation: isAnimating ? 'pulseAnimation 1s ease-in-out' : 'none',
+        '@keyframes pulseAnimation': {
+          '0%': {
+            transform: 'scale(1)',
+            boxShadow: '0 4px 12px rgba(252, 120, 162, 0.3)',
+          },
+          '50%': {
+            transform: 'scale(1.1)',
+            boxShadow: '0 8px 20px rgba(76, 175, 80, 0.6)',
+          },
+          '100%': {
+            transform: 'scale(1)',
+            boxShadow: '0 4px 12px rgba(252, 120, 162, 0.3)',
+          },
+        },
         '&:hover': isUnlocked && !isCompleted ? {
           transform: 'translateY(-2px)',
           boxShadow: '0 6px 16px rgba(252, 120, 162, 0.4)',
