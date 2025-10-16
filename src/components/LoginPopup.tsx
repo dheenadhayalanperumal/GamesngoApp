@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { Close, Phone, Lock, Google } from "@mui/icons-material";
 import Image from "next/image";
+import SignupPopup from "./SignupPopup";
 
 interface LoginPopupProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
 }) => {
   const [mobileNumber, setMobileNumber] = useState("");
   const [pin, setPin] = useState("");
+  const [isSignupOpen, setIsSignupOpen] = useState(false);
 
   const handleLogin = () => {
     // Here you would typically validate the credentials
@@ -42,6 +44,20 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
     console.log("Google login clicked");
     onLogin();
     onClose();
+  };
+
+  const handleSignupClick = () => {
+    setIsSignupOpen(true);
+  };
+
+  const handleSignupClose = () => {
+    setIsSignupOpen(false);
+  };
+
+  const handleSignup = () => {
+    // Handle signup logic here
+    console.log("Signup completed");
+    onLogin(); // This will log the user in after signup
   };
 
   return (
@@ -200,6 +216,10 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
         <Box sx={{ textAlign: "center", marginBottom: "20px" }}>
           <Link
             href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleSignupClick();
+            }}
             sx={{
               color: "#3C3CD2",
               textDecoration: "none",
@@ -207,6 +227,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
               fontStyle: "normal",
               fontSize: "20px",
               fontWeight: "500",
+              cursor: "pointer",
               "&:hover": {
                 textDecoration: "underline",
               },
@@ -243,6 +264,13 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
         </Button>
         </Box>
       </DialogContent>
+      
+      {/* Signup Popup */}
+      <SignupPopup
+        isOpen={isSignupOpen}
+        onClose={handleSignupClose}
+        onSignup={handleSignup}
+      />
     </Dialog>
   );
 };
