@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { AppBar, Toolbar, Button, Box, Typography, SxProps, Theme } from "@mui/material";
 import logo from "../assets/images/logo.png";
 import CurrencyButton from "./CurrencyButton";
+import LoginPopup from "./LoginPopup";
 
 interface HeaderProps {
   sx?: SxProps<Theme>;
@@ -15,9 +16,18 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
   const [strikes, setStrikes] = useState(13);
   const [cupons, setcupons] = useState(5);
   const [isFixed, setIsFixed] = useState(false);
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+
+  const handleLoginClick = () => {
+    setIsLoginPopupOpen(true);
+  };
 
   const handleLogin = () => {
     setIsLoggedIn(true);
+  };
+
+  const handleLoginPopupClose = () => {
+    setIsLoginPopupOpen(false);
   };
 
   useEffect(() => {
@@ -73,7 +83,7 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
           {!isLoggedIn ? (
             <Button
               variant="outlined"
-              onClick={handleLogin}
+              onClick={handleLoginClick}
               sx={{
                 height: "42px",
                 margin: 0,
@@ -94,6 +104,13 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
           )}
         </Box>
       </Toolbar>
+      
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={isLoginPopupOpen}
+        onClose={handleLoginPopupClose}
+        onLogin={handleLogin}
+      />
     </AppBar>
   );
 };
