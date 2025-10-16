@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button } from '@mui/material';
+import ScratchPopup from './ScratchPopup';
+import CouponPopup from './CouponPopup';
 
 interface ScratchAndWinProps {
   onScratch?: () => void;
@@ -13,6 +15,9 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   coinCost = 15
 }) => {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isCouponOpen, setIsCouponOpen] = useState(false);
+  const [coinsWon, setCoinsWon] = useState(0);
 
   useEffect(() => {
     const updateTimer = () => {
@@ -48,6 +53,30 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   }, []);
 
   const formatTime = (time: number) => time.toString().padStart(2, '0');
+
+  const handleScratchClick = () => {
+    setIsPopupOpen(true);
+  };
+
+  const handlePopupClose = () => {
+    setIsPopupOpen(false);
+  };
+
+  const handlePopupScratch = () => {
+    // Simulate scratch result - you can replace this with actual logic
+    const wonCoins = Math.floor(Math.random() * 50) + 10; // Random coins between 10-60
+    setCoinsWon(wonCoins);
+    setIsPopupOpen(false);
+    setIsCouponOpen(true);
+    
+    if (onScratch) {
+      onScratch();
+    }
+  };
+
+  const handleCouponClose = () => {
+    setIsCouponOpen(false);
+  };
 
   const GiftBoxSVG = () => (
     <img
@@ -269,7 +298,7 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
       {/* Scratch Button */}
       <Button
         variant="contained"
-        onClick={onScratch}
+        onClick={handleScratchClick}
         sx={{
           background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
           color: '#2D3748',
@@ -302,6 +331,20 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
       >
         Scratch Now({coinCost} Coins)
       </Button>
+
+      {/* Scratch Popup */}
+      <ScratchPopup
+        isOpen={isPopupOpen}
+        onClose={handlePopupClose}
+        onScratch={handlePopupScratch}
+      />
+
+      {/* Coupon Popup */}
+      <CouponPopup
+        isOpen={isCouponOpen}
+        onClose={handleCouponClose}
+        coinsWon={coinsWon}
+      />
     </Box>
   );
 };

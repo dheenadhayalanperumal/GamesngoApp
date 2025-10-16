@@ -36,10 +36,11 @@ export default function Home() {
       <PopularToday/>
       <RestaurantGame/>        
       <ScratchAndWin/>
+
      
-     
-      <ShakeAndWin/>
-      
+        <ShakeAndWin />
+    
+
       <ScratchAndWin/>
       <TabBar/>
 
