@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
+import Image from 'next/image';
 
 interface CouponPopupProps {
   isOpen: boolean;
@@ -17,17 +18,13 @@ const CouponPopup: React.FC<CouponPopupProps> = ({
   if (!isOpen) return null;
 
   const CoinIcon = () => (
-    <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="45" fill="url(#coinGradient)" stroke="#D4AF37" strokeWidth="2"/>
-      <path d="M30 40L70 40L65 50L70 60L30 60L35 50L30 40Z" fill="#8B5CF6" stroke="#6D28D9" strokeWidth="2"/>
-      <defs>
-        <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFD700"/>
-          <stop offset="50%" stopColor="#FFA500"/>
-          <stop offset="100%" stopColor="#FF8C00"/>
-        </linearGradient>
-      </defs>
-    </svg>
+    <Image
+      src="/coin.png"
+      alt="Coin"
+      width={80}
+      height={80}
+      style={{ objectFit: 'contain' }}
+    />
   );
 
   const ConfettiPiece = ({ style }: { style: React.CSSProperties }) => (
