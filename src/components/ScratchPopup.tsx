@@ -78,11 +78,11 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
 
     // Simple progress calculation - just count scratches
     setScratchProgress(prev => {
-      const newProgress = Math.min(prev + 5, 100);
+      const newProgress = Math.min(prev + 3, 100);
       console.log(`Scratch progress: ${newProgress}%`);
       
-      // If scratched enough, trigger the result
-      if (newProgress >= 50) {
+      // If scratched at least 80%, trigger the result
+      if (newProgress >= 80) {
         console.log('Scratch threshold reached! Opening coupon...');
         setIsScratched(true);
         setShowGiftAnimation(true);
@@ -355,9 +355,9 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
             onTouchEnd={handleTouchEnd}
             onClick={(e) => {
               // Fallback: if user clicks without dragging, still trigger
-              if (scratchProgress < 10) {
+              if (scratchProgress < 5) {
                 console.log('Click fallback triggered');
-                setScratchProgress(60);
+                setScratchProgress(85);
                 setIsScratched(true);
                 setShowGiftAnimation(true);
                 
@@ -398,28 +398,6 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
           )}
         </Box>
 
-        {/* Scratch Progress */}
-        {!isScratched && scratchProgress > 0 && (
-          <Typography
-            variant="body2"
-            sx={{
-              position: 'absolute',
-              bottom: '20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              color: '#2D3748',
-              fontWeight: 'bold',
-              fontSize: '14px',
-              textAlign: 'center',
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              padding: '8px 16px',
-              borderRadius: '20px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            {Math.round(scratchProgress)}% Scratched
-          </Typography>
-        )}
 
       </Box>
 
