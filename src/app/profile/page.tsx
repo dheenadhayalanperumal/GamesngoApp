@@ -28,7 +28,6 @@ import {
   ContactSupport,
   Logout,
   Bolt,
-  Percent,
   SportsEsports,
   EmojiEvents,
   TrendingUp,
@@ -110,49 +109,111 @@ export default function Profile() {
 
         {/* User Info */}
         <Box sx={{ textAlign: 'center', marginBottom: 3 }}>
-          <Typography variant="h4" sx={{ fontWeight: 'bold', marginBottom: 1, color: 'white' }}>
+          <Typography variant="h4" sx={{ 
+            color: '#FFF',
+            fontFamily: 'Rubik',
+            fontSize: '24px',
+            fontStyle: 'normal',
+            fontWeight: 500,
+            lineHeight: 'normal',
+            marginBottom: 1
+          }}>
             {userInfo.name}
           </Typography>
-          <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+          <Typography variant="body1" sx={{ 
+            color: '#FFF',
+            fontFamily: 'Poppins',
+            fontSize: '12px',
+            fontStyle: 'normal',
+            fontWeight: 300,
+            lineHeight: 'normal'
+          }}>
             {userInfo.joinDate}
           </Typography>
         </Box>
 
         {/* Stats Cards in Header */}
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-          <Card sx={{ 
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            borderRadius: 4,
-            minWidth: 120,
-            marginTop: 2
-          }}>
+            <Card sx={{ 
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              borderRadius: '10px',
+              minWidth: '142px',
+              marginTop: 2,
+              backdropFilter: 'blur(10px)',
+            }}>
             <CardContent sx={{ padding: 2, textAlign: 'center' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center',justifyContent: 'space-evenly',}}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 1 }}>
-                <Bolt sx={{ color: '#FAC200', fontSize: 24, marginRight: 1 }} />
+               <Image 
+                   src="/coin.png" 
+                   alt="Coins" 
+                   width={40} 
+                   height={40}
+                   style={{ color: '#FAC200', marginRight: 4 }}
+                 />
               </Box>
-              <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'white', marginBottom: 0.5 }}>
-                {userInfo.totalCoins}
+              <Typography variant="h4" sx={{ 
+                color: '#FFF',
+                fontFamily: 'Poppins',
+                fontSize: '30px',
+                fontStyle: 'normal',
+                fontWeight: 700,
+                lineHeight: '25px',
+                marginBottom: 0.5 
+              }}>     {userInfo.totalCoins}
               </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px' }}>
+              </Box>
+              <Typography variant="body2" sx={{ 
+                color: 'rgba(255, 255, 255, 0.80)',
+                fontFamily: 'Rubik',
+                fontSize: '16px',
+                fontStyle: 'normal',
+                fontWeight: 500,
+                lineHeight: '25px'
+              }}>
                 Total Coins
               </Typography>
             </CardContent>
           </Card>
 
           <Card sx={{ 
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            borderRadius: 4,
-            minWidth: 120,
-            marginTop: 2
-          }}>
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              borderRadius: '10px',
+              minWidth: '142px',
+              marginTop: 2,
+              backdropFilter: 'blur(10px)',
+            }}>
             <CardContent sx={{ padding: 2, textAlign: 'center' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly'}}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 1 }}>
-                <Percent sx={{ color: '#FAC200', fontSize: 24, marginRight: 1 }} />
+                <Image 
+                  src="/coupons.svg" 
+                  alt="Coupons" 
+                  width={40} 
+                  height={40}
+                  style={{ color: '#FAC200', marginRight: 4 }}
+                />
               </Box>
-              <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'white', marginBottom: 0.5 }}>
+              <Typography variant="h4" sx={{ 
+                color: '#FFF',
+                fontFamily: 'Poppins',
+                fontSize: '30px',
+                fontStyle: 'normal',
+                fontWeight: 700,
+                lineHeight: '25px',
+                marginBottom: 0.5 
+              }}>
                 {userInfo.totalCoupons}
               </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px' }}>
+              </Box>
+              <Typography variant="body2" sx={{ 
+                color: 'rgba(255, 255, 255, 0.80)',
+                fontFamily: 'Rubik',
+                fontSize: '16px',
+                fontStyle: 'normal',
+                fontWeight: 500,
+                lineHeight: '25px'
+              }}>
                 Total Coupons
               </Typography>
             </CardContent>
@@ -165,34 +226,103 @@ export default function Profile() {
         {/* Game Statistics Section */}
         <Box sx={{ marginBottom: 4 }}>
           <Box sx={{ display: 'flex', gap: 2, marginBottom: 3 }}>
-            <Card sx={{ flex: 1, borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Card sx={{ 
+              flex: 1, 
+              borderRadius: '6px',
+              border: '1px solid rgba(0, 0, 0, 0.20)',
+              background: 'rgba(0, 0, 0, 0.00)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)' 
+            }}>
               <CardContent sx={{ padding: 2, textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#333', marginBottom: 1 }}>
+              <Typography variant="h4" sx={{ 
+                  color: '#21175B',
+                  textAlign: 'center',
+                  fontFamily: 'Poppins',
+                  fontSize: '20px',
+                  fontStyle: 'normal',
+                  fontWeight: 700,
+                  lineHeight: '22px',
+                  marginBottom: 1 
+                }}>
                   {userInfo.gamesPlayed}
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#666' }}>
+                <Typography variant="body2" sx={{ 
+                  color: 'rgba(0, 0, 0, 0.40)',
+                  textAlign: 'center',
+                  fontFamily: 'Rubik',
+                  fontSize: '14px',
+                  fontStyle: 'normal',
+                  fontWeight: 400,
+                  lineHeight: '15px'
+                }}>
                   Games Played
                 </Typography>
               </CardContent>
             </Card>
 
-            <Card sx={{ flex: 1, borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Card sx={{ 
+              flex: 1, 
+              borderRadius: '6px',
+              border: '1px solid rgba(0, 0, 0, 0.20)',
+              background: 'rgba(0, 0, 0, 0.00)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)' 
+            }}>
               <CardContent sx={{ padding: 2, textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#333', marginBottom: 1 }}>
+              <Typography variant="h4" sx={{ 
+                  color: '#21175B',
+                  textAlign: 'center',
+                  fontFamily: 'Poppins',
+                  fontSize: '20px',
+                  fontStyle: 'normal',
+                  fontWeight: 700,
+                  lineHeight: '22px',
+                  marginBottom: 1 
+                }}>
                   {userInfo.gamesWins}
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#666' }}>
+                <Typography variant="body2" sx={{ 
+                  color: 'rgba(0, 0, 0, 0.40)',
+                  textAlign: 'center',
+                  fontFamily: 'Rubik',
+                  fontSize: '14px',
+                  fontStyle: 'normal',
+                  fontWeight: 400,
+                  lineHeight: '15px'
+                }}>
                   Games Wins
                 </Typography>
               </CardContent>
             </Card>
 
-            <Card sx={{ flex: 1, borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Card sx={{ 
+              flex: 1, 
+              borderRadius: '6px',
+              border: '1px solid rgba(0, 0, 0, 0.20)',
+              background: 'rgba(0, 0, 0, 0.00)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)' 
+            }}>
               <CardContent sx={{ padding: 2, textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#333', marginBottom: 1 }}>
+                <Typography variant="h4" sx={{ 
+                  color: '#21175B',
+                  textAlign: 'center',
+                  fontFamily: 'Poppins',
+                  fontSize: '20px',
+                  fontStyle: 'normal',
+                  fontWeight: 700,
+                  lineHeight: '22px',
+                  marginBottom: 1 
+                }}>
                   {userInfo.gamesScore}
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#666' }}>
+                <Typography variant="body2" sx={{ 
+                  color: 'rgba(0, 0, 0, 0.40)',
+                  textAlign: 'center',
+                  fontFamily: 'Rubik',
+                  fontSize: '14px',
+                  fontStyle: 'normal',
+                  fontWeight: 400,
+                  lineHeight: '15px'
+                }}>
                   Games Score
                 </Typography>
               </CardContent>
