@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { Close, Person, Email, Phone, Google, Lock } from '@mui/icons-material';
 import Image from 'next/image';
+import SetPinPopup from './SetPinPopup';
 
 interface SignupPopupProps {
   isOpen: boolean;
@@ -32,10 +33,20 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
   const [mobileNumber, setMobileNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [isVerified, setIsVerified] = useState(false);
+  const [isSetPinOpen, setIsSetPinOpen] = useState(false);
 
   const handleSignup = () => {
-    // Here you would typically validate the credentials
-    // For now, we'll just call the onSignup callback
+    // Open Set PIN popup instead of directly calling onSignup
+    setIsSetPinOpen(true);
+  };
+
+  const handleSetPinClose = () => {
+    setIsSetPinOpen(false);
+  };
+
+  const handlePinSet = (pin: string) => {
+    // PIN has been set, now complete the signup process
+    console.log('PIN set:', pin);
     onSignup();
     onClose();
   };
@@ -103,7 +114,7 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
               style={{ objectFit: 'contain' }}
             />
           </Box>
-          <Typography
+          {/* <Typography
             variant="h6"
             sx={{
               color: '#1a1a1a',
@@ -112,7 +123,7 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
             }}
           >
             PLAY 'N' SMILE
-          </Typography>
+          </Typography> */}
         </Box>
 
         {/* Signup Form */}
@@ -415,6 +426,13 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
           )}
         </Box>
       </DialogContent>
+      
+      {/* Set PIN Popup */}
+      <SetPinPopup
+        isOpen={isSetPinOpen}
+        onClose={handleSetPinClose}
+        onPinSet={handlePinSet}
+      />
     </Dialog>
   );
 };
