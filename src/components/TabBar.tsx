@@ -24,10 +24,10 @@ const TabBar: React.FC = () => {
       setValue(0); // Games
     } else if (pathname.startsWith('/leaderboard')) {
       setValue(1); // Leader
-    } else if (pathname.startsWith('/profile')) {
-      setValue(3); // Redeem
     } else if (pathname.startsWith('/events')) {
       setValue(4); // Events
+    } else if (pathname.startsWith('/tournaments')) {
+      setValue(3); // Redeem (Tournaments)
     }
   }, [pathname]);
 
@@ -45,7 +45,7 @@ const TabBar: React.FC = () => {
         router.push('/');
         break;
       case 3:
-        router.push('/profile');
+        router.push('/tournaments');
         break;
       case 4:
         router.push('/events');
@@ -122,7 +122,7 @@ const TabBar: React.FC = () => {
           sx={{ color: '#8E8E93' }}
         />
         <BottomNavigationAction
-          label="Redeem"
+          label="Tournaments"
           icon={<RedeemIcon />}
           sx={{ color: '#8E8E93' }}
         />
