@@ -81,7 +81,11 @@ export default function Profile() {
             </Typography>
           </Box>
           
-          <Typography variant="body1" sx={{ color: 'white', fontWeight: 500, cursor: 'pointer' }}>
+          <Typography 
+            variant="body1" 
+            sx={{ color: 'white', fontWeight: 500, cursor: 'pointer' }}
+            onClick={() => router.push('/profile/edit')}
+          >
             Edit
           </Typography>
         </Box>
@@ -332,7 +336,15 @@ export default function Profile() {
 
         {/* Account Section */}
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#333', marginBottom: 2 }}>
+          <Typography variant="h5" sx={{ 
+            color: '#21175B',
+            fontFamily: 'Rubik',
+            fontSize: '26px',
+            fontStyle: 'normal',
+            fontWeight: 500,
+            lineHeight: '21px',
+            marginBottom: 2
+          }}>
             Account
           </Typography>
           
@@ -357,8 +369,12 @@ export default function Profile() {
                         <Typography 
                           variant="body1" 
                           sx={{ 
-                            fontWeight: 500,
-                            color: item.isLogout ? '#f44336' : '#333'
+                            color: item.isLogout ? '#f44336' : 'rgba(33, 23, 91, 0.90)',
+                            fontFamily: 'Rubik',
+                            fontSize: '20px',
+                            fontStyle: 'normal',
+                            fontWeight: 400,
+                            lineHeight: '21px'
                           }}
                         >
                           {item.title}
