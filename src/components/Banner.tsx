@@ -5,8 +5,8 @@ import Slider from "react-slick";
 // import { Box } from "@mui/material";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import Banner1 from "../assets/images/banner/Banner1.svg";
-import Banner2 from "../assets/images/banner/Banner2.svg";
+import Banner1 from "../../public/images/banner/Banner1.png";
+import Banner2 from "../../public/images/banner/Banner2.png";
 
 const banners = [
   { id: 1, src: Banner1, alt: "Banner 1" },

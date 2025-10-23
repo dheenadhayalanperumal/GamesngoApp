@@ -59,10 +59,10 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
   };
 
   const handleVerify = () => {
-    // Validate email and phone number
-    if (email && mobileNumber && userID) {
+    // Validate mobile number and user ID
+    if (mobileNumber && userID) {
       // Simulate validation
-      console.log('Validating email and phone number...');
+      console.log('Validating mobile number and user ID...');
       setIsVerified(true);
     } else {
       alert('Please fill in all fields');
@@ -170,7 +170,7 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
             />
 
             {/* Email Field */}
-            <TextField
+            {/* <TextField
               fullWidth
               placeholder="Enter Email ID"
               value={email}
@@ -202,69 +202,72 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
                   },
                 },
               }}
-            />
+            /> */}
 
-            {/* Mobile Number Field with Verify Button */}
-            <Box sx={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-              <TextField
-                fullWidth
-                placeholder="Enter Mobile Number"
-                value={mobileNumber}
-                onChange={(e) => setMobileNumber(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Phone sx={{ color: '#FAC200' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '20px',
-                    backgroundColor: '#FFF',
-                    border: '1px solid rgba(0, 0, 0, 0.20)',
+            {/* Mobile Number Field */}
+            <TextField
+              fullWidth
+              type="number"
+              placeholder="Enter Mobile Number"
+              value={mobileNumber}
+              onChange={(e) => setMobileNumber(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Phone sx={{ color: '#FAC200' }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                marginBottom: '20px',
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '20px',
+                  backgroundColor: '#FFF',
+                  border: '1px solid rgba(0, 0, 0, 0.20)',
+                  '& fieldset': {
+                    border: 'none',
+                  },
+                  '&:hover fieldset': {
+                    border: 'none',
+                  },
+                  '&.Mui-focused': {
+                    border: '1px solid #FAC200',
                     '& fieldset': {
                       border: 'none',
                     },
-                    '&:hover fieldset': {
-                      border: 'none',
-                    },
-                    '&.Mui-focused': {
-                      border: '1px solid #FAC200',
-                      '& fieldset': {
-                        border: 'none',
-                      },
-                    },
                   },
-                }}
-              />
-              <Button
-                variant="contained"
-                onClick={handleVerify}
-                sx={{
-                  backgroundColor: '#FAC200',
-                  color: '#ffffff',
-                  borderRadius: '20px',
-                  padding: '14px 20px',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  textTransform: 'none',
-                  minWidth: '80px',
-                  height: '56px',
-                  '&:hover': {
-                    backgroundColor: '#FFA500',
-                  },
-                }}
-              >
-                Verify
-              </Button>
-            </Box>
+                },
+              }}
+            />
+
+            {/* Verify Button */}
+            <Button
+              variant="contained"
+              onClick={handleVerify}
+              fullWidth
+              sx={{
+                backgroundColor: '#FAC200',
+                color: '#ffffff',
+                borderRadius: '20px',
+                padding: '14px 20px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                textTransform: 'none',
+                height: '56px',
+                marginBottom: '20px',
+                '&:hover': {
+                  backgroundColor: '#FFA500',
+                },
+              }}
+            >
+              Verify
+            </Button>
           </Box>
 
           {/* OTP Section - Only show after verification */}
           {isVerified && (
             <Box sx={{ marginBottom: '24px' }}>
-              <Typography
+              {/* <Typography
                 variant="body2"
                 sx={{
                   fontWeight: 'bold',
@@ -273,10 +276,10 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
                 }}
               >
                 OTP
-              </Typography>
+              </Typography> */}
               <TextField
                 fullWidth
-                type="password"
+                type="number"
                 placeholder="Enter OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
