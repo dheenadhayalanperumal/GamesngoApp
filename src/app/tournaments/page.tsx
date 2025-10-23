@@ -1,4 +1,4 @@
-import EventCard from "@/components/EventCard";
+// import EventCard from "@/components/EventCard";
 import Header from "@/components/Header";
 import TabBar from "@/components/TabBar";
 

@@ -26,7 +26,7 @@ interface RestaurantGame extends BaseGame {
   discount?: string;
 }
 
-type GameData = BaseGame | RestaurantGame;
+// type GameData = BaseGame | RestaurantGame;
 
 // Original game data for Popular Today
 const allGamesData = [

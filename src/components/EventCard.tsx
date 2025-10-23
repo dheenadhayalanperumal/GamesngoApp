@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Box, Typography, Button, Chip } from '@mui/material';
-import Image from 'next/image';
+import { Box, Typography, Button } from '@mui/material';
+// import Image from 'next/image';
 
 interface EventCardProps {
   id: number;
@@ -23,11 +23,11 @@ const EventCard: React.FC<EventCardProps> = ({
   title,
   description,
   image,
-  prizeValue,
+  // prizeValue,
   players,
   timeLeft,
   entryCost,
-  isLive = true,
+  // isLive = true,
   isPrize = true,
   onBuyTickets,
 }) => {

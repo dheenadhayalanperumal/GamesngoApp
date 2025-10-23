@@ -7,7 +7,7 @@ import {
   Avatar,
   Card,
   CardContent,
-  IconButton,
+  // IconButton,
   Divider,
   Switch,
   List,
@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import {
   ArrowBack,
-  Edit,
+  // Edit,
   AccountBalanceWallet,
   LocalOffer,
   Notifications,
@@ -27,10 +27,10 @@ import {
   Policy,
   ContactSupport,
   Logout,
-  Bolt,
-  SportsEsports,
-  EmojiEvents,
-  TrendingUp,
+  // Bolt,
+  // SportsEsports,
+  // EmojiEvents,
+  // TrendingUp,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';

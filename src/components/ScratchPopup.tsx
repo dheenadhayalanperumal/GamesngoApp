@@ -56,7 +56,7 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
     }
   }, [isOpen]);
 
-  const handleScratch = (e: React.MouseEvent) => {
+  const handleScratch = (e: React.MouseEvent | React.TouchEvent) => {
     if (isScratched) return;
     
     setIsScratching(true);
@@ -64,8 +64,18 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    let x: number, y: number;
+    
+    if ('touches' in e) {
+      // Touch event
+      const touch = e.touches[0];
+      x = touch.clientX - rect.left;
+      y = touch.clientY - rect.top;
+    } else {
+      // Mouse event
+      x = e.clientX - rect.left;
+      y = e.clientY - rect.top;
+    }
     
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -104,22 +114,12 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
-    const touch = e.touches[0];
-    const mouseEvent = new MouseEvent('mousedown', {
-      clientX: touch.clientX,
-      clientY: touch.clientY
-    });
-    handleScratch(mouseEvent as any);
+    handleScratch(e);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     e.preventDefault();
-    const touch = e.touches[0];
-    const mouseEvent = new MouseEvent('mousemove', {
-      clientX: touch.clientX,
-      clientY: touch.clientY
-    });
-    handleScratch(mouseEvent as any);
+    handleScratch(e);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -353,7 +353,7 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            onClick={(e) => {
+            onClick={() => {
               // Fallback: if user clicks without dragging, still trigger
               if (scratchProgress < 5) {
                 console.log('Click fallback triggered');

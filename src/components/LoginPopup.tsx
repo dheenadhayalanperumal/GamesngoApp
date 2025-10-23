@@ -3,14 +3,14 @@
 import React, { useState } from "react";
 import {
   Box,
-  Typography,
+  // Typography,
   TextField,
   Button,
   Dialog,
   DialogContent,
   IconButton,
   InputAdornment,
-  Divider,
+  // Divider,
   Link,
 } from "@mui/material";
 import { Close, Phone, Lock, Google } from "@mui/icons-material";
@@ -233,7 +233,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
               },
             }}
           >
-            Don't have Account ?
+            Don&apos;t have Account ?
           </Link>
         </Box>
 

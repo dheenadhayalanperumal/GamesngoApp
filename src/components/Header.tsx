@@ -12,9 +12,9 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ sx }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [coins, setCoins] = useState(120);
-  const [strikes, setStrikes] = useState(13);
-  const [cupons, setcupons] = useState(5);
+  const [coins] = useState(120);
+  const [strikes] = useState(13);
+  const [cupons] = useState(5);
   const [isFixed, setIsFixed] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
 

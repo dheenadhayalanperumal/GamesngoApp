@@ -162,13 +162,15 @@ const SetPinPopup: React.FC<SetPinPopupProps> = ({
               onChange={(e) => handlePinChange(e.target.value)}
               error={!!pinError}
               helperText={pinError}
+              inputProps={{
+                maxLength: 4,
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
                     <Lock sx={{ color: '#FAC200' }} />
                   </InputAdornment>
                 ),
-                maxLength: 4,
               }}
               sx={{
                 marginBottom: '20px',
@@ -217,13 +219,15 @@ const SetPinPopup: React.FC<SetPinPopupProps> = ({
               onChange={(e) => handleConfirmPinChange(e.target.value)}
               error={!!confirmPinError}
               helperText={confirmPinError}
+              inputProps={{
+                maxLength: 4,
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
                     <Lock sx={{ color: '#FAC200' }} />
                   </InputAdornment>
                 ),
-                maxLength: 4,
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {

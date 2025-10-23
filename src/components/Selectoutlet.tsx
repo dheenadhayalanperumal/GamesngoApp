@@ -6,7 +6,7 @@ import { Box, Typography, Button, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import StarIcon from '@mui/icons-material/Star';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+// import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import TabBar from '@/components/TabBar';
 import DindugalImg from '../assets/images/banner/dindugal.svg';
 import NadanaImg from '../assets/images/banner/nadana.svg';

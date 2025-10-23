@@ -4,7 +4,7 @@ import React from 'react';
 import { Avatar, Box, Typography, IconButton } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+// import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useRouter } from 'next/navigation';
 
 interface ProfileAvatarProps {

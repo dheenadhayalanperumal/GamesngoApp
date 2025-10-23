@@ -59,51 +59,51 @@ const EventsPage = () => {
   };
 
   // Function to load mission data from API
-  const loadMissionData = async (missionId: number) => {
-    try {
-      // Replace with your actual API call
-      // const response = await fetch(`/api/missions/${missionId}`);
-      // const data = await response.json();
-      // setMissionData(data);
+  // const loadMissionData = async (missionId: number) => {
+  //   try {
+  //     // Replace with your actual API call
+  //     // const response = await fetch(`/api/missions/${missionId}`);
+  //     // const data = await response.json();
+  //     // setMissionData(data);
       
-      // For now, using mock data
-      const mockData: MissionData = {
-        id: missionId,
-        title: "Dynamic Mission Title",
-        subtitle: "Dynamic Mission Subtitle",
-        image: "/images/product/p1.png",
-        playButtonText: "Start Mission",
-        eventMission: {
-          title: "Mission Objectives",
-          items: [
-            {
-              id: 1,
-              title: "Complete Tasks",
-              description: "Complete all assigned tasks to progress.",
-            },
-            {
-              id: 2,
-              title: "Earn Points",
-              description: "Accumulate points through gameplay.",
-              emoji: "⭐"
-            },
-            {
-              id: 3,
-              title: "Reach Goals",
-              description: "Achieve specific goals to unlock rewards.",
-              emoji: "🎯"
-            }
-          ]
-        }
-      };
-      setMissionData(mockData);
-    } catch (error) {
-      console.error('Failed to load mission data:', error);
-    }
-  };
+  //     // For now, using mock data
+  //     const mockData: MissionData = {
+  //       id: missionId,
+  //       title: "Dynamic Mission Title",
+  //       subtitle: "Dynamic Mission Subtitle",
+  //       image: "/images/product/p1.png",
+  //       playButtonText: "Start Mission",
+  //       eventMission: {
+  //         title: "Mission Objectives",
+  //         items: [
+  //           {
+  //             id: 1,
+  //             title: "Complete Tasks",
+  //             description: "Complete all assigned tasks to progress.",
+  //           },
+  //           {
+  //             id: 2,
+  //             title: "Earn Points",
+  //             description: "Accumulate points through gameplay.",
+  //             emoji: "⭐"
+  //           },
+  //           {
+  //             id: 3,
+  //             title: "Reach Goals",
+  //             description: "Achieve specific goals to unlock rewards.",
+  //             emoji: "🎯"
+  //           }
+  //         ]
+  //       }
+  //     };
+  //     setMissionData(mockData);
+  //   } catch (error) {
+  //     console.error('Failed to load mission data:', error);
+  //   }
+  // };
 
   // Dynamic mission data
-  const [missionData, setMissionData] = useState<MissionData>({
+  const [missionData] = useState<MissionData>({
     id: 1,
     title: "Koriyaki Tiger",
     subtitle: "Claws of Fury, Spirit of Flame",
