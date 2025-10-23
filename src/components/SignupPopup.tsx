@@ -34,6 +34,7 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
   const [otp, setOtp] = useState('');
   const [isVerified, setIsVerified] = useState(false);
   const [isSetPinOpen, setIsSetPinOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignup = () => {
     // Open Set PIN popup instead of directly calling onSignup
@@ -58,16 +59,154 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
     onClose();
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     // Validate mobile number and user ID
     if (mobileNumber && userID) {
-      // Simulate validation
-      console.log('Validating mobile number and user ID...');
-      setIsVerified(true);
+      setIsLoading(true);
+      try {
+        console.log('Registering user with name:', userID, 'and mobile:', mobileNumber);
+        
+        // Create FormData for the API call
+        const formData = new FormData();
+        formData.append('name', userID);
+        formData.append('mobile', mobileNumber);
+        
+        // Call the Next.js API proxy to register and send OTP (to avoid CORS issues)
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === 'success') {
+          console.log('Registration successful:', data.message);
+          setIsVerified(true);
+          setIsLoading(false);
+        } else {
+          // Handle API errors
+          if (response.status === 409) {
+            alert('Phone number already registered');
+          } else if (response.status === 400) {
+            alert('Name and mobile are required');
+          } else {
+            alert('Failed to register. Please try again.');
+          }
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error registering user:', error);
+        // http://api.gamesngo.com/api/auth/register
+
+        // Type assertion so we can safely access name/message
+        if (
+          typeof error === 'object' &&
+          error !== null &&
+          'name' in error &&
+          'message' in error &&
+          typeof (error as any).name === 'string' &&
+          typeof (error as any).message === 'string'
+        ) {
+          const name = (error as any).name;
+          const message = (error as any).message;
+          if (name === 'TypeError' && message.includes('Failed to fetch')) {
+            alert('CORS Error: The API server is not allowing requests from this domain. Please contact the administrator to enable CORS for your domain.');
+          } else if (name === 'TypeError' && message.includes('NetworkError')) {
+            alert('Network error. Please check your internet connection and try again.');
+          } else {
+          alert('Network error. Please check your connection and try again.');
+        }
+      }
+      setIsLoading(false);
+      }
     } else {
       alert('Please fill in all fields');
     }
   };
+  const handleVerifyOTP = async () => {
+    if (otp && mobileNumber) {
+      setIsLoading(true);
+      try {
+        console.log('Verifying OTP...');
+
+        // Use FormData for OTP verification
+        const formData = new FormData();
+        formData.append('mobile', mobileNumber);
+        formData.append('otp', otp);
+
+         const response = await fetch('/api/auth/verify-otp', {
+           method: 'POST',
+           credentials: 'include',
+           body: formData
+         });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === 'success') {
+          console.log('OTP verified successfully:', data.message);
+          // Open Set PIN popup
+          setIsSetPinOpen(true);
+        } else {
+          // Handle API errors
+          if (response.status === 400) {
+            alert('OTP not verified or expired');
+          } else {
+            alert('Failed to verify OTP. Please try again.');
+          }
+        }
+      } catch (error) {
+        console.error('Error verifying OTP:', error);
+        alert('Network error. Please check your connection and try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      alert('Please enter OTP');
+    }
+  };
+
+  // const handleVerifyOTP = async () => {
+  //   if (otp && mobileNumber) {
+  //     setIsLoading(true);
+  //     try {
+  //       console.log('Verifying OTP...');
+        
+  //       const response = await fetch('/api/auth/verify-otp', {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify({
+  //           mobile: mobileNumber,
+  //           otp: otp
+  //         })
+  //       });
+
+  //       const data = await response.json();
+
+  //       if (response.ok && data.status === 'success') {
+  //         console.log('OTP verified successfully:', data.message);
+  //         // Open Set PIN popup
+  //         setIsSetPinOpen(true);
+  //       } else {
+  //         // Handle API errors
+  //         if (response.status === 400) {
+  //           alert('OTP not verified or expired');
+  //         } else {
+  //           alert('Failed to verify OTP. Please try again.');
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Error verifying OTP:', error);
+  //       alert('Network error. Please check your connection and try again.');
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   } else {
+  //     alert('Please enter OTP');
+  //   }
+  // };
 
   return (
     <Dialog
@@ -244,9 +383,10 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
             <Button
               variant="contained"
               onClick={handleVerify}
+              disabled={isLoading}
               fullWidth
               sx={{
-                backgroundColor: '#FAC200',
+                backgroundColor: isLoading ? '#ccc' : '#FAC200',
                 color: '#ffffff',
                 borderRadius: '20px',
                 padding: '14px 20px',
@@ -256,11 +396,11 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
                 height: '56px',
                 marginBottom: '20px',
                 '&:hover': {
-                  backgroundColor: '#FFA500',
+                  backgroundColor: isLoading ? '#ccc' : '#FFA500',
                 },
               }}
             >
-              Verify
+              {isLoading ? 'Sending OTP...' : 'Verify'}
             </Button>
           </Box>
 
@@ -310,13 +450,38 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
                   },
                 }}
               />
+              
+              {/* Verify OTP Button */}
+              {/* <Button
+                variant="contained"
+                onClick={handleVerifyOTP}
+                disabled={isLoading}
+                fullWidth
+                sx={{
+                  backgroundColor: isLoading ? '#ccc' : '#FAC200',
+                  color: '#ffffff',
+                  borderRadius: '20px',
+                  padding: '14px 20px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  textTransform: 'none',
+                  height: '56px',
+                  marginTop: '20px',
+                  '&:hover': {
+                    backgroundColor: isLoading ? '#ccc' : '#FFA500',
+                  },
+                }}
+              >
+                {isLoading ? 'Verifying OTP...' : 'Verify OTP'}
+              </Button> */}
             </Box>
           )}
 
           {/* Next Button */}
           <Button
             fullWidth
-            onClick={handleSignup}
+            // onClick={handleSignup}
+            onClick={handleVerifyOTP}
             sx={{
               backgroundColor: isVerified ? '#FAC200' : '#e0e0e0',
               color: isVerified ? '#ffffff' : '#666666',

@@ -46,7 +46,9 @@ const SetPinPopup: React.FC<SetPinPopupProps> = ({
     }
   };
 
-  const handleNext = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleNext = async () => {
     // Validate PIN
     if (pin.length !== 4) {
       setPinError('PIN must be 4 digits');
@@ -63,9 +65,46 @@ const SetPinPopup: React.FC<SetPinPopupProps> = ({
       return;
     }
 
-    // PIN is valid, proceed
-    onPinSet(pin);
-    onClose();
+    // Call the set-pin API
+    setIsLoading(true);
+    try {
+      console.log('Setting PIN...');
+      
+      // Use FormData for set-pin API
+      const formData = new FormData();
+      formData.append('pin', pin);
+      formData.append('confirmPin', confirmPin);
+
+      const response = await fetch('/api/auth/set-pin', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        console.log('PIN set successfully:', data.message);
+        onPinSet(pin);
+        onClose();
+      } else {
+        // Handle API errors
+        if (response.status === 400) {
+          alert('OTP not verified or expired');
+        } else if (response.status === 422) {
+          alert('PIN must be 4-6 digits');
+        } else if (response.status === 409) {
+          alert('Phone number already registered');
+        } else {
+          alert('Failed to set PIN. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('Error setting PIN:', error);
+      alert('Network error. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const isFormValid = pin.length === 4 && confirmPin.length === 4 && pin === confirmPin;
@@ -261,21 +300,21 @@ const SetPinPopup: React.FC<SetPinPopupProps> = ({
           <Button
             fullWidth
             onClick={handleNext}
-            disabled={!isFormValid}
+            disabled={!isFormValid || isLoading}
             sx={{
-              backgroundColor: isFormValid ? '#FAC200' : '#e0e0e0',
-              color: isFormValid ? '#ffffff' : '#666666',
+              backgroundColor: (isFormValid && !isLoading) ? '#FAC200' : '#e0e0e0',
+              color: (isFormValid && !isLoading) ? '#ffffff' : '#666666',
               borderRadius: '10px',
               padding: '14px',
               fontSize: '20px',
               fontWeight: 'bold',
               textTransform: 'none',
               '&:hover': {
-                backgroundColor: isFormValid ? '#FFA500' : '#d0d0d0',
+                backgroundColor: (isFormValid && !isLoading) ? '#FFA500' : '#d0d0d0',
               },
             }}
           >
-            Next
+            {isLoading ? 'Setting PIN...' : 'Next'}
           </Button>
         </Box>
       </DialogContent>
