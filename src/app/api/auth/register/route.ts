@@ -8,7 +8,8 @@ export async function POST(request: NextRequest) {
     const cookies = request.headers.get('cookie');
     
     // Forward the request to the actual API with cookies
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/register`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://api.gamesngo.com';
+    const response = await fetch(`${apiUrl}/api/auth/register`, {
       method: 'POST',
       headers: cookies ? { 'Cookie': cookies } : {},
       credentials: 'include',
