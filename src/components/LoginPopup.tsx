@@ -31,12 +31,59 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
   const [mobileNumber, setMobileNumber] = useState("");
   const [pin, setPin] = useState("");
   const [isSignupOpen, setIsSignupOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Here you would typically validate the credentials
-    // For now, we'll just call the onLogin callback
-    onLogin();
-    onClose();
+  const handleLogin = async () => {
+    // Validate input
+    if (!mobileNumber || !pin) {
+      alert('Please enter mobile number and PIN');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      console.log('Logging in with mobile:', mobileNumber);
+
+      // Create FormData for the API call
+      const formData = new FormData();
+      formData.append('mobile', mobileNumber);
+      formData.append('pin', pin);
+
+      // Call the login API
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        console.log('Login successful:', data.message);
+        onLogin();
+        onClose();
+      } else {
+        // Handle API errors
+        if (response.status === 400) {
+          alert('Mobile and PIN are required');
+        } else if (response.status === 401) {
+          alert('Invalid credentials');
+        } else if (response.status === 403) {
+          alert('Account disabled');
+        } else {
+          alert('Failed to login. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('Error logging in:', error);
+      if (error instanceof Error) {
+        alert('Network error. Please check your connection and try again.');
+      } else {
+        alert('An error occurred. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -195,8 +242,9 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
         <Button
           fullWidth
           onClick={handleLogin}
+          disabled={isLoading}
           sx={{
-            backgroundColor: "#FAC200",
+            backgroundColor: isLoading ? "#ccc" : "#FAC200",
             color: "#ffffff",
             borderRadius: "10px",
             padding: "14px",
@@ -205,11 +253,11 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
             marginBottom: "20px",
             textTransform: "none",
             "&:hover": {
-              backgroundColor: "#FFA500",
+              backgroundColor: isLoading ? "#ccc" : "#FFA500",
             },
           }}
         >
-          Next
+          {isLoading ? 'Logging in...' : 'Next'}
         </Button>
 
         {/* Don't have Account Link */}
