@@ -13,7 +13,7 @@ import {
   Divider,
   Link
 } from '@mui/material';
-import { Close, Person, Email, Phone, Google, Lock } from '@mui/icons-material';
+import { Close, Person, Phone, Google, Lock } from '@mui/icons-material';
 import Image from 'next/image';
 import SetPinPopup from './SetPinPopup';
 
@@ -29,17 +29,11 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
   onSignup
 }) => {
   const [userID, setUserID] = useState('');
-  const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [isVerified, setIsVerified] = useState(false);
   const [isSetPinOpen, setIsSetPinOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleSignup = () => {
-    // Open Set PIN popup instead of directly calling onSignup
-    setIsSetPinOpen(true);
-  };
 
   const handleSetPinClose = () => {
     setIsSetPinOpen(false);
@@ -100,25 +94,18 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
         // http://api.gamesngo.com/api/auth/register
 
         // Type assertion so we can safely access name/message
-        if (
-          typeof error === 'object' &&
-          error !== null &&
-          'name' in error &&
-          'message' in error &&
-          typeof (error as any).name === 'string' &&
-          typeof (error as any).message === 'string'
-        ) {
-          const name = (error as any).name;
-          const message = (error as any).message;
-          if (name === 'TypeError' && message.includes('Failed to fetch')) {
+        if (error instanceof Error) {
+          if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
             alert('CORS Error: The API server is not allowing requests from this domain. Please contact the administrator to enable CORS for your domain.');
-          } else if (name === 'TypeError' && message.includes('NetworkError')) {
+          } else if (error.name === 'TypeError' && error.message.includes('NetworkError')) {
             alert('Network error. Please check your internet connection and try again.');
           } else {
+            alert('Network error. Please check your connection and try again.');
+          }
+        } else {
           alert('Network error. Please check your connection and try again.');
         }
-      }
-      setIsLoading(false);
+        setIsLoading(false);
       }
     } else {
       alert('Please fill in all fields');
