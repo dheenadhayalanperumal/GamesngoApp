@@ -493,7 +493,7 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
               <Divider sx={{ margin: '20px 0' }} />
 
               {/* Continue With Google Button */}
-              <Button
+              {/* <Button
                 fullWidth
                 variant="outlined"
                 onClick={handleGoogleSignup}
@@ -517,10 +517,10 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
                 }}
               >
                 Continue With Google
-              </Button>
+              </Button> */}
 
               {/* Have a Referral Link */}
-              <Box sx={{ textAlign: 'center', marginBottom: '20px' }}>
+              {/* <Box sx={{ textAlign: 'center', marginBottom: '20px' }}>
                 <Link
                   href="#"
                   sx={{
@@ -535,7 +535,7 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
                 >
                   Have a Referral ?
                 </Link>
-              </Box>
+              </Box> */}
 
               {/* Terms and Conditions */}
               <Box sx={{ textAlign: 'center' }}>

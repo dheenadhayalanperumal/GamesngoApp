@@ -43,17 +43,23 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
 
       if (response.ok && data.status === 'success') {
         setCoins(data.counts.coins);
-        setCupons(data.counts.vouchers.total);
+        setCupons(data.counts.vouchers.unredeemed);
         // If we successfully fetched counts, user is logged in
-        setIsLoggedIn(true);
+        if (!isLoggedIn) {
+          setIsLoggedIn(true);
+        }
       } else {
         // User is not logged in or token expired
         console.error('Failed to fetch counts:', data.message);
-        setIsLoggedIn(false);
+        if (isLoggedIn) {
+          setIsLoggedIn(false);
+        }
       }
     } catch (error) {
       console.error('Error fetching counts:', error);
-      setIsLoggedIn(false);
+      if (isLoggedIn) {
+        setIsLoggedIn(false);
+      }
     }
   };
 
@@ -75,19 +81,23 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Fetch counts on mount and periodically if logged in
+  // Check login status on mount
   useEffect(() => {
-    // Try to fetch counts on mount (user might already have valid cookies)
+    // Try to fetch counts on mount to check if user has valid cookies
     fetchCounts();
+  }, []);
 
-    // Poll every 30 seconds for updates
-    const interval = setInterval(() => {
-      if (isLoggedIn) {
+  // Fetch counts periodically only if logged in
+  useEffect(() => {
+    // Only fetch if user is logged in
+    if (isLoggedIn) {
+      // Poll every 30 seconds for updates
+      const interval = setInterval(() => {
         fetchCounts();
-      }
-    }, 30000); // 30 seconds
+      }, 30000); // 30 seconds
 
-    return () => clearInterval(interval);
+      return () => clearInterval(interval);
+    }
   }, [isLoggedIn]);
 
   return (
