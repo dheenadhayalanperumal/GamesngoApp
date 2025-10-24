@@ -18,6 +18,10 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isCouponOpen, setIsCouponOpen] = useState(false);
   const [coinsWon, setCoinsWon] = useState(0);
+  const [scratchId] = useState(1); // Default scratch ID, you can make this dynamic
+  const [scratchQuote, setScratchQuote] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [rewardData, setRewardData] = useState<any>(null);
 
   useEffect(() => {
     const updateTimer = () => {
@@ -54,23 +58,106 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
 
   const formatTime = (time: number) => time.toString().padStart(2, '0');
 
-  const handleScratchClick = () => {
-    setIsPopupOpen(true);
+  // Fetch scratch quote before opening popup
+  const fetchScratchQuote = async () => {
+    try {
+      const response = await fetch(`/api/scratch/quote?scratch_id=${scratchId}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('Scratch quote:', data);
+
+      if (response.ok && data.status === 'success') {
+        setScratchQuote(data.quote);
+        return data.quote;
+      } else {
+        if (response.status === 401) {
+          alert('Please login to play scratch cards');
+        } else if (response.status === 404) {
+          alert('Scratch card not available');
+        } else {
+          alert('Failed to load scratch card. Please try again.');
+        }
+        return null;
+      }
+    } catch (error) {
+      console.error('Error fetching scratch quote:', error);
+      alert('Network error. Please try again.');
+      return null;
+    }
+  };
+
+  // Redeem scratch card
+  const redeemScratch = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/scratch/redeem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ scratch_id: scratchId }),
+      });
+
+      const data = await response.json();
+      console.log('Scratch redeem:', data);
+
+      if (response.ok && data.status === 'success') {
+        setRewardData(data.reward);
+        
+        // Set coins won if it's a coin reward
+        if (data.reward.type === 'coin') {
+          setCoinsWon(data.reward.amount);
+        }
+        
+        return data.reward;
+      } else {
+        if (response.status === 402) {
+          alert('Not enough coins for extra scratch');
+        } else if (response.status === 401) {
+          alert('Please login to play scratch cards');
+        } else if (response.status === 404) {
+          alert('Scratch card not available');
+        } else {
+          alert('Failed to redeem scratch. Please try again.');
+        }
+        return null;
+      }
+    } catch (error) {
+      console.error('Error redeeming scratch:', error);
+      alert('Network error. Please try again.');
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleScratchClick = async () => {
+    // Fetch quote first
+    const quote = await fetchScratchQuote();
+    if (quote && quote.pricing.canProceed) {
+      setIsPopupOpen(true);
+    }
   };
 
   const handlePopupClose = () => {
     setIsPopupOpen(false);
   };
 
-  const handlePopupScratch = () => {
-    // Simulate scratch result - you can replace this with actual logic
-    const wonCoins = Math.floor(Math.random() * 50) + 10; // Random coins between 10-60
-    setCoinsWon(wonCoins);
-    setIsPopupOpen(false);
-    setIsCouponOpen(true);
+  const handlePopupScratch = async () => {
+    // Redeem the scratch card
+    const reward = await redeemScratch();
     
-    if (onScratch) {
-      onScratch();
+    if (reward) {
+      setIsPopupOpen(false);
+      setIsCouponOpen(true);
+      
+      if (onScratch) {
+        onScratch();
+      }
     }
   };
 
@@ -299,9 +386,10 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
       <Button
         variant="contained"
         onClick={handleScratchClick}
+        disabled={isLoading}
         sx={{
-          background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-          color: '#2D3748',
+          background: isLoading ? '#E2E8F0' : 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+          color: isLoading ? '#A0AEC0' : '#2D3748',
           fontWeight: 'bold',
           fontSize: {
             xs: '14px',
@@ -316,11 +404,11 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
           borderRadius: '50px',
           textTransform: 'none',
           width: '100%',
-          boxShadow: '0 4px 16px rgba(255, 215, 0, 0.3)',
+          boxShadow: isLoading ? 'none' : '0 4px 16px rgba(255, 215, 0, 0.3)',
           '&:hover': {
-            background: 'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)',
-            boxShadow: '0 6px 20px rgba(255, 215, 0, 0.4)',
-            transform: 'translateY(-2px)',
+            background: isLoading ? '#E2E8F0' : 'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)',
+            boxShadow: isLoading ? 'none' : '0 6px 20px rgba(255, 215, 0, 0.4)',
+            transform: isLoading ? 'none' : 'translateY(-2px)',
           },
           '&:disabled': {
             background: '#E2E8F0',
@@ -329,7 +417,7 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
           }
         }}
       >
-        Scratch Now({coinCost} Coins)
+        {isLoading ? 'Loading...' : scratchQuote?.pricing.isFree ? 'Scratch Now (Free)' : `Scratch Now (${scratchQuote?.pricing.costCoins || coinCost} Coins)`}
       </Button>
 
       {/* Scratch Popup */}
