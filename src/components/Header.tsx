@@ -12,9 +12,9 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ sx }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [coins] = useState(120);
+  const [coins, setCoins] = useState(0);
   const [strikes] = useState(13);
-  const [cupons] = useState(5);
+  const [cupons, setCupons] = useState(0);
   const [isFixed, setIsFixed] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
 
@@ -24,10 +24,37 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
 
   const handleLogin = () => {
     setIsLoggedIn(true);
+    // Fetch counts after login
+    fetchCounts();
   };
 
   const handleLoginPopupClose = () => {
     setIsLoginPopupOpen(false);
+  };
+
+  const fetchCounts = async () => {
+    try {
+      const response = await fetch('/api/home/counts', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        setCoins(data.counts.coins);
+        setCupons(data.counts.vouchers.total);
+        // If we successfully fetched counts, user is logged in
+        setIsLoggedIn(true);
+      } else {
+        // User is not logged in or token expired
+        console.error('Failed to fetch counts:', data.message);
+        setIsLoggedIn(false);
+      }
+    } catch (error) {
+      console.error('Error fetching counts:', error);
+      setIsLoggedIn(false);
+    }
   };
 
   useEffect(() => {
@@ -47,6 +74,21 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Fetch counts on mount and periodically if logged in
+  useEffect(() => {
+    // Try to fetch counts on mount (user might already have valid cookies)
+    fetchCounts();
+
+    // Poll every 30 seconds for updates
+    const interval = setInterval(() => {
+      if (isLoggedIn) {
+        fetchCounts();
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
 
   return (
     <AppBar
