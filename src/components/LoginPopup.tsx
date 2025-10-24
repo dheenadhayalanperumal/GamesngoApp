@@ -257,7 +257,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
             },
           }}
         >
-          {isLoading ? 'Logging in...' : 'Next'}
+          {isLoading ? 'Logging in...' : 'Login'}
         </Button>
 
         {/* Don't have Account Link */}
@@ -286,7 +286,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
         </Box>
 
         {/* Continue With Google Button */}
-        <Button
+        {/* <Button
           fullWidth
           variant="outlined"
           onClick={handleGoogleLogin}
@@ -309,7 +309,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
            }}
         >
           Continue With Google
-        </Button>
+        </Button> */}
         </Box>
       </DialogContent>
       
