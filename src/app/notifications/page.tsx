@@ -209,7 +209,7 @@ export default function Notifications() {
                 fontWeight: 400
               }}
             >
-              You'll see your notifications here when they arrive
+              You&apos;ll see your notifications here when they arrive
             </Typography>
           </Box>
         )}

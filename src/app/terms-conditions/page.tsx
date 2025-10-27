@@ -1,9 +1,10 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -11,6 +12,41 @@ import TabBar from "@/components/TabBar";
 
 export default function TermsConditions() {
   const router = useRouter();
+  const [content, setContent] = useState('');
+  const [title, setTitle] = useState('Terms & Conditions');
+  const [updatedAt, setUpdatedAt] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetchTermsConditions();
+  }, []);
+
+  const fetchTermsConditions = async () => {
+    try {
+      const response = await fetch('/api/legal/terms', {
+        method: 'GET',
+      });
+
+      const data = await response.json();
+      console.log('Terms & conditions response:', data);
+
+      if (response.ok && data.status === 'success') {
+        setContent(data.page.content || '');
+        setTitle(data.page.title || 'Terms & Conditions');
+        setUpdatedAt(data.page.updatedAt || '');
+        setError(false);
+      } else {
+        console.warn('Failed to fetch terms & conditions:', data.message);
+        setError(true);
+      }
+    } catch (err) {
+      console.error('Error fetching terms & conditions:', err);
+      setError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
@@ -56,20 +92,96 @@ export default function TermsConditions() {
         minHeight: 'calc(100vh - 120px)',
         overflowY: 'auto'
       }}>
-         {/* Page Title */}
- <Typography 
-          variant="h4" 
-          sx={{ 
-            color: '#333333', // Dark gray color for headings
-            fontSize: '24px', // Large font size for title
-            fontWeight: 'bold',
-            textAlign: 'left',
-            marginBottom: 2,
-           
-          }}
-        >
-          Terms & Conditions
-        </Typography>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+            <CircularProgress sx={{ color: '#4848DB' }} />
+          </Box>
+        ) : error ? (
+          <Box sx={{ padding: 3, textAlign: 'center' }}>
+            <Typography variant="h6" sx={{ color: '#f44336', marginBottom: 2 }}>
+              Failed to load terms & conditions
+            </Typography>
+            <Typography variant="body1" sx={{ color: '#666', marginBottom: 3 }}>
+              Please try again later or contact support if the problem persists.
+            </Typography>
+          </Box>
+        ) : (
+          <>
+            {/* Page Title */}
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                color: '#333333',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                textAlign: 'left',
+                marginBottom: 2,
+              }}
+            >
+              {title}
+            </Typography>
+            
+            {/* API Content */}
+            <Box
+              sx={{
+                '& h1, & h2, & h3, & h4, & h5, & h6': {
+                  color: '#333333',
+                  fontWeight: 'bold',
+                  marginTop: 3,
+                  marginBottom: 2,
+                },
+                '& p': {
+                  color: '#333333',
+                  fontSize: '14px',
+                  lineHeight: 1.6,
+                  marginBottom: 2,
+                },
+                '& ul, & ol': {
+                  paddingLeft: 3,
+                  marginBottom: 2,
+                },
+                '& li': {
+                  color: '#333333',
+                  fontSize: '14px',
+                  lineHeight: 1.6,
+                  marginBottom: 1,
+                },
+                '& a': {
+                  color: '#3F51B5',
+                  textDecoration: 'underline',
+                  '&:hover': {
+                    textDecoration: 'none',
+                  },
+                },
+              }}
+              dangerouslySetInnerHTML={{ __html: content }}
+            />
+            
+            {/* Last Updated */}
+            {updatedAt && (
+              <Box sx={{ marginTop: 4 }}>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    color: '#666666',
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    lineHeight: 1.6,
+                    fontStyle: 'italic'
+                  }}
+                >
+                  Last updated: {new Date(updatedAt).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </Typography>
+              </Box>
+            )}
+          </>
+        )}
+        {/* OLD CONTENT BELOW - TO BE REMOVED */}
+        {false && (<>
         {/* Introduction Section */}
         <Box sx={{ marginBottom: 3 }}>
           <Typography 
@@ -94,7 +206,7 @@ export default function TermsConditions() {
               marginBottom: 2
             }}
           >
-            Welcome to Gamesngo! These Terms and Conditions ("Terms") govern your use of our mobile application and services (collectively, the "Service") operated by Gamesngo ("us", "we", or "our").
+            Welcome to Gamesngo! These Terms and Conditions (&quot;Terms&quot;) govern your use of our mobile application and services (collectively, the &quot;Service&quot;) operated by Gamesngo (&quot;us&quot;, &quot;we&quot;, or &quot;our&quot;).
           </Typography>
           <Typography 
             variant="body1" 
@@ -518,7 +630,7 @@ export default function TermsConditions() {
               marginBottom: 2
             }}
           >
-            The information on this Service is provided on an "as is" basis. To the fullest extent permitted by law, this Company excludes all representations, warranties, conditions and terms relating to our Service and the use of this Service.
+            The information on this Service is provided on an &quot;as is&quot; basis. To the fullest extent permitted by law, this Company excludes all representations, warranties, conditions and terms relating to our Service and the use of this Service.
           </Typography>
         </Box>
 
@@ -569,6 +681,7 @@ export default function TermsConditions() {
             })}
           </Typography>
         </Box>
+        </>)}
       </Box>
 
       {/* Bottom Navigation Bar */}

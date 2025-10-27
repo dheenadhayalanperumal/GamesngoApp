@@ -47,8 +47,6 @@ export default function Profile() {
     preferences: { notifications: { enabled: true } },
     invite: { rewardCoins: 100 }
   });
-  const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     fetchAccountOverview();
   }, []);
@@ -71,8 +69,6 @@ export default function Profile() {
       }
     } catch (error) {
       console.error('Error fetching account overview:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -160,7 +156,17 @@ export default function Profile() {
           <Typography 
             variant="body1" 
             sx={{ color: 'white', fontWeight: 500, cursor: 'pointer' }}
-            onClick={() => router.push('/profile/edit')}
+            onClick={() => {
+              // Pass user data via localStorage for edit page
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('editProfileData', JSON.stringify({
+                  name: accountData.user.name,
+                  imageUrl: accountData.user.imageUrl,
+                  joinedAt: accountData.user.joinedAt
+                }));
+              }
+              router.push('/profile/edit');
+            }}
           >
             Edit
           </Typography>

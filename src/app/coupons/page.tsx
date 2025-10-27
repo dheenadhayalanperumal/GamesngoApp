@@ -19,7 +19,7 @@ export default function Coupons() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('All');
   const [qrPopupOpen, setQrPopupOpen] = useState(false);
-  const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
+  const [selectedCoupon, setSelectedCoupon] = useState<typeof coupons[0] | null>(null);
   const [voucherClaimedOpen, setVoucherClaimedOpen] = useState(false);
 
   // Sample coupon data
@@ -110,7 +110,7 @@ export default function Coupons() {
   };
 
   // Handle Show QR click
-  const handleShowQR = (coupon: any) => {
+  const handleShowQR = (coupon: typeof coupons[0]) => {
     setSelectedCoupon(coupon);
     setQrPopupOpen(true);
   };

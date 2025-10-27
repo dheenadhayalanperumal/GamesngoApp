@@ -54,12 +54,15 @@ interface HomeData {
     imageUrl: string;
     linkUrl?: string;
   }>;
+  streak?: {
+    current: number;
+    hasRedeemedToday: boolean;
+  };
 }
 
 export default function Home() {
   const [homeData, setHomeData] = useState<HomeData>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     checkAuthAndLoadData();
@@ -72,10 +75,11 @@ export default function Home() {
 
     // Check if user is authenticated by trying to fetch user details
     const isAuth = await checkAuthentication();
-    setIsAuthenticated(isAuth);
 
     if (isAuth) {
       console.log('User is authenticated, loading user data...');
+      // Fetch user-specific streak data
+      await fetchUserDetails();
     } else {
       console.log('User is not authenticated, loading public data...');
     }
@@ -155,6 +159,39 @@ export default function Home() {
     }
   };
 
+  const fetchUserDetails = async () => {
+    try {
+      const response = await fetch('/api/home/details', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('User details response for streak:', data);
+
+      if (response.ok && data.status === 'success') {
+        if (data.details.streak) {
+          const streakData = {
+            current: data.details.streak.current || 0,
+            hasRedeemedToday: data.details.streak.hasRedeemedToday || false
+          };
+          console.log('📊 Streak Data from API:', streakData);
+          console.log('  - Current Day:', streakData.current);
+          console.log('  - Has Redeemed Today:', streakData.hasRedeemedToday);
+          
+          setHomeData(prev => ({
+            ...prev,
+            streak: streakData
+          }));
+        }
+      } else {
+        console.warn('Failed to fetch user details:', data.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
+
   // Show loading screen while checking authentication and loading data
   if (isLoading) {
     return <LoadingScreen />;
@@ -176,7 +213,10 @@ export default function Home() {
       <ProfileAvatar/>
 
       <BannerSlider banners={homeData.banners} />
-      <DailyCheckin/>
+      <DailyCheckin 
+        currentDay={homeData.streak?.current}
+        hasRedeemedToday={homeData.streak?.hasRedeemedToday}
+      />
       <QuickAction/>
       <PopularToday games={homeData.popularGames} />
       <RestaurantGame restaurants={homeData.restaurants} />        

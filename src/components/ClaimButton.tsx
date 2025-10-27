@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Box } from '@mui/material';
 
 interface ClaimButtonProps {
@@ -16,8 +16,18 @@ const ClaimButton: React.FC<ClaimButtonProps> = ({
   text = 'Claim',
   onClaimed
 }) => {
-  const [isClaimed, setIsClaimed] = useState(false);
+  // If disabled prop is true initially, treat as already claimed
+  const [isClaimed, setIsClaimed] = useState(disabled);
   const [showTick, setShowTick] = useState(false);
+
+  // Update claimed state when disabled prop changes
+  useEffect(() => {
+    console.log('🔘 ClaimButton - disabled prop changed:', disabled);
+    if (disabled) {
+      setIsClaimed(true);
+      console.log('🔘 ClaimButton - Setting isClaimed to true');
+    }
+  }, [disabled]);
 
   const handleClick = () => {
     if (!isClaimed && !disabled) {

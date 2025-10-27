@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -24,10 +24,33 @@ export default function EditProfile() {
   const router = useRouter();
   
   const [formData, setFormData] = useState({
-    userId: 'Dhanush14',
-    email: 'dhanush123@gmail.com',
-    phone: '+91 12345 67890',
+    userId: '',
+    email: '',
+    phone: '',
   });
+  const [userImage, setUserImage] = useState('');
+  const [joinedAt, setJoinedAt] = useState('');
+
+  useEffect(() => {
+    // Load user data from localStorage
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem('editProfileData');
+      if (savedData) {
+        try {
+          const userData = JSON.parse(savedData);
+          setFormData({
+            userId: userData.name || '',
+            email: '', // Will be fetched from API in future
+            phone: '', // Will be fetched from API in future
+          });
+          setUserImage(userData.imageUrl || '');
+          setJoinedAt(userData.joinedAt || '');
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+        }
+      }
+    }
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -64,6 +87,7 @@ export default function EditProfile() {
         {/* Profile Avatar with Camera Icon */}
         <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: 2, position: 'relative' }}>
           <Avatar
+            src={userImage || undefined}
             sx={{
               width: '120px',
               height: '120px',
@@ -72,13 +96,15 @@ export default function EditProfile() {
               boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
             }}
           >
-            <Image 
-              src="/logoblue.svg" 
-              alt="Profile" 
-              width={80} 
-              height={80}
-              style={{ objectFit: 'contain' }}
-            />
+            {!userImage && (
+              <Image 
+                src="/logoblue.svg" 
+                alt="Profile" 
+                width={80} 
+                height={80}
+                style={{ objectFit: 'contain' }}
+              />
+            )}
           </Avatar>
           <IconButton
             sx={{
