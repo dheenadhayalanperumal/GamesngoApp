@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -39,15 +39,91 @@ import TabBar from "@/components/TabBar";
 export default function Profile() {
   const router = useRouter();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  
-  const userInfo = {
-    name: 'Gamesngo',
-    joinDate: 'Joined Oct 5, 2025',
-    totalCoins: 1015,
-    totalCoupons: 11,
-    gamesPlayed: 147,
-    gamesWins: 67,
-    gamesScore: 2154,
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [accountData, setAccountData] = useState({
+    user: { name: 'User', imageUrl: '', joinedAt: '' },
+    counts: { coins: 0, coupons: { total: 0, unredeemed: 0 } },
+    stats: { gamesPlayed: 0, gamesScore: 0 },
+    preferences: { notifications: { enabled: true } },
+    invite: { rewardCoins: 100 }
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAccountOverview();
+  }, []);
+
+  const fetchAccountOverview = async () => {
+    try {
+      const response = await fetch('/api/account/overview', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('Account overview response:', data);
+
+      if (response.ok && data.status === 'success') {
+        setAccountData(data.account);
+        setNotificationsEnabled(data.account.preferences.notifications.enabled);
+      } else {
+        console.warn('Failed to fetch account overview:', data.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Error fetching account overview:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent double clicks
+    
+    setIsLoggingOut(true);
+    console.log('Logging out...');
+
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('Logout response:', data);
+
+      if (response.ok) {
+        console.log('Logout successful, redirecting to home...');
+        
+        // Clear any local storage or session storage if used
+        if (typeof window !== 'undefined') {
+          localStorage.clear();
+          sessionStorage.clear();
+        }
+        
+        // Redirect to home page
+        router.push('/');
+        
+        // Force page reload to clear all state
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 100);
+      } else {
+        console.error('Logout failed:', data.message);
+        alert('Failed to logout. Please try again.');
+        setIsLoggingOut(false);
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      alert('An error occurred during logout. Please try again.');
+      setIsLoggingOut(false);
+    }
+  };
+
+  // Format join date
+  const formatJoinDate = (dateString: string) => {
+    if (!dateString) return 'Member';
+    const date = new Date(dateString);
+    return `Joined ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
   };
 
   const accountMenuItems = [
@@ -55,7 +131,7 @@ export default function Profile() {
     { icon: <LocalOffer />, title: 'Coupons' },
     { icon: <Notifications />, title: 'Notifications', hasToggle: true },
     { icon: <Security />, title: 'Change PIN' },
-    { icon: <Share />, title: 'Invite & Win (+100 Coins)', highlight: true },
+    { icon: <Share />, title: `Invite & Win (+${accountData.invite.rewardCoins} Coins)`, highlight: true },
     { icon: <Description />, title: 'Terms & Conditions' },
     { icon: <Policy />, title: 'Privacy Policy' },
     { icon: <ContactSupport />, title: 'Contact Us' },
@@ -93,6 +169,7 @@ export default function Profile() {
         {/* Profile Avatar */}
         <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: 2 }}>
           <Avatar
+            src={accountData.user.imageUrl || undefined}
             sx={{
               width: '120px',
               height: '120px',
@@ -101,13 +178,15 @@ export default function Profile() {
               boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
             }}
           >
-            <Image 
-              src="/logoblue.svg" 
-              alt="Profile" 
-              width={80} 
-              height={80}
-              style={{ objectFit: 'contain' }}
-            />
+            {!accountData.user.imageUrl && (
+              <Image 
+                src="/logoblue.svg" 
+                alt="Profile" 
+                width={80} 
+                height={80}
+                style={{ objectFit: 'contain' }}
+              />
+            )}
           </Avatar>
         </Box>
 
@@ -121,7 +200,7 @@ export default function Profile() {
             lineHeight: 'normal',
             marginBottom: 1
           }}>
-            {userInfo.name}
+            {accountData.user.name}
           </Typography>
           <Typography variant="body1" sx={{ 
             color: '#FFF',
@@ -131,7 +210,7 @@ export default function Profile() {
             fontWeight: 300,
             lineHeight: 'normal'
           }}>
-            {userInfo.joinDate}
+            {formatJoinDate(accountData.user.joinedAt)}
           </Typography>
         </Box>
 
@@ -163,7 +242,7 @@ export default function Profile() {
                 fontWeight: 700,
                 lineHeight: '25px',
                 marginBottom: 0.5 
-              }}>     {userInfo.totalCoins}
+              }}>     {accountData.counts.coins}
               </Typography>
               </Box>
               <Typography variant="body2" sx={{ 
@@ -205,7 +284,7 @@ export default function Profile() {
                 lineHeight: '25px',
                 marginBottom: 0.5 
               }}>
-                {userInfo.totalCoupons}
+                {accountData.counts.coupons.total}
               </Typography>
               </Box>
               <Typography variant="body2" sx={{ 
@@ -245,7 +324,7 @@ export default function Profile() {
                   lineHeight: '22px',
                   marginBottom: 1 
                 }}>
-                  {userInfo.gamesPlayed}
+                  {accountData.stats.gamesPlayed}
                 </Typography>
                 <Typography variant="body2" sx={{ 
                   color: 'rgba(0, 0, 0, 0.40)',
@@ -278,7 +357,7 @@ export default function Profile() {
                   lineHeight: '22px',
                   marginBottom: 1 
                 }}>
-                  {userInfo.gamesWins}
+                  {0}
                 </Typography>
                 <Typography variant="body2" sx={{ 
                   color: 'rgba(0, 0, 0, 0.40)',
@@ -311,7 +390,7 @@ export default function Profile() {
                   lineHeight: '22px',
                   marginBottom: 1 
                 }}>
-                  {userInfo.gamesScore}
+                  {accountData.stats.gamesScore}
                 </Typography>
                 <Typography variant="body2" sx={{ 
                   color: 'rgba(0, 0, 0, 0.40)',
@@ -370,6 +449,8 @@ export default function Profile() {
                         router.push('/change-pin/old-pin');
                       } else if (item.title === 'Invite & Win (+100 Coins)') {
                         router.push('/refer-win');
+                      } else if (item.title === 'Log Out') {
+                        handleLogout();
                       }
                     }}
                   >
@@ -388,7 +469,7 @@ export default function Profile() {
                             lineHeight: '21px'
                           }}
                         >
-                          {item.title}
+                          {item.isLogout && isLoggingOut ? 'Logging out...' : item.title}
                           {item.highlight && (
                             <Typography component="span" sx={{ color: '#FAC200', fontWeight: 'bold' }}>
                               {' '}(+100 Coins)
