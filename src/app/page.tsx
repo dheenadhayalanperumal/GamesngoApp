@@ -57,10 +57,10 @@ interface HomeData {
 
 export default function Home() {
   const [homeData, setHomeData] = useState<HomeData>({});
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchHomeData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchHomeData = async () => {
@@ -87,8 +87,6 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error fetching home data:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 

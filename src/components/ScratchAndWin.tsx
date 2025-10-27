@@ -36,9 +36,20 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isCouponOpen, setIsCouponOpen] = useState(false);
   const [coinsWon, setCoinsWon] = useState(0);
-  const [scratchQuote, setScratchQuote] = useState<any>(null);
+  const [scratchQuote, setScratchQuote] = useState<{
+    scratch: { id: number; title: string; type: string; amount?: number };
+    pricing: { attemptNo: number; costCoins: number; isFree: boolean; walletCoins: number; canProceed: boolean };
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [rewardData, setRewardData] = useState<any>(null);
+  const [rewardData, setRewardData] = useState<{
+    type: 'coin' | 'product';
+    amount?: number;
+    product?: { id: number };
+    voucherId?: number;
+    redemptionId: number;
+    spent: number;
+    attemptNo: number;
+  } | null>(null);
   
   // Use scratchData.id if available, otherwise default to 1
   const scratchId = scratchData?.id || 1;

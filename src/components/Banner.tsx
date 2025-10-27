@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Slider from "react-slick";
 // import { Box } from "@mui/material";
 import "slick-carousel/slick/slick.css";
