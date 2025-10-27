@@ -12,6 +12,7 @@ import ShakeAndWin from "@/components/ShakeAndWin";
 import QuickAction from "@/components/QuickAction";
 import PopularToday from "@/components/PopularToday";
 import RestaurantGame from "@/components/RestaurantGame";
+import LoadingScreen from "@/components/LoadingScreen";
 
 interface HomeData {
   popularGames?: Array<{
@@ -57,11 +58,55 @@ interface HomeData {
 
 export default function Home() {
   const [homeData, setHomeData] = useState<HomeData>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    fetchHomeData();
+    checkAuthAndLoadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const checkAuthAndLoadData = async () => {
+    console.log('Checking authentication...');
+    setIsLoading(true);
+
+    // Check if user is authenticated by trying to fetch user details
+    const isAuth = await checkAuthentication();
+    setIsAuthenticated(isAuth);
+
+    if (isAuth) {
+      console.log('User is authenticated, loading user data...');
+    } else {
+      console.log('User is not authenticated, loading public data...');
+    }
+
+    // Load home data regardless of auth status
+    await fetchHomeData();
+    
+    setIsLoading(false);
+  };
+
+  const checkAuthentication = async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/home/counts', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.status === 'success') {
+        console.log('Authentication check: User is logged in');
+        return true;
+      } else {
+        console.log('Authentication check: User is not logged in');
+        return false;
+      }
+    } catch (error) {
+      console.error('Authentication check error:', error);
+      return false;
+    }
+  };
 
   const fetchHomeData = async () => {
     try {
@@ -109,6 +154,11 @@ export default function Home() {
       console.error('Error fetching daily scratch:', error);
     }
   };
+
+  // Show loading screen while checking authentication and loading data
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="layout">
