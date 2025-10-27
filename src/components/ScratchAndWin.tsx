@@ -525,7 +525,7 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
         isOpen={isCouponOpen}
         onClose={handleCouponClose}
         coinsWon={coinsWon}
-        rewardData={rewardData}
+        rewardData={rewardData || undefined}
       />
     </Box>
   );
