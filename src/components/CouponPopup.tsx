@@ -4,18 +4,36 @@ import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import Image from 'next/image';
 
+interface RewardData {
+  type: 'coin' | 'product';
+  amount?: number;
+  product?: {
+    id: number;
+  };
+  voucherId?: number;
+  redemptionId: number;
+  spent: number;
+  attemptNo: number;
+}
+
 interface CouponPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  coinsWon: number;
+  coinsWon?: number;
+  rewardData?: RewardData;
 }
 
 const CouponPopup: React.FC<CouponPopupProps> = ({
   isOpen,
   onClose,
-  coinsWon = 10
+  coinsWon = 10,
+  rewardData
 }) => {
   if (!isOpen) return null;
+  
+  // Determine reward type and amount
+  const isProductReward = rewardData?.type === 'product';
+  const actualCoinsWon = rewardData?.type === 'coin' ? rewardData.amount : coinsWon;
 
   const CoinIcon = () => (
     <Image
@@ -98,7 +116,7 @@ const CouponPopup: React.FC<CouponPopupProps> = ({
         <StreamerPiece style={{ top: '70px', left: '40px', transform: 'rotate(60deg)' }} />
         <StreamerPiece style={{ top: '90px', right: '60px', transform: 'rotate(-45deg)' }} />
 
-        {/* Coin Icon */}
+        {/* Reward Icon */}
         <Box
           sx={{
             marginBottom: '20px',
@@ -107,7 +125,17 @@ const CouponPopup: React.FC<CouponPopupProps> = ({
             justifyContent: 'center'
           }}
         >
-          <CoinIcon />
+          {isProductReward ? (
+            <Image
+              src="/giftbox.png"
+              alt="Gift"
+              width={80}
+              height={80}
+              style={{ objectFit: 'contain' }}
+            />
+          ) : (
+            <CoinIcon />
+          )}
         </Box>
 
         {/* Winning Message */}
@@ -121,7 +149,9 @@ const CouponPopup: React.FC<CouponPopupProps> = ({
             marginBottom: '10px'
           }}
         >
-          You Won {coinsWon} Coins
+          {isProductReward 
+            ? 'You Won a Product!' 
+            : `You Won ${actualCoinsWon} Coins`}
         </Typography>
 
         <Typography
@@ -134,8 +164,25 @@ const CouponPopup: React.FC<CouponPopupProps> = ({
             lineHeight: 1.4
           }}
         >
-          Your coin has been added successfully, enjoy rewards and keep playing more
+          {isProductReward
+            ? 'Your product voucher has been added to your account. Check your vouchers to redeem it!'
+            : 'Your coins have been added successfully, enjoy rewards and keep playing more'}
         </Typography>
+
+        {/* Show attempt info if available */}
+        {rewardData && (
+          <Typography
+            variant="body2"
+            sx={{
+              color: '#999999',
+              fontSize: '12px',
+              textAlign: 'center',
+              marginBottom: '20px'
+            }}
+          >
+            Attempt #{rewardData.attemptNo} • {rewardData.spent > 0 ? `Cost: ${rewardData.spent} coins` : 'Free'}
+          </Typography>
+        )}
 
         {/* Divider Line */}
         <Box

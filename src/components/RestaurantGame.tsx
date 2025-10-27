@@ -3,7 +3,7 @@
 import { Box, Typography, Button } from '@mui/material';
 import React from 'react';
 import { useRouter } from 'next/navigation';
-const popularGames = [
+const defaultRestaurants = [
   {
     id: 1,
     name: 'Dindigul Thalapakatti',
@@ -11,6 +11,9 @@ const popularGames = [
     rating: 4.8,
     genre: 'Arcade',
     duration: '5 min',
+    logoUrl: '/images/banner/restaurant1.svg',
+    location: { city: 'Chennai', state: 'TN' },
+    activeOffers: 3,
   },
   {
     id: 2,
@@ -19,6 +22,9 @@ const popularGames = [
     rating: 4.6,
     genre: 'Cooking',
     duration: '7 min',
+    logoUrl: '/images/banner/nadana.svg',
+    location: { city: 'Chennai', state: 'TN' },
+    activeOffers: 2,
   },
   {
     id: 3,
@@ -27,6 +33,9 @@ const popularGames = [
     rating: 4.7,
     genre: 'Simulation',
     duration: '6 min',
+    logoUrl: '/images/banner/restaurant1.svg',
+    location: { city: 'Chennai', state: 'TN' },
+    activeOffers: 1,
   },
   {
     id: 4,
@@ -35,10 +44,42 @@ const popularGames = [
     rating: 4.7,
     genre: 'Simulation',
     duration: '6 min',
+    logoUrl: '/images/banner/restaurant1.svg',
+    location: { city: 'Chennai', state: 'TN' },
+    activeOffers: 5,
   },
 ];
 
-const RestaurantGame = () => {
+interface Restaurant {
+  id: number;
+  name: string;
+  logoUrl: string;
+  location: {
+    city: string;
+    state: string;
+  };
+  activeOffers: number;
+}
+
+interface RestaurantGameProps {
+  restaurants?: Restaurant[];
+}
+
+const RestaurantGame: React.FC<RestaurantGameProps> = ({ restaurants: propRestaurants }) => {
+  // Map API restaurants to component format, or use default restaurants
+  const popularGames = propRestaurants && propRestaurants.length > 0
+    ? propRestaurants.map(restaurant => ({
+        id: restaurant.id,
+        name: restaurant.name,
+        image: restaurant.logoUrl,
+        rating: 4.5, // Default rating
+        genre: `${restaurant.location.city}, ${restaurant.location.state}`,
+        duration: `${restaurant.activeOffers} offers`,
+        logoUrl: restaurant.logoUrl,
+        location: restaurant.location,
+        activeOffers: restaurant.activeOffers,
+      }))
+    : defaultRestaurants;
   const router = useRouter();
 
   const handleViewAll1 = () => {

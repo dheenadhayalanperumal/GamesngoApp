@@ -5,23 +5,43 @@ import { Box, Typography, Button } from '@mui/material';
 import ScratchPopup from './ScratchPopup';
 import CouponPopup from './CouponPopup';
 
+interface ScratchData {
+  id: number;
+  title: string;
+  type: string;
+  amount?: number;
+  product?: {
+    id: number;
+    title: string;
+    coverImageUrl: string;
+    price: {
+      actual: number;
+      discount: number;
+    };
+  };
+}
+
 interface ScratchAndWinProps {
   onScratch?: () => void;
   coinCost?: number;
+  scratchData?: ScratchData;
 }
 
 const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   onScratch,
-  coinCost = 15
+  coinCost = 15,
+  scratchData
 }) => {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isCouponOpen, setIsCouponOpen] = useState(false);
   const [coinsWon, setCoinsWon] = useState(0);
-  const [scratchId] = useState(1); // Default scratch ID, you can make this dynamic
   const [scratchQuote, setScratchQuote] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [rewardData, setRewardData] = useState<any>(null);
+  
+  // Use scratchData.id if available, otherwise default to 1
+  const scratchId = scratchData?.id || 1;
 
   useEffect(() => {
     const updateTimer = () => {
@@ -61,24 +81,37 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   // Fetch scratch quote before opening popup
   const fetchScratchQuote = async () => {
     try {
+      console.log('Fetching scratch quote for ID:', scratchId);
+      
+      // Validate scratch ID before making request
+      if (!scratchId || scratchId === 0) {
+        console.error('Invalid scratch ID:', scratchId);
+        alert('No scratch card available. Please refresh the page.');
+        return null;
+      }
+      
       const response = await fetch(`/api/scratch/quote?scratch_id=${scratchId}`, {
         method: 'GET',
         credentials: 'include',
       });
 
       const data = await response.json();
-      console.log('Scratch quote:', data);
+      console.log('Scratch quote response:', data);
 
       if (response.ok && data.status === 'success') {
         setScratchQuote(data.quote);
+        console.log('Quote pricing:', data.quote.pricing);
         return data.quote;
       } else {
+        console.error('Quote fetch failed:', response.status, data);
         if (response.status === 401) {
           alert('Please login to play scratch cards');
         } else if (response.status === 404) {
           alert('Scratch card not available');
+        } else if (response.status === 422) {
+          alert(data.message || 'Invalid scratch card');
         } else {
-          alert('Failed to load scratch card. Please try again.');
+          alert(data.message || 'Failed to load scratch card. Please try again.');
         }
         return null;
       }
@@ -93,6 +126,9 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   const redeemScratch = async () => {
     setIsLoading(true);
     try {
+      console.log('Redeeming scratch card, ID:', scratchId);
+      console.log('Request body:', JSON.stringify({ scratch_id: scratchId }));
+      
       const response = await fetch('/api/scratch/redeem', {
         method: 'POST',
         headers: {
@@ -102,27 +138,50 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
         body: JSON.stringify({ scratch_id: scratchId }),
       });
 
-      const data = await response.json();
-      console.log('Scratch redeem:', data);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      // Try to parse JSON, handle errors
+      let data;
+      try {
+        const text = await response.text();
+        console.log('Response text:', text);
+        data = text ? JSON.parse(text) : {};
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError);
+        data = {};
+      }
+      
+      console.log('Scratch redeem response:', data);
 
       if (response.ok && data.status === 'success') {
         setRewardData(data.reward);
+        console.log('Reward received:', data.reward);
         
         // Set coins won if it's a coin reward
         if (data.reward.type === 'coin') {
           setCoinsWon(data.reward.amount);
+          console.log('Coins won:', data.reward.amount);
+        } else if (data.reward.type === 'product') {
+          console.log('Product won:', data.reward.product);
         }
+        
+        // Show attempt info
+        console.log(`Attempt #${data.reward.attemptNo}, Spent: ${data.reward.spent} coins`);
         
         return data.reward;
       } else {
+        console.error('Redeem failed:', response.status, data);
         if (response.status === 402) {
           alert('Not enough coins for extra scratch');
         } else if (response.status === 401) {
           alert('Please login to play scratch cards');
         } else if (response.status === 404) {
           alert('Scratch card not available');
+        } else if (response.status === 422) {
+          alert(data.message || 'Invalid scratch card');
         } else {
-          alert('Failed to redeem scratch. Please try again.');
+          alert(data.message || 'Failed to redeem scratch. Please try again.');
         }
         return null;
       }
@@ -136,10 +195,23 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   };
 
   const handleScratchClick = async () => {
+    console.log('Scratch button clicked, scratchId:', scratchId);
+    console.log('Scratch data:', scratchData);
+    
+    // Check if we have a valid scratch ID
+    if (!scratchId || scratchId === 0) {
+      alert('No scratch card available at the moment. Please try again later.');
+      return;
+    }
+    
     // Fetch quote first
     const quote = await fetchScratchQuote();
-    if (quote && quote.pricing.canProceed) {
+    console.log('Quote result:', quote);
+    if (quote && quote.pricing && quote.pricing.canProceed) {
+      console.log('Opening scratch popup');
       setIsPopupOpen(true);
+    } else {
+      console.log('Cannot proceed with scratch:', quote);
     }
   };
 
@@ -148,16 +220,22 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   };
 
   const handlePopupScratch = async () => {
+    console.log('User completed scratch animation, calling redeem API...');
+    
     // Redeem the scratch card
     const reward = await redeemScratch();
     
     if (reward) {
+      console.log('Redemption successful, showing coupon popup');
       setIsPopupOpen(false);
       setIsCouponOpen(true);
       
       if (onScratch) {
         onScratch();
       }
+    } else {
+      console.log('Redemption failed, closing popup');
+      setIsPopupOpen(false);
     }
   };
 
@@ -243,7 +321,7 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
               marginBottom: '4px'
             }}
           >
-            Daily Free Scratch
+            {scratchData?.title || 'Daily Free Scratch'}
           </Typography>
           <Typography
             variant="body2"
@@ -255,7 +333,11 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
               }
             }}
           >
-            Get a free scratch in every 24 hrs
+            {scratchData?.type === 'coin' && scratchData?.amount 
+              ? `Win up to ${scratchData.amount} coins!`
+              : scratchData?.type === 'product' && scratchData?.product
+              ? `Win ${scratchData.product.title}!`
+              : 'Get a free scratch in every 24 hrs'}
           </Typography>
         </Box>
       </Box>
@@ -386,10 +468,10 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
       <Button
         variant="contained"
         onClick={handleScratchClick}
-        disabled={isLoading}
+        disabled={isLoading || !scratchId}
         sx={{
-          background: isLoading ? '#E2E8F0' : 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-          color: isLoading ? '#A0AEC0' : '#2D3748',
+          background: (isLoading || !scratchId) ? '#E2E8F0' : 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+          color: (isLoading || !scratchId) ? '#A0AEC0' : '#2D3748',
           fontWeight: 'bold',
           fontSize: {
             xs: '14px',
@@ -417,7 +499,7 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
           }
         }}
       >
-        {isLoading ? 'Loading...' : scratchQuote?.pricing.isFree ? 'Scratch Now (Free)' : `Scratch Now (${scratchQuote?.pricing.costCoins || coinCost} Coins)`}
+        {!scratchId ? 'Loading Scratch...' : isLoading ? 'Loading...' : scratchQuote?.pricing.isFree ? 'Scratch Now (Free)' : `Scratch Now (${scratchQuote?.pricing.costCoins || coinCost} Coins)`}
       </Button>
 
       {/* Scratch Popup */}
@@ -432,6 +514,7 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
         isOpen={isCouponOpen}
         onClose={handleCouponClose}
         coinsWon={coinsWon}
+        rewardData={rewardData}
       />
     </Box>
   );

@@ -21,38 +21,13 @@ interface Banner {
   linkUrl?: string;
 }
 
-const BannerSlider: React.FC = () => {
-  const [banners, setBanners] = useState<Banner[]>(defaultBanners);
+interface BannerSliderProps {
+  banners?: Banner[];
+}
 
-  useEffect(() => {
-    fetchBanners();
-  }, []);
-
-  const fetchBanners = async () => {
-    try {
-      const response = await fetch('/api/public/home?only=banners', {
-        method: 'GET',
-      });
-
-      if (!response.ok) {
-        console.warn(`API returned status ${response.status}, using default banners`);
-        return; // Keep default banners
-      }
-
-      const data = await response.json();
-      console.log('Banners response:', data);
-
-      if (data.status === 'success' && data.banners && data.banners.length > 0) {
-        setBanners(data.banners);
-      } else {
-        // Use default banners if API returns no banners
-        console.warn('API returned no banners, using defaults');
-      }
-    } catch (error) {
-      console.error('Error fetching banners:', error);
-      // Keep default banners on error
-    }
-  };
+const BannerSlider: React.FC<BannerSliderProps> = ({ banners: propBanners }) => {
+  // Use prop banners if provided, otherwise use default banners
+  const banners = propBanners && propBanners.length > 0 ? propBanners : defaultBanners;
 
   const settings = {
     dots: true,

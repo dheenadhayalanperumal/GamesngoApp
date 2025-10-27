@@ -4,7 +4,7 @@ import { Box, Typography, Button } from '@mui/material';
 import React from 'react';
 import { useRouter } from 'next/navigation';
 
-const popularGames = [
+const defaultGames = [
   {
     id: 1,
     name: 'Bubble Shooter',
@@ -12,6 +12,10 @@ const popularGames = [
     rating: 4.8,
     genre: 'Arcade',
     duration: '5 min',
+    bannerUrl: '/images/banner/bubble_shooter.svg',
+    type: 'Normal Game',
+    assetUrl: '',
+    plays: 0,
   },
   {
     id: 2,
@@ -20,6 +24,10 @@ const popularGames = [
     rating: 4.6,
     genre: 'Cooking',
     duration: '7 min',
+    bannerUrl: '/images/banner/burger_maker.svg',
+    type: 'Normal Game',
+    assetUrl: '',
+    plays: 0,
   },
   {
     id: 3,
@@ -28,6 +36,10 @@ const popularGames = [
     rating: 4.7,
     genre: 'Simulation',
     duration: '6 min',
+    bannerUrl: '/images/banner/burger_maker.svg',
+    type: 'Normal Game',
+    assetUrl: '',
+    plays: 0,
   },
   {
     id: 4,
@@ -36,11 +48,42 @@ const popularGames = [
     rating: 4.7,
     genre: 'Simulation',
     duration: '6 min',
+    bannerUrl: '/images/banner/burger_maker.svg',
+    type: 'Normal Game',
+    assetUrl: '',
+    plays: 0,
   },
 ];
 
+interface Game {
+  id: number;
+  name: string;
+  type: string;
+  bannerUrl: string;
+  assetUrl: string;
+  plays: number;
+}
 
-const PopularToday = () => {
+interface PopularTodayProps {
+  games?: Game[];
+}
+
+const PopularToday: React.FC<PopularTodayProps> = ({ games: propGames }) => {
+  // Map API games to component format, or use default games
+  const popularGames = propGames && propGames.length > 0 
+    ? propGames.map(game => ({
+        id: game.id,
+        name: game.name,
+        image: game.bannerUrl,
+        rating: 4.5, // Default rating since API doesn't provide it
+        genre: game.type,
+        duration: '5 min', // Default duration
+        bannerUrl: game.bannerUrl,
+        type: game.type,
+        assetUrl: game.assetUrl,
+        plays: game.plays,
+      }))
+    : defaultGames;
   const router = useRouter();
 
   const handleGameClick = (gameId: number) => {
