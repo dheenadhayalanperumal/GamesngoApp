@@ -3,6 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button } from '@mui/material';
 
+// Move SVG component outside to prevent re-creation on every render
+const ShakeBoxSVG = () => (
+  <img
+    src="/shake.svg"
+    alt="Shake box"
+    style={{
+      width: '64px',
+      height: '64px',
+      objectFit: 'contain'
+    }}
+  />
+);
+
 interface ShakeAndWinProps {
   onShake?: () => void;
   coinCost?: number;
@@ -57,18 +70,6 @@ const ShakeAndWin: React.FC<ShakeAndWinProps> = ({
   };
 
   const formatTime = (time: number) => time.toString().padStart(2, '0');
-
-  const ShakeBoxSVG = () => (
-    <img
-      src="/shake.svg"
-      alt="Shake box"
-      style={{
-        width: '64px',
-        height: '64px',
-        objectFit: 'contain'
-      }}
-    />
-  );
 
   return (
     <Box

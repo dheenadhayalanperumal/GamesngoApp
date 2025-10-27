@@ -5,6 +5,19 @@ import { Box, Typography, Button } from '@mui/material';
 import ScratchPopup from './ScratchPopup';
 import CouponPopup from './CouponPopup';
 
+// Move SVG component outside to prevent re-creation on every render
+const GiftBoxSVG = () => (
+  <img
+    src="/gift.svg"
+    alt="Gift box"
+    style={{
+      width: '64px',
+      height: '64px',
+      objectFit: 'contain'
+    }}
+  />
+);
+
 interface ScratchData {
   id: number;
   title: string;
@@ -253,20 +266,6 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   const handleCouponClose = () => {
     setIsCouponOpen(false);
   };
-
-  const GiftBoxSVG = () => (
-    <img
-      src="/gift.svg"
-      alt="Gift box"
-      style={{
-        width: '64px',
-        height: '64px',
-        objectFit: 'contain'
-      }}
-    />
-  );
-
- 
 
   return (
     <Box

@@ -115,7 +115,6 @@ export default function Profile() {
         <Box sx={{ textAlign: 'center', marginBottom: 3 }}>
           <Typography variant="h4" sx={{ 
             color: '#FFF',
-            fontFamily: 'Rubik',
             fontSize: '24px',
             fontStyle: 'normal',
             fontWeight: 500,
@@ -169,7 +168,6 @@ export default function Profile() {
               </Box>
               <Typography variant="body2" sx={{ 
                 color: 'rgba(255, 255, 255, 0.80)',
-                fontFamily: 'Rubik',
                 fontSize: '16px',
                 fontStyle: 'normal',
                 fontWeight: 500,
@@ -212,7 +210,6 @@ export default function Profile() {
               </Box>
               <Typography variant="body2" sx={{ 
                 color: 'rgba(255, 255, 255, 0.80)',
-                fontFamily: 'Rubik',
                 fontSize: '16px',
                 fontStyle: 'normal',
                 fontWeight: 500,
@@ -253,7 +250,6 @@ export default function Profile() {
                 <Typography variant="body2" sx={{ 
                   color: 'rgba(0, 0, 0, 0.40)',
                   textAlign: 'center',
-                  fontFamily: 'Rubik',
                   fontSize: '14px',
                   fontStyle: 'normal',
                   fontWeight: 400,
@@ -287,7 +283,6 @@ export default function Profile() {
                 <Typography variant="body2" sx={{ 
                   color: 'rgba(0, 0, 0, 0.40)',
                   textAlign: 'center',
-                  fontFamily: 'Rubik',
                   fontSize: '14px',
                   fontStyle: 'normal',
                   fontWeight: 400,
@@ -321,7 +316,6 @@ export default function Profile() {
                 <Typography variant="body2" sx={{ 
                   color: 'rgba(0, 0, 0, 0.40)',
                   textAlign: 'center',
-                  fontFamily: 'Rubik',
                   fontSize: '14px',
                   fontStyle: 'normal',
                   fontWeight: 400,
@@ -338,7 +332,6 @@ export default function Profile() {
         <Box>
           <Typography variant="h5" sx={{ 
             color: '#21175B',
-            fontFamily: 'Rubik',
             fontSize: '26px',
             fontStyle: 'normal',
             fontWeight: 500,
@@ -360,6 +353,25 @@ export default function Profile() {
                         backgroundColor: '#f8f9fa'
                       }
                     }}
+                    onClick={() => {
+                      if (item.title === 'Contact Us') {
+                        router.push('/contact-us');
+                      } else if (item.title === 'Privacy Policy') {
+                        router.push('/privacy-policy');
+                      } else if (item.title === 'Terms & Conditions') {
+                        router.push('/terms-conditions');
+                      } else if (item.title === 'Notifications') {
+                        router.push('/notifications');
+                      } else if (item.title === 'Coins History') {
+                        router.push('/coins-history');
+                      } else if (item.title === 'Coupons') {
+                        router.push('/coupons');
+                      } else if (item.title === 'Change PIN') {
+                        router.push('/change-pin/old-pin');
+                      } else if (item.title === 'Invite & Win (+100 Coins)') {
+                        router.push('/refer-win');
+                      }
+                    }}
                   >
                     <ListItemIcon sx={{ minWidth: 40 }}>
                       {item.icon}
@@ -370,7 +382,6 @@ export default function Profile() {
                           variant="body1" 
                           sx={{ 
                             color: item.isLogout ? '#f44336' : 'rgba(33, 23, 91, 0.90)',
-                            fontFamily: 'Rubik',
                             fontSize: '20px',
                             fontStyle: 'normal',
                             fontWeight: 400,
