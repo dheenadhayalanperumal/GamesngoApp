@@ -13,7 +13,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ sx }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [coins, setCoins] = useState(0);
-  const [strikes] = useState(13);
+  const [strikes, setStrikes] = useState(0);
   const [cupons, setCupons] = useState(0);
   const [isFixed, setIsFixed] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
@@ -24,8 +24,9 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
 
   const handleLogin = () => {
     setIsLoggedIn(true);
-    // Fetch counts after login
+    // Fetch counts and details after login
     fetchCounts();
+    fetchUserDetails();
   };
 
   const handleLoginPopupClose = () => {
@@ -63,6 +64,30 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
     }
   };
 
+  const fetchUserDetails = async () => {
+    try {
+      const response = await fetch('/api/home/details', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('User details for streak:', data);
+
+      if (response.ok && data.status === 'success') {
+        // Set streak from API data
+        if (data.details.streak) {
+          setStrikes(data.details.streak.current || 0);
+          console.log('Current streak:', data.details.streak.current);
+        }
+      } else {
+        console.warn('Failed to fetch user details:', data.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -83,21 +108,25 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
 
   // Check login status on mount
   useEffect(() => {
-    // Try to fetch counts on mount to check if user has valid cookies
+    // Try to fetch counts and details on mount to check if user has valid cookies
     fetchCounts();
+    fetchUserDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch counts periodically only if logged in
+  // Fetch counts and details periodically only if logged in
   useEffect(() => {
     // Only fetch if user is logged in
     if (isLoggedIn) {
       // Poll every 30 seconds for updates
       const interval = setInterval(() => {
         fetchCounts();
+        fetchUserDetails();
       }, 30000); // 30 seconds
 
       return () => clearInterval(interval);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn]);
 
   return (
