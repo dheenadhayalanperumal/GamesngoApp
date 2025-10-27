@@ -264,7 +264,7 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
             <ClaimButton
                 onClick={handleClaim}
                 onClaimed={handleClaimed}
-                disabled={! hasRedeemedToday}
+                disabled={ hasRedeemedToday}
             />
 
             {/* Reward Popup */}

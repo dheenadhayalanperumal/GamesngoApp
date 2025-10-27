@@ -6,6 +6,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 // import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useRouter } from 'next/navigation';
+import LoginPopup from './LoginPopup';
 
 interface ProfileAvatarProps {
   size?: number;
@@ -20,12 +21,42 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   const [userName, setUserName] = useState("User");
   const [userImage, setUserImage] = useState("");
   const [notificationCount, setNotificationCount] = useState(0);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
 
   useEffect(() => {
     // Always try to fetch user details on mount
     // If user is not logged in, API will return error and we'll use default values
-    fetchUserDetails();
+    checkAuthAndFetchDetails();
   }, []);
+
+  const checkAuthAndFetchDetails = async () => {
+    const isAuth = await checkAuthentication();
+    setIsUserLoggedIn(isAuth);
+    
+    if (isAuth) {
+      fetchUserDetails();
+    }
+  };
+
+  const checkAuthentication = async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/home/counts', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.status === 'success') {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      return false;
+    }
+  };
 
   const fetchUserDetails = async () => {
     try {
@@ -53,9 +84,29 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   };
 
   const handleAvatarClick = () => {
-    router.push('/profile');
+    if (isUserLoggedIn) {
+      // Navigate to profile if logged in
+      router.push('/profile');
+    } else {
+      // Open login popup if not logged in
+      setIsLoginPopupOpen(true);
+    }
   };
+
+  const handleLogin = () => {
+    setIsUserLoggedIn(true);
+    // Refresh user details after login
+    fetchUserDetails();
+    // Optionally reload the page to update all components
+    window.location.reload();
+  };
+
+  const handleLoginPopupClose = () => {
+    setIsLoginPopupOpen(false);
+  };
+
   return (
+    <>
     <Box
       sx={{
         display: "flex",
@@ -122,6 +173,14 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
         </Badge>
       </IconButton>
     </Box>
+
+    {/* Login Popup */}
+    <LoginPopup 
+      isOpen={isLoginPopupOpen}
+      onClose={handleLoginPopupClose}
+      onLogin={handleLogin}
+    />
+    </>
   );
 };
 

@@ -1,20 +1,16 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
   Button,
   Card,
-  CardContent,
-  Avatar,
-  IconButton,
+  CircularProgress,
 } from '@mui/material';
 import {
-  ArrowBack,
   Share,
   WhatsApp,
-  ContentCopy,
   Link as LinkIcon,
   PhoneAndroid,
   CardGiftcard,
@@ -25,31 +21,106 @@ import HeaderWithBack from '@/components/HeaderWithBack';
 
 export default function ReferWin() {
   const router = useRouter();
-  const [referralCode] = useState('Y8A167'); // Sample referral code
+  const [isLoading, setIsLoading] = useState(true);
+  const [referralData, setReferralData] = useState({
+    rewardCoins: 500,
+    code: '',
+    codeSpaced: '',
+    shareLink: '',
+    shareText: '',
+    counts: {
+      referred: 0,
+      coinsEarned: 0
+    },
+    recent: {
+      message: null as string | null,
+      at: null as string | null
+    }
+  });
+
+  useEffect(() => {
+    console.log('🎯 Refer-Win page mounted');
+    fetchReferralDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchReferralDetails = async () => {
+    try {
+      console.log('Fetching referral details...');
+      const response = await fetch('/api/referral/details', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      const data = await response.json();
+      console.log('Referral details response:', data);
+
+      if (response.ok && data.status === 'success') {
+        setReferralData(data.referral);
+        console.log('Referral data loaded successfully');
+      } else {
+        console.warn('Failed to fetch referral details:', data.message || 'Unknown error');
+        
+        // If not authenticated, redirect to home  
+        if (response.status === 401 || data.message?.includes('login') || data.message?.includes('token')) {
+          console.log('User not authenticated, redirecting to home');
+          console.log('Response data:', data);
+          alert('Please login to view your referral details');
+          setTimeout(() => {
+            router.push('/');
+          }, 100);
+        } else if (response.status === 500) {
+          console.error('Server error:', data);
+          alert(`Server error: ${data.message || 'Please try again later'}`);
+        } else {
+          alert(`Error: ${data.message || 'Failed to load referral details'}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching referral details:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+        alert(`Network error: ${error.message}`);
+      } else {
+        alert('Failed to load referral details. Please check your connection.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handle copy referral code
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(referralCode);
-    // You can add a toast notification here
+    navigator.clipboard.writeText(referralData.code);
+    alert('Referral code copied to clipboard!');
+  };
+
+  // Handle copy referral link
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(referralData.shareLink);
+    alert('Referral link copied to clipboard!');
   };
 
   // Handle share via WhatsApp
   const handleWhatsAppShare = () => {
-    const message = `Join me on GamesNGO! Use my referral code: ${referralCode} and earn 500 coins!`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(referralData.shareText)}`;
     window.open(whatsappUrl, '_blank');
   };
 
   // Handle general share
   const handleGeneralShare = () => {
-    const message = `Join me on GamesNGO! Use my referral code: ${referralCode} and earn 500 coins!`;
     if (navigator.share) {
       navigator.share({
         title: 'Join GamesNGO',
-        text: message,
+        text: referralData.shareText,
+        url: referralData.shareLink,
       });
     } else {
-      navigator.clipboard.writeText(message);
+      navigator.clipboard.writeText(`${referralData.shareText}\n${referralData.shareLink}`);
+      alert('Share message copied to clipboard!');
     }
   };
 
@@ -64,6 +135,44 @@ export default function ReferWin() {
         padding: '24px 20px 100px 20px',
         minHeight: 'calc(100vh - 80px)'
       }}>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+            <CircularProgress sx={{ color: '#4848DB' }} />
+          </Box>
+        ) : (
+          <>
+        {/* Recent Reward Banner */}
+        {referralData.recent.message && (
+          <Box sx={{ 
+            backgroundColor: '#E8F5E9',
+            border: '1px solid #4CAF50',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}>
+            <CardGiftcard sx={{ color: '#4CAF50' }} />
+            <Box>
+              <Typography sx={{ color: '#2E7D32', fontSize: '14px', fontWeight: 600 }}>
+                {referralData.recent.message}
+              </Typography>
+              {referralData.recent.at && (
+                <Typography sx={{ color: '#66BB6A', fontSize: '12px' }}>
+                  {new Date(referralData.recent.at).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        )}
+
         {/* Invite & Win Section */}
         <Box sx={{ 
           display: 'flex', 
@@ -95,7 +204,7 @@ export default function ReferWin() {
                 marginBottom: 2
               }}
             >
-              Earn 500 Coins
+              Earn {referralData.rewardCoins} Coins
             </Typography>
             
             <Typography 
@@ -280,10 +389,10 @@ export default function ReferWin() {
                 color: '#333', // Dark gray text from reference
                 fontSize: '18px', // Font size from reference
                 fontWeight: 600,
-                letterSpacing: '2px'
+                letterSpacing: '4px'
               }}
             >
-              {referralCode.split('').join(' ')}
+              {referralData.codeSpaced || referralData.code}
             </Typography>
             
             <Button
@@ -358,39 +467,118 @@ export default function ReferWin() {
               Share via WhatsApp
             </Button>
           </Box>
-        </Box>
 
-        {/* Bonus Notification Banner */}
-        <Card sx={{
-          backgroundColor: 'rgba(250, 246, 0, 0.35)', // Yellow background from reference
-          borderRadius: '12px',
-          padding: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          boxShadow: 'none',
-          border: '1px solid #FFAF69',
-        }}>
-          <Avatar sx={{ 
-            width: 40, 
-            height: 40,
-            backgroundColor: '#5C3EBA'
-          }}>
-            <Typography sx={{ color: 'white', fontSize: '16px' }}>R</Typography>
-          </Avatar>
-          
-          <Typography 
-            variant="body1" 
-            sx={{ 
-              color: '#333', // Dark gray text from reference
-              fontSize: '14px', // Font size from reference
-              fontWeight: 500,
-              flex: 1
+          {/* Copy Referral Link Button */}
+          <Button
+            onClick={handleCopyLink}
+            sx={{
+              backgroundColor: '#ECEDFF',
+              color: '#4848DB',
+              borderRadius: '8px',
+              padding: '12px',
+              fontSize: '16px',
+              fontWeight: 600,
+              textTransform: 'none',
+              width: '100%',
+              marginTop: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              '&:hover': {
+                backgroundColor: '#D8DAFF'
+              }
             }}
           >
-            Rakesh Rock Earned 500 Referal Bonus Coins !!!
+            <LinkIcon sx={{ fontSize: 20 }} />
+            Copy Referral Link
+          </Button>
+        </Box>
+
+        {/* Referral Stats Section */}
+        <Box sx={{ marginBottom: 3 }}>
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              color: '#2C005B',
+              fontSize: '18px',
+              fontWeight: 600,
+              marginBottom: 2
+            }}
+          >
+            Your Referral Stats
           </Typography>
-        </Card>
+          
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            {/* Friends Referred Card */}
+            <Card sx={{
+              flex: 1,
+              backgroundColor: '#F3F4FF',
+              borderRadius: '12px',
+              padding: '16px',
+              boxShadow: 'none',
+              border: '1px solid #E0E0E0',
+              textAlign: 'center'
+            }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#4848DB',
+                  fontSize: '32px',
+                  fontWeight: 700,
+                  marginBottom: 1
+                }}
+              >
+                {referralData.counts.referred}
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#6A5B8D',
+                  fontSize: '14px',
+                  fontWeight: 500
+                }}
+              >
+                Friends Referred
+              </Typography>
+            </Card>
+
+            {/* Coins Earned Card */}
+            <Card sx={{
+              flex: 1,
+              backgroundColor: '#FFF9E6',
+              borderRadius: '12px',
+              padding: '16px',
+              boxShadow: 'none',
+              border: '1px solid #FFE082',
+              textAlign: 'center'
+            }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#FAC200',
+                  fontSize: '32px',
+                  fontWeight: 700,
+                  marginBottom: 1
+                }}
+              >
+                {referralData.counts.coinsEarned}
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#6A5B8D',
+                  fontSize: '14px',
+                  fontWeight: 500
+                }}
+              >
+                Coins Earned
+              </Typography>
+            </Card>
+          </Box>
+        </Box>
+        </>
+        )}
       </Box>
 
       {/* Bottom Navigation Bar */}

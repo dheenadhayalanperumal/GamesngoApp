@@ -14,6 +14,7 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  CircularProgress,
 } from '@mui/material';
 import {
   ArrowBack,
@@ -40,6 +41,8 @@ export default function Profile() {
   const router = useRouter();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [accountData, setAccountData] = useState({
     user: { name: 'User', imageUrl: '', joinedAt: '' },
     counts: { coins: 0, coupons: { total: 0, unredeemed: 0 } },
@@ -47,9 +50,53 @@ export default function Profile() {
     preferences: { notifications: { enabled: true } },
     invite: { rewardCoins: 100 }
   });
+  
   useEffect(() => {
-    fetchAccountOverview();
+    checkAuthenticationAndFetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const checkAuthenticationAndFetchData = async () => {
+    setIsCheckingAuth(true);
+    
+    // First check if user is authenticated
+    const isAuth = await checkAuthentication();
+    
+    if (!isAuth) {
+      // Redirect to home page (where they can sign in)
+      console.log('User not authenticated, redirecting to home...');
+      router.push('/');
+      return;
+    }
+    
+    setIsAuthenticated(true);
+    setIsCheckingAuth(false);
+    
+    // Fetch account data if authenticated
+    await fetchAccountOverview();
+  };
+
+  const checkAuthentication = async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/home/counts', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.status === 'success') {
+        console.log('User is authenticated');
+        return true;
+      } else {
+        console.log('User is not authenticated');
+        return false;
+      }
+    } catch (error) {
+      console.error('Authentication check error:', error);
+      return false;
+    }
+  };
 
   const fetchAccountOverview = async () => {
     try {
@@ -66,9 +113,12 @@ export default function Profile() {
         setNotificationsEnabled(data.account.preferences.notifications.enabled);
       } else {
         console.warn('Failed to fetch account overview:', data.message || 'Unknown error');
+        // If account overview fails, user might not be authenticated
+        router.push('/');
       }
     } catch (error) {
       console.error('Error fetching account overview:', error);
+      router.push('/');
     }
   };
 
@@ -133,6 +183,32 @@ export default function Profile() {
     { icon: <ContactSupport />, title: 'Contact Us' },
     { icon: <Logout />, title: 'Log Out', isLogout: true },
   ];
+
+  // Show loading spinner while checking authentication or loading data
+  if (isCheckingAuth) {
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh',
+          backgroundColor: '#f8f9fa'
+        }}
+      >
+        <CircularProgress 
+          size={60} 
+          thickness={4}
+          sx={{ color: '#4848DB' }} 
+        />
+      </Box>
+    );
+  }
+
+  // If not authenticated, return null (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>

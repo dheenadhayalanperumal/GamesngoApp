@@ -12,7 +12,7 @@ interface HeaderWithBackProps {
   onBackClick?: () => void;
 }
 
-export default function HeaderWithBack({ 
+function HeaderWithBack({ 
   title = "Back", 
   backgroundColor = '#3C3CD2',
   showBackButton = true,
@@ -63,3 +63,5 @@ export default function HeaderWithBack({
     </Box>
   );
 }
+
+export default HeaderWithBack;

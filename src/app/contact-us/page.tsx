@@ -12,7 +12,6 @@ import {
 import { ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import TabBar from "@/components/TabBar";
-import HeaderWithBack from '@/components/HeaderWithBack';
 
 export default function ContactUs() {
   const router = useRouter();
@@ -22,6 +21,9 @@ export default function ContactUs() {
     email: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Handle form input changes
   const handleInputChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,20 +31,114 @@ export default function ContactUs() {
       ...prev,
       [field]: event.target.value
     }));
+    // Clear error for this field when user types
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   // Handle form submission
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    // TODO: Implement form submission logic
-    console.log('Form submitted:', formData);
-    // You can add API call here to submit the form data
+    
+    // Clear previous messages
+    setErrors({});
+    setSuccessMessage('');
+    setIsSubmitting(true);
+
+    try {
+      console.log('Submitting contact form...', formData);
+      
+      const response = await fetch('/api/public/contact-us', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          full_name: formData.fullName,
+          mobile_number: formData.mobileNumber,
+          email: formData.email,
+          message: formData.message,
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Contact form response:', data);
+
+      if (response.ok && data.status === 'success') {
+        setSuccessMessage(data.message || 'Thank you for contacting us. We will get back to you soon.');
+        // Clear form
+        setFormData({
+          fullName: '',
+          mobileNumber: '',
+          email: '',
+          message: ''
+        });
+        
+        // Show success message for 5 seconds then navigate back
+        setTimeout(() => {
+          router.back();
+        }, 3000);
+      } else {
+        console.error('Form submission failed:', data);
+        
+        if (data.errors) {
+          // Map API errors to form field errors
+          const fieldErrors: Record<string, string> = {};
+          if (data.errors.full_name) fieldErrors.fullName = data.errors.full_name;
+          if (data.errors.mobile_number) fieldErrors.mobileNumber = data.errors.mobile_number;
+          if (data.errors.email) fieldErrors.email = data.errors.email;
+          if (data.errors.message) fieldErrors.message = data.errors.message;
+          setErrors(fieldErrors);
+        } else {
+          alert(data.message || 'Failed to submit form. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Network error. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div style={{ backgroundColor: '#fff', minHeight: '120vh', margin: '0 -15px' }}>
       {/* Dark Blue Header with Back Button */}
-          <HeaderWithBack/>
+      <Box sx={{ 
+        backgroundColor: '#4848DB',
+        padding: '20px',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1
+      }}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1, 
+            cursor: 'pointer' 
+          }} 
+          onClick={() => router.back()}
+        >
+          <ArrowBack sx={{ color: 'white', fontSize: 20 }} />
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: 'white', 
+              fontWeight: 500,
+              fontSize: '16px'
+            }}
+          >
+            Back
+          </Typography>
+        </Box>
+      </Box>
 
       {/* Main Content Area - Light Gray Card */}
       <Box sx={{ 
@@ -87,6 +183,21 @@ export default function ContactUs() {
               Reach out to us and our team will assist you as soon as possible.
             </Typography>
 
+            {/* Success Message */}
+            {successMessage && (
+              <Box sx={{ 
+                marginBottom: '20px', 
+                padding: '16px', 
+                backgroundColor: '#e8f5e9', 
+                borderRadius: '8px',
+                border: '1px solid #4caf50'
+              }}>
+                <Typography sx={{ color: '#2e7d32', fontSize: '15px', fontWeight: 500 }}>
+                  ✅ {successMessage}
+                </Typography>
+              </Box>
+            )}
+
             {/* Contact Form */}
             <form onSubmit={handleSubmit}>
               {/* Full Name Field */}
@@ -108,6 +219,8 @@ export default function ContactUs() {
                   value={formData.fullName}
                   onChange={handleInputChange('fullName')}
                   required
+                  error={!!errors.fullName}
+                  helperText={errors.fullName}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       backgroundColor: 'white',
@@ -152,6 +265,8 @@ export default function ContactUs() {
                   value={formData.mobileNumber}
                   onChange={handleInputChange('mobileNumber')}
                   required
+                  error={!!errors.mobileNumber}
+                  helperText={errors.mobileNumber}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       backgroundColor: 'white',
@@ -196,6 +311,8 @@ export default function ContactUs() {
                   value={formData.email}
                   onChange={handleInputChange('email')}
                   required
+                  error={!!errors.email}
+                  helperText={errors.email}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       backgroundColor: 'white',
@@ -241,6 +358,8 @@ export default function ContactUs() {
                   value={formData.message}
                   onChange={handleInputChange('message')}
                   required
+                  error={!!errors.message}
+                  helperText={errors.message}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       backgroundColor: 'white',
@@ -270,22 +389,27 @@ export default function ContactUs() {
                 type="submit"
                 fullWidth
                 variant="contained"
+                disabled={isSubmitting}
                 sx={{
-                  backgroundColor: '#FFC107', // Bright yellow/orange from reference
-                  color: 'white',
+                  backgroundColor: isSubmitting ? '#e0e0e0' : '#FFC107', // Bright yellow/orange from reference
+                  color: isSubmitting ? '#9e9e9e' : 'white',
                   fontSize: '18px', // Font size from reference
                   fontWeight: 'bold',
                   borderRadius: '10px',
                   height: '56px', // Height from reference
                   textTransform: 'none',
-                  boxShadow: '0 4px 12px rgba(255, 193, 7, 0.3)',
+                  boxShadow: isSubmitting ? 'none' : '0 4px 12px rgba(255, 193, 7, 0.3)',
                   '&:hover': {
-                    backgroundColor: '#FFB300',
-                    boxShadow: '0 6px 16px rgba(255, 193, 7, 0.4)'
+                    backgroundColor: isSubmitting ? '#e0e0e0' : '#FFB300',
+                    boxShadow: isSubmitting ? 'none' : '0 6px 16px rgba(255, 193, 7, 0.4)'
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#e0e0e0',
+                    color: '#9e9e9e'
                   }
                 }}
               >
-                Submit
+                {isSubmitting ? 'Submitting...' : 'Submit'}
               </Button>
             </form>
           </CardContent>
