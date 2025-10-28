@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { Close, Lock } from '@mui/icons-material';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SetPinPopupProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ const SetPinPopup: React.FC<SetPinPopupProps> = ({
   onClose,
   onPinSet
 }) => {
+  const { login } = useAuth();
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [pinError, setPinError] = useState('');
@@ -85,6 +87,7 @@ const SetPinPopup: React.FC<SetPinPopupProps> = ({
 
       if (response.ok && data.status === 'success') {
         console.log('PIN set successfully:', data.message);
+        login(); // Update global auth state
         onPinSet(pin);
         onClose();
       } else {

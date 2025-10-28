@@ -19,9 +19,11 @@ import {
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import TabBar from "@/components/TabBar";
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function EditProfile() {
   const router = useRouter();
+  const { isLoggedIn, isLoading: authLoading } = useAuth();
   
   const [formData, setFormData] = useState({
     userId: '',
@@ -64,6 +66,30 @@ export default function EditProfile() {
     console.log('Saving profile data:', formData);
     router.back();
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <Typography variant="body2" color="text.secondary">
+          Checking authentication...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Redirect to home if not logged in
+  if (!isLoggedIn) {
+    router.push('/');
+    return null;
+  }
 
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>

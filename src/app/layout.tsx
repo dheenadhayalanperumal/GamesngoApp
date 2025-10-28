@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/theme/theme';
+import { AuthProvider } from '@/contexts/AuthContext';
 import "./globals.css";
 
 const inter = Inter({
@@ -68,9 +69,11 @@ export default function RootLayout({
       <body className={`${inter.variable} gradient-body`}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <div className="content-container">
-            {children}
-          </div>
+          <AuthProvider>
+            <div className="content-container">
+              {children}
+            </div>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

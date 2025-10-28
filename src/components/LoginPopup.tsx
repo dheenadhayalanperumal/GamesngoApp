@@ -16,6 +16,7 @@ import {
 import { Close, Phone, Lock, Google } from "@mui/icons-material";
 import Image from "next/image";
 import SignupPopup from "./SignupPopup";
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LoginPopupProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
   onClose,
   onLogin,
 }) => {
+  const { login } = useAuth();
   const [mobileNumber, setMobileNumber] = useState("");
   const [pin, setPin] = useState("");
   const [isSignupOpen, setIsSignupOpen] = useState(false);
@@ -60,6 +62,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
 
       if (response.ok && data.status === 'success') {
         console.log('Login successful:', data.message);
+        login(); // Update global auth state
         onLogin();
         onClose();
       } else {

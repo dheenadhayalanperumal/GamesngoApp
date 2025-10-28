@@ -36,13 +36,13 @@ import {
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import TabBar from "@/components/TabBar";
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Profile() {
   const router = useRouter();
+  const { isLoggedIn, logout, isLoading: authLoading } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [accountData, setAccountData] = useState({
     user: { name: 'User', imageUrl: '', joinedAt: '' },
     counts: { coins: 0, coupons: { total: 0, unredeemed: 0 } },
@@ -52,51 +52,16 @@ export default function Profile() {
   });
   
   useEffect(() => {
-    checkAuthenticationAndFetchData();
+    // Only fetch data if user is logged in
+    if (isLoggedIn) {
+      fetchAccountOverview();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isLoggedIn]);
 
-  const checkAuthenticationAndFetchData = async () => {
-    setIsCheckingAuth(true);
-    
-    // First check if user is authenticated
-    const isAuth = await checkAuthentication();
-    
-    if (!isAuth) {
-      // Redirect to home page (where they can sign in)
-      console.log('User not authenticated, redirecting to home...');
-      router.push('/');
-      return;
-    }
-    
-    setIsAuthenticated(true);
-    setIsCheckingAuth(false);
-    
-    // Fetch account data if authenticated
-    await fetchAccountOverview();
-  };
+  // checkAuthenticationAndFetchData removed - AuthContext handles authentication
 
-  const checkAuthentication = async (): Promise<boolean> => {
-    try {
-      const response = await fetch('/api/home/counts', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-      
-      if (response.ok && data.status === 'success') {
-        console.log('User is authenticated');
-        return true;
-      } else {
-        console.log('User is not authenticated');
-        return false;
-      }
-    } catch (error) {
-      console.error('Authentication check error:', error);
-      return false;
-    }
-  };
+  // checkAuthentication removed - AuthContext handles authentication
 
   const fetchAccountOverview = async () => {
     try {
@@ -129,39 +94,34 @@ export default function Profile() {
     console.log('Logging out...');
 
     try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-      console.log('Logout response:', data);
-
-      if (response.ok) {
-        console.log('Logout successful, redirecting to home...');
-        
-        // Clear any local storage or session storage if used
-        if (typeof window !== 'undefined') {
-          localStorage.clear();
-          sessionStorage.clear();
-        }
-        
-        // Redirect to home page
-        router.push('/');
-        
-        // Force page reload to clear all state
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 100);
-      } else {
-        console.error('Logout failed:', data.message);
-        alert('Failed to logout. Please try again.');
-        setIsLoggingOut(false);
+      // Call logout API to clear server-side session
+      try {
+        const response = await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+        });
+        console.log('Logout API response:', response.status);
+      } catch (apiError) {
+        console.warn('Logout API failed, continuing with client-side logout:', apiError);
       }
+      
+      // Use context logout function (clears all client-side data)
+      logout();
+      
+      console.log('Logout successful, redirecting to home...');
+      
+      // Redirect to home page
+      router.push('/');
+      
+      // Force page reload to clear all state
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     } catch (error) {
       console.error('Logout error:', error);
-      alert('An error occurred during logout. Please try again.');
-      setIsLoggingOut(false);
+      // Even if logout fails, redirect to home
+      router.push('/');
+      window.location.reload();
     }
   };
 
@@ -184,8 +144,8 @@ export default function Profile() {
     { icon: <Logout />, title: 'Log Out', isLogout: true },
   ];
 
-  // Show loading spinner while checking authentication or loading data
-  if (isCheckingAuth) {
+  // Show loading spinner while checking authentication
+  if (authLoading) {
     return (
       <Box 
         sx={{ 
@@ -193,7 +153,9 @@ export default function Profile() {
           justifyContent: 'center', 
           alignItems: 'center', 
           minHeight: '100vh',
-          backgroundColor: '#f8f9fa'
+          backgroundColor: '#f8f9fa',
+          flexDirection: 'column',
+          gap: 2
         }}
       >
         <CircularProgress 
@@ -201,14 +163,20 @@ export default function Profile() {
           thickness={4}
           sx={{ color: '#4848DB' }} 
         />
+        <Typography variant="body2" color="text.secondary">
+          Checking authentication...
+        </Typography>
       </Box>
     );
   }
 
-  // If not authenticated, return null (will redirect)
-  if (!isAuthenticated) {
+  // Redirect to home if not logged in
+  if (!isLoggedIn) {
+    router.push('/');
     return null;
   }
+
+  // Authentication check complete - user is logged in
 
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
@@ -261,13 +229,13 @@ export default function Profile() {
             }}
           >
             {!accountData.user.imageUrl && (
-              <Image 
-                src="/logoblue.svg" 
-                alt="Profile" 
-                width={80} 
-                height={80}
-                style={{ objectFit: 'contain' }}
-              />
+            <Image 
+              src="/logoblue.svg" 
+              alt="Profile" 
+              width={80} 
+              height={80}
+              style={{ objectFit: 'contain' }}
+            />
             )}
           </Avatar>
         </Box>

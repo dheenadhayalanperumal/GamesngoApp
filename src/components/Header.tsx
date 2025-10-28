@@ -5,86 +5,95 @@ import { AppBar, Toolbar, Button, Box, Typography, SxProps, Theme } from "@mui/m
 import logo from "../assets/images/logo.png";
 import CurrencyButton from "./CurrencyButton";
 import LoginPopup from "./LoginPopup";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   sx?: SxProps<Theme>;
+  isLoggedIn?: boolean | null;
 }
 
 const Header: React.FC<HeaderProps> = ({ sx }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, login, logout } = useAuth();
   const [coins, setCoins] = useState(0);
   const [strikes, setStrikes] = useState(0);
   const [cupons, setCupons] = useState(0);
   const [isFixed, setIsFixed] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+  const [isLoadingUserData, setIsLoadingUserData] = useState(false);
 
   const handleLoginClick = () => {
     setIsLoginPopupOpen(true);
   };
 
   const handleLogin = () => {
-    setIsLoggedIn(true);
-    // Fetch counts and details after login
-    fetchCounts();
-    fetchUserDetails();
+    login(); // Use context login function
+    // Fetch user data after login
+    fetchUserData();
   };
 
   const handleLoginPopupClose = () => {
     setIsLoginPopupOpen(false);
   };
 
-  const fetchCounts = async () => {
-    try {
-      const response = await fetch('/api/home/counts', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.status === 'success') {
-        setCoins(data.counts.coins);
-        setCupons(data.counts.vouchers.unredeemed);
-        // If we successfully fetched counts, user is logged in
-        if (!isLoggedIn) {
-          setIsLoggedIn(true);
-        }
-      } else {
-        // User is not logged in or token expired
-        console.error('Failed to fetch counts:', data.message);
-        if (isLoggedIn) {
-          setIsLoggedIn(false);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching counts:', error);
-      if (isLoggedIn) {
-        setIsLoggedIn(false);
-      }
+  const fetchUserData = async () => {
+    if (isLoadingUserData) {
+      console.log('User data already loading, skipping...');
+      return;
     }
-  };
 
-  const fetchUserDetails = async () => {
+    setIsLoadingUserData(true);
+    console.log('Header: Fetching user data (counts + details)...');
+
     try {
-      const response = await fetch('/api/home/details', {
-        method: 'GET',
-        credentials: 'include',
-      });
+      // Fetch both counts and details in parallel
+      const [countsResponse, detailsResponse] = await Promise.all([
+        fetch('/api/home/counts', {
+          method: 'GET',
+          credentials: 'include',
+        }),
+        fetch('/api/home/details', {
+          method: 'GET',
+          credentials: 'include',
+        })
+      ]);
 
-      const data = await response.json();
-      console.log('User details for streak:', data);
+      const countsData = await countsResponse.json();
+      const detailsData = await detailsResponse.json();
 
-      if (response.ok && data.status === 'success') {
-        // Set streak from API data
-        if (data.details.streak) {
-          setStrikes(data.details.streak.current || 0);
-          console.log('Current streak:', data.details.streak.current);
+      console.log('Header: Counts response:', countsData);
+      console.log('Header: Details response:', detailsData);
+
+      if (countsResponse.ok && countsData.status === 'success') {
+        setCoins(countsData.counts.coins);
+        setCupons(countsData.counts.vouchers.unredeemed);
+        login(); // Update global auth state
+        console.log('Header: User is logged in');
+      } else {
+        console.log('Header: User not logged in (counts failed)');
+        logout(); // Update global auth state
+        setCoins(0);
+        setCupons(0);
+        setStrikes(0);
+        return;
+      }
+
+      if (detailsResponse.ok && detailsData.status === 'success') {
+        if (detailsData.details.streak) {
+          setStrikes(detailsData.details.streak.current || 0);
+          console.log('Header: Current streak:', detailsData.details.streak.current);
         }
       } else {
-        console.warn('Failed to fetch user details:', data.message || 'Unknown error');
+        console.warn('Header: Failed to fetch user details:', detailsData.message);
       }
+
     } catch (error) {
-      console.error('Error fetching user details:', error);
+      console.error('Header: Error fetching user data:', error);
+      logout(); // Update global auth state
+      setCoins(0);
+      setCupons(0);
+      setStrikes(0);
+    } finally {
+      setIsLoadingUserData(false);
     }
   };
 
@@ -106,22 +115,27 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Check login status on mount
+  // Fetch user data when login status changes
   useEffect(() => {
-    // Try to fetch counts and details on mount to check if user has valid cookies
-    fetchCounts();
-    fetchUserDetails();
+    if (isLoggedIn) {
+      console.log('Header: User is logged in, fetching user data...');
+      fetchUserData();
+    } else {
+      console.log('Header: User is not logged in, clearing data...');
+      setCoins(0);
+      setCupons(0);
+      setStrikes(0);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isLoggedIn]);
 
-  // Fetch counts and details periodically only if logged in
+  // Fetch user data periodically only if logged in
   useEffect(() => {
     // Only fetch if user is logged in
     if (isLoggedIn) {
       // Poll every 30 seconds for updates
       const interval = setInterval(() => {
-        fetchCounts();
-        fetchUserDetails();
+        fetchUserData(); // Single call for both counts and details
       }, 30000); // 30 seconds
 
       return () => clearInterval(interval);

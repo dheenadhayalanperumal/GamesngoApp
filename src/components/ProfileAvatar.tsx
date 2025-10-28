@@ -7,6 +7,7 @@ import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 // import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useRouter } from 'next/navigation';
 import LoginPopup from './LoginPopup';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileAvatarProps {
   size?: number;
@@ -15,13 +16,12 @@ interface ProfileAvatarProps {
 
 const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   size = 50,
-  isLoggedIn = false,
 }) => {
   const router = useRouter();
+  const { isLoggedIn, login } = useAuth();
   const [userName, setUserName] = useState("User");
   const [userImage, setUserImage] = useState("");
   const [notificationCount, setNotificationCount] = useState(0);
-  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
 
   useEffect(() => {
@@ -31,32 +31,13 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   }, []);
 
   const checkAuthAndFetchDetails = async () => {
-    const isAuth = await checkAuthentication();
-    setIsUserLoggedIn(isAuth);
-    
-    if (isAuth) {
+    // AuthContext handles authentication, just fetch user details if logged in
+    if (isLoggedIn) {
       fetchUserDetails();
     }
   };
 
-  const checkAuthentication = async (): Promise<boolean> => {
-    try {
-      const response = await fetch('/api/home/counts', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-      
-      if (response.ok && data.status === 'success') {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (error) {
-      return false;
-    }
-  };
+  // checkAuthentication removed - AuthContext handles authentication
 
   const fetchUserDetails = async () => {
     try {
@@ -84,7 +65,7 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   };
 
   const handleAvatarClick = () => {
-    if (isUserLoggedIn) {
+    if (isLoggedIn) {
       // Navigate to profile if logged in
       router.push('/profile');
     } else {
@@ -94,7 +75,7 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   };
 
   const handleLogin = () => {
-    setIsUserLoggedIn(true);
+    login(); // Use context login function
     // Refresh user details after login
     fetchUserDetails();
     // Optionally reload the page to update all components

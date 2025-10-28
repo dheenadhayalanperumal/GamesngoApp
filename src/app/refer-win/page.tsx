@@ -14,13 +14,45 @@ import {
   Link as LinkIcon,
   PhoneAndroid,
   CardGiftcard,
+  ArrowBack,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import TabBar from '@/components/TabBar';
-import HeaderWithBack from '@/components/HeaderWithBack';
+import { useAuth } from '@/contexts/AuthContext';
+import RedeemRewardsImg from '@/assets/images/banner/Redeem_rewards.svg';
+
+// Fallback HeaderWithBack component in case of import issues
+const HeaderWithBack = () => {
+  const router = useRouter();
+  return (
+    <Box sx={{ 
+      backgroundColor: '#3C3CD2', 
+      padding: '16px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 2
+    }}>
+      <Box 
+        onClick={() => router.back()}
+        sx={{ 
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1
+        }}
+      >
+        <ArrowBack sx={{ color: 'white', fontSize: 24 }} />
+        <Typography variant="h6" sx={{ color: 'white', fontWeight: 600 }}>
+          Invite & Win
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
 
 export default function ReferWin() {
   const router = useRouter();
+  const { isLoggedIn, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [referralData, setReferralData] = useState({
     rewardCoins: 500,
@@ -40,9 +72,18 @@ export default function ReferWin() {
 
   useEffect(() => {
     console.log('🎯 Refer-Win page mounted');
-    fetchReferralDetails();
+    console.log('🎯 Auth state - isLoggedIn:', isLoggedIn, 'authLoading:', authLoading);
+    
+    // Only fetch data if user is logged in and not loading
+    if (isLoggedIn && !authLoading) {
+      console.log('🎯 User is logged in, fetching referral details...');
+      fetchReferralDetails();
+    } else if (!isLoggedIn && !authLoading) {
+      console.log('🎯 User is not logged in, redirecting to home...');
+      router.push('/');
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isLoggedIn, authLoading]);
 
   const fetchReferralDetails = async () => {
     try {
@@ -94,35 +135,85 @@ export default function ReferWin() {
 
   // Handle copy referral code
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(referralData.code);
+    const code = referralData?.code || '';
+    navigator.clipboard.writeText(code);
     alert('Referral code copied to clipboard!');
   };
 
   // Handle copy referral link
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(referralData.shareLink);
+    const link = referralData?.shareLink || '';
+    navigator.clipboard.writeText(link);
     alert('Referral link copied to clipboard!');
   };
 
   // Handle share via WhatsApp
   const handleWhatsAppShare = () => {
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(referralData.shareText)}`;
+    const text = referralData?.shareText || '';
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, '_blank');
   };
 
   // Handle general share
   const handleGeneralShare = () => {
+    const text = referralData?.shareText || '';
+    const link = referralData?.shareLink || '';
+    
     if (navigator.share) {
       navigator.share({
         title: 'Join GamesNGO',
-        text: referralData.shareText,
-        url: referralData.shareLink,
+        text: text,
+        url: link,
       });
     } else {
-      navigator.clipboard.writeText(`${referralData.shareText}\n${referralData.shareLink}`);
+      navigator.clipboard.writeText(`${text}\n${link}`);
       alert('Share message copied to clipboard!');
     }
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <CircularProgress sx={{ color: '#4848DB' }} />
+        <Typography variant="body2" color="text.secondary">
+          Checking authentication...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Show login message if not logged in (instead of redirecting immediately)
+  if (!isLoggedIn) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <Typography variant="h5" color="text.secondary">
+          Please log in to view referral details
+        </Typography>
+        <Button 
+          variant="contained" 
+          onClick={() => router.push('/')}
+          sx={{ backgroundColor: '#4848DB' }}
+        >
+          Go to Home
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
@@ -142,7 +233,7 @@ export default function ReferWin() {
         ) : (
           <>
         {/* Recent Reward Banner */}
-        {referralData.recent.message && (
+        {referralData.recent && referralData.recent.message && (
           <Box sx={{ 
             backgroundColor: '#E8F5E9',
             border: '1px solid #4CAF50',
@@ -204,7 +295,7 @@ export default function ReferWin() {
                 marginBottom: 2
               }}
             >
-              Earn {referralData.rewardCoins} Coins
+              Earn {referralData?.rewardCoins || 500} Coins
             </Typography>
             
             <Typography 
@@ -230,7 +321,7 @@ export default function ReferWin() {
             position: 'relative'
           }}>
             <img 
-              src="/images/banner/invite-banner.png" 
+              src={RedeemRewardsImg.src}
               alt="Invite and Win Illustration"
               style={{
                 width: '100%',
@@ -392,7 +483,7 @@ export default function ReferWin() {
                 letterSpacing: '4px'
               }}
             >
-              {referralData.codeSpaced || referralData.code}
+              {referralData?.codeSpaced || referralData?.code || 'LOADING...'}
             </Typography>
             
             <Button
@@ -529,7 +620,7 @@ export default function ReferWin() {
                   marginBottom: 1
                 }}
               >
-                {referralData.counts.referred}
+                {referralData?.counts?.referred || 0}
               </Typography>
               <Typography 
                 variant="body2" 
@@ -562,7 +653,7 @@ export default function ReferWin() {
                   marginBottom: 1
                 }}
               >
-                {referralData.counts.coinsEarned}
+                {referralData?.counts?.coinsEarned || 0}
               </Typography>
               <Typography 
                 variant="body2" 

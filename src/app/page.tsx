@@ -13,6 +13,7 @@ import QuickAction from "@/components/QuickAction";
 import PopularToday from "@/components/PopularToday";
 import RestaurantGame from "@/components/RestaurantGame";
 import LoadingScreen from "@/components/LoadingScreen";
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HomeData {
   popularGames?: Array<{
@@ -61,60 +62,42 @@ interface HomeData {
 }
 
 export default function Home() {
+  const { isLoggedIn, isLoading: authLoading } = useAuth();
   const [homeData, setHomeData] = useState<HomeData>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    checkAuthAndLoadData();
+    loadHomeData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const checkAuthAndLoadData = async () => {
-    console.log('Checking authentication...');
+  const loadHomeData = async () => {
+    console.log('Loading home data...');
     setIsLoading(true);
 
-    // Check if user is authenticated by trying to fetch user details
-    const isAuth = await checkAuthentication();
-
-    if (isAuth) {
-      console.log('User is authenticated, loading user data...');
-      // Fetch user-specific streak data
-      await fetchUserDetails();
-    } else {
-      console.log('User is not authenticated, loading public data...');
-    }
-
-    // Load home data regardless of auth status
-    await fetchHomeData();
-    
-    setIsLoading(false);
-  };
-
-  const checkAuthentication = async (): Promise<boolean> => {
     try {
-      const response = await fetch('/api/home/counts', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      const data = await response.json();
+      // Load home data (this is what users want to see)
+      await fetchHomeData();
       
-      if (response.ok && data.status === 'success') {
-        console.log('Authentication check: User is logged in');
-        return true;
-      } else {
-        console.log('Authentication check: User is not logged in');
-        return false;
-      }
     } catch (error) {
-      console.error('Authentication check error:', error);
-      return false;
+      console.error('Error loading data:', error);
+      // Set fallback data to prevent infinite loading
+      setHomeData({
+        popularGames: [],
+        dailyScratch: undefined,
+        restaurants: [],
+        banners: []
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // checkAuthentication removed - AuthContext handles authentication
 
   const fetchHomeData = async () => {
     try {
-      const response = await fetch('/api/public/home', {
+      const response = await fetch(`/api/public/home?t=${Date.now()}`, {
         method: 'GET',
       });
 
@@ -159,56 +142,27 @@ export default function Home() {
     }
   };
 
-  const fetchUserDetails = async () => {
-    try {
-      const response = await fetch('/api/home/details', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-      console.log('User details response for streak:', data);
-
-      if (response.ok && data.status === 'success') {
-        if (data.details.streak) {
-          const streakData = {
-            current: data.details.streak.current || 0,
-            hasRedeemedToday: data.details.streak.hasRedeemedToday || false
-          };
-          console.log('📊 Streak Data from API:', streakData);
-          console.log('  - Current Day:', streakData.current);
-          console.log('  - Has Redeemed Today:', streakData.hasRedeemedToday);
-          
-          setHomeData(prev => ({
-            ...prev,
-            streak: streakData
-          }));
-        }
-      } else {
-        console.warn('Failed to fetch user details:', data.message || 'Unknown error');
-      }
-    } catch (error) {
-      console.error('Error fetching user details:', error);
-    }
-  };
+  // fetchUserDetails removed - Header component now handles user data fetching
 
   // Show loading screen while checking authentication and loading data
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return <LoadingScreen />;
   }
 
   return (
     <div className="layout">
-      <Header sx={{
-        backgroundColor: '#4848DB',
-        textAlign: 'center',
-        color: 'white',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1100,
-      }} />
+      <Header 
+        sx={{
+          backgroundColor: '#4848DB',
+          textAlign: 'center',
+          color: 'white',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+        }} 
+      />
 
       <ProfileAvatar/>
 

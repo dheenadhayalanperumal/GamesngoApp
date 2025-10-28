@@ -16,6 +16,7 @@ import {
 import { Close, Person, Phone, Google, Lock } from '@mui/icons-material';
 import Image from 'next/image';
 import SetPinPopup from './SetPinPopup';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SignupPopupProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
   onClose,
   onSignup
 }) => {
+  const { login } = useAuth();
   const [userID, setUserID] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [otp, setOtp] = useState('');
@@ -42,6 +44,7 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
   const handlePinSet = (pin: string) => {
     // PIN has been set, now complete the signup process
     console.log('PIN set:', pin);
+    login(); // Update global auth state
     onSignup();
     onClose();
   };
