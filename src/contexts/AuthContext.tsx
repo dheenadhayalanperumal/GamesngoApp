@@ -8,15 +8,22 @@ interface AuthContextType {
   login: () => void;
   logout: () => void;
   isLoading: boolean;
+  isInitialized: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (context === null) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+  
+  // Add a warning if context is not initialized yet
+  if (!context.isInitialized) {
+    console.warn('useAuth: Context not yet initialized, returning default values');
+  }
+  
   return context;
 };
 
@@ -25,13 +32,23 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  console.log('🔐 AuthProvider: Rendering AuthProvider');
+  
   // Use useRef to persist login state across re-renders
   const loginStateRef = useRef<boolean>(false);
   const [isLoggedIn, setIsLoggedInState] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   // Initialize login state from localStorage on mount
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      setIsLoading(false);
+      setIsInitialized(true);
+      return;
+    }
+
     const initializeAuth = async () => {
       console.log('🔐 Auth: Initializing authentication...');
       try {
@@ -61,6 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } finally {
         console.log('🔐 Auth: Authentication check complete, setting loading to false');
         setIsLoading(false);
+        setIsInitialized(true);
       }
     };
 
@@ -178,7 +196,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     isLoading,
+    isInitialized,
   };
+
+  console.log('🔐 AuthProvider: Providing context value:', { isLoggedIn, isLoading });
 
   return (
     <AuthContext.Provider value={value}>

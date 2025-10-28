@@ -15,23 +15,70 @@ interface VoucherClaimedPopupProps {
   open: boolean;
   onClose: () => void;
   couponData?: {
-    restaurantName: string;
-    discount: string;
+    id: number;
+    offerId: number;
+    voucherCode: string;
+    title: string;
+    discountPercent?: number;
+    shop?: {
+      name: string;
+      logoUrl?: string;
+    };
     status: string;
-    expiresDate: string;
+    isRedeemed: boolean;
+    isExpired: boolean;
+    issuedAt: string;
+    expiresAt?: string;
+    redeemedAt?: string;
   } | null;
 }
 
 export default function VoucherClaimedPopup({ open, onClose, couponData }: VoucherClaimedPopupProps) {
   // Default coupon data if none provided
   const defaultCouponData = {
-    restaurantName: "Nandhana Palace",
-    discount: "10% Off",
+    id: 0,
+    offerId: 0,
+    voucherCode: "XDF21G",
+    title: "Sample Offer",
+    discountPercent: 10,
+    shop: {
+      name: "Nandhana Palace",
+      logoUrl: "/images/banner/nadana.svg"
+    },
     status: "Active",
-    expiresDate: "12 Dec 11:59"
+    isRedeemed: false,
+    isExpired: false,
+    issuedAt: "2024-01-01 00:00:00",
+    expiresAt: "2024-12-31 23:59:59"
   };
 
-  const coupon = couponData || defaultCouponData;
+  const voucher = couponData || defaultCouponData;
+
+  // Format date helper
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'No expiry';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Get status color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Active':
+        return '#4CAF50'; // Green
+      case 'Expired':
+        return '#F44336'; // Red
+      case 'Redeemed':
+        return '#FF9800'; // Orange
+      default:
+        return '#666666';
+    }
+  };
 
   return (
     <Dialog
@@ -73,8 +120,8 @@ export default function VoucherClaimedPopup({ open, onClose, couponData }: Vouch
                   }}>
                     <Box
                       component="img"
-                      src="/images/banner/nadana.svg"
-                      alt="Nandhana Palace Logo"
+                      src={voucher.shop?.logoUrl || "/images/banner/nadana.svg"}
+                      alt={voucher.shop?.name || 'Shop Logo'}
                       sx={{
                         width: '100%',
                         height: '100%',
@@ -95,19 +142,19 @@ export default function VoucherClaimedPopup({ open, onClose, couponData }: Vouch
                     lineHeight: 1.3
                   }}
                 >
-                  {coupon.restaurantName}...
+                  {voucher.shop?.name || 'Unknown Shop'}...
                 </Typography>
                 
                 <Typography 
                   variant="body2" 
                   sx={{ 
-                    color: '#4CAF50', // Green color for Active status from reference
+                    color: getStatusColor(voucher.status),
                     fontSize: '14px', // Font size from reference
                     fontWeight: 'bold',
                     marginBottom: 1
                   }}
                 >
-                  {coupon.status}
+                  {voucher.status}
                 </Typography>
 
                 <Typography 
@@ -120,7 +167,7 @@ export default function VoucherClaimedPopup({ open, onClose, couponData }: Vouch
                     lineHeight: 1.2
                   }}
                 >
-                  {coupon.discount}
+                  {voucher.discountPercent ? `${voucher.discountPercent}% Off` : 'Special Offer'}
                 </Typography>
 
                 <Typography 
@@ -132,7 +179,7 @@ export default function VoucherClaimedPopup({ open, onClose, couponData }: Vouch
                     lineHeight: 1.4
                   }}
                 >
-                  Expires: {coupon.expiresDate}
+                  Expires: {formatDate(voucher.expiresAt)}
                 </Typography>
               </Box>
             </Box>

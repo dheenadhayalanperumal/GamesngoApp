@@ -87,7 +87,12 @@ const ShakeAndWin: React.FC<ShakeAndWinProps> = ({
         },
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
         width: '100%',
-        margin: '0px'
+        margin: '0px',
+        marginBottom: {
+          xs: '80px', // Add bottom margin to prevent TabBar overlap
+          sm: '80px',
+          md: '80px'
+        }
       }}
     >
       {/* Header with icon and title */}
@@ -276,14 +281,14 @@ const ShakeAndWin: React.FC<ShakeAndWinProps> = ({
         </Box>
       </Box>
 
-      {/* Shake Button */}
+      {/* Shake Button - Disabled with Coming Soon */}
       <Button
         variant="contained"
         onClick={handleShake}
-        disabled={isShaking}
+        disabled={true} // Always disabled
         sx={{
-          background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-          color: '#2D3748',
+          background: '#E2E8F0', // Gray background for disabled state
+          color: '#A0AEC0', // Gray text for disabled state
           fontWeight: 'bold',
           fontSize: {
             xs: '14px',
@@ -298,20 +303,23 @@ const ShakeAndWin: React.FC<ShakeAndWinProps> = ({
           borderRadius: '50px',
           textTransform: 'none',
           width: '100%',
-          boxShadow: '0 4px 16px rgba(255, 215, 0, 0.3)',
+          boxShadow: 'none', // No shadow for disabled state
+          cursor: 'not-allowed', // Show not-allowed cursor
           '&:hover': {
-            background: 'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)',
-            boxShadow: '0 6px 20px rgba(255, 215, 0, 0.4)',
-            transform: 'translateY(-2px)',
+            background: '#E2E8F0', // Keep same background on hover
+            color: '#A0AEC0', // Keep same text color on hover
+            boxShadow: 'none', // No shadow on hover
+            transform: 'none', // No transform on hover
           },
           '&:disabled': {
             background: '#E2E8F0',
             color: '#A0AEC0',
             boxShadow: 'none',
+            cursor: 'not-allowed',
           }
         }}
       >
-        {isShaking ? 'Shaking...' : `Shake Now (${coinCost} Coins)`}
+        Coming Soon
       </Button>
     </Box>
   );

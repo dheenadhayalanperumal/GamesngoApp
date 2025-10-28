@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -11,31 +11,99 @@ import {
   CardContent,
 } from '@mui/material';
 import { Close } from '@mui/icons-material';
+import QRCode from 'qrcode';
 
 interface QRCodePopupProps {
   open: boolean;
   onClose: () => void;
   onClaimVoucher?: () => void;
   couponData?: {
-    restaurantName: string;
-    discount: string;
+    id: number;
+    offerId: number;
+    voucherCode: string;
+    title: string;
+    discountPercent?: number;
+    shop?: {
+      name: string;
+      logoUrl?: string;
+    };
     status: string;
-    expiresDate: string;
-    couponCode: string;
+    isRedeemed: boolean;
+    isExpired: boolean;
+    issuedAt: string;
+    expiresAt?: string;
+    redeemedAt?: string;
   } | null;
 }
 
 export default function QRCodePopup({ open, onClose, onClaimVoucher, couponData }: QRCodePopupProps) {
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
+
+  // Generate QR code when coupon data changes
+  useEffect(() => {
+    if (couponData?.voucherCode) {
+      QRCode.toDataURL(couponData.voucherCode, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      })
+      .then((url) => {
+        setQrCodeDataUrl(url);
+      })
+      .catch((err) => {
+        console.error('Error generating QR code:', err);
+      });
+    }
+  }, [couponData]);
+
   // Default coupon data if none provided
   const defaultCouponData = {
-    restaurantName: "Nandhana Palace",
-    discount: "10% Off",
+    id: 0,
+    offerId: 0,
+    voucherCode: "XDF21G",
+    title: "Sample Offer",
+    discountPercent: 10,
+    shop: {
+      name: "Nandhana Palace",
+      logoUrl: "/images/banner/nadana.svg"
+    },
     status: "Active",
-    expiresDate: "12 Dec 11:59",
-    couponCode: "XDF21G"
+    isRedeemed: false,
+    isExpired: false,
+    issuedAt: "2024-01-01 00:00:00",
+    expiresAt: "2024-12-31 23:59:59"
   };
 
-  const coupon = couponData || defaultCouponData;
+  const voucher = couponData || defaultCouponData;
+
+  // Format date helper
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'No expiry';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Get status color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Active':
+        return '#4CAF50'; // Green
+      case 'Expired':
+        return '#F44336'; // Red
+      case 'Redeemed':
+        return '#FF9800'; // Orange
+      default:
+        return '#666666';
+    }
+  };
 
   return (
     <Dialog
@@ -99,8 +167,8 @@ export default function QRCodePopup({ open, onClose, onClaimVoucher, couponData 
                   }}>
                     <Box
                       component="img"
-                      src="/images/banner/nadana.svg"
-                      alt="Nandhana Palace Logo"
+                      src={voucher.shop?.logoUrl || "/images/banner/nadana.svg"}
+                      alt={voucher.shop?.name || 'Shop Logo'}
                       sx={{
                         width: '100%',
                         height: '100%',
@@ -121,19 +189,19 @@ export default function QRCodePopup({ open, onClose, onClaimVoucher, couponData 
                     lineHeight: 1.3
                   }}
                 >
-                  {coupon.restaurantName}...
+                  {voucher.shop?.name || 'Unknown Shop'}...
                 </Typography>
                 
                 <Typography 
                   variant="body2" 
                   sx={{ 
-                    color: '#4CAF50', // Green color for Active status from reference
+                    color: getStatusColor(voucher.status),
                     fontSize: '14px', // Font size from reference
                     fontWeight: 'bold',
                     marginBottom: 1
                   }}
                 >
-                  {coupon.status}
+                  {voucher.status}
                 </Typography>
 
                 <Typography 
@@ -146,7 +214,7 @@ export default function QRCodePopup({ open, onClose, onClaimVoucher, couponData 
                     lineHeight: 1.2
                   }}
                 >
-                  {coupon.discount}
+                  {voucher.discountPercent ? `${voucher.discountPercent}% Off` : 'Special Offer'}
                 </Typography>
 
                 <Typography 
@@ -158,7 +226,7 @@ export default function QRCodePopup({ open, onClose, onClaimVoucher, couponData 
                     lineHeight: 1.4
                   }}
                 >
-                  Expires: {coupon.expiresDate}
+                  Expires: {formatDate(voucher.expiresAt)}
                 </Typography>
               </Box>
             </Box>
@@ -206,18 +274,26 @@ export default function QRCodePopup({ open, onClose, onClaimVoucher, couponData 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                backgroundColor: '#f5f5f5',
+                border: '2px solid #e0e0e0'
               }}>
-                <Box
-                  component="img"
-                  src="/images/banner/QR.png"
-                  alt="QR Code"
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain'
-                  }}
-                />
+                {qrCodeDataUrl ? (
+                  <Box
+                    component="img"
+                    src={qrCodeDataUrl}
+                    alt="QR Code"
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain'
+                    }}
+                  />
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    Generating QR...
+                  </Typography>
+                )}
               </Box>
             </Box>
 
@@ -233,7 +309,7 @@ export default function QRCodePopup({ open, onClose, onClaimVoucher, couponData 
                   lineHeight: 1.4
                 }}
               >
-                Coupon Code:   {coupon.couponCode}
+                Voucher Code: {voucher.voucherCode}
               </Typography>
               
               {/* <Typography 

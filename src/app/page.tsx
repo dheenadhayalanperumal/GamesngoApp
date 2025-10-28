@@ -150,7 +150,7 @@ export default function Home() {
   }
 
   return (
-    <div className="layout">
+    <div className="layout" style={{ paddingBottom: '20px' }}>
       <Header 
         sx={{
           backgroundColor: '#4848DB',
