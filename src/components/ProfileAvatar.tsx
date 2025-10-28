@@ -24,18 +24,18 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   const [notificationCount, setNotificationCount] = useState(0);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
 
-  useEffect(() => {
-    // Always try to fetch user details on mount
-    // If user is not logged in, API will return error and we'll use default values
-    checkAuthAndFetchDetails();
-  }, []);
-
   const checkAuthAndFetchDetails = async () => {
     // AuthContext handles authentication, just fetch user details if logged in
     if (isLoggedIn) {
       fetchUserDetails();
     }
   };
+
+  useEffect(() => {
+    // Always try to fetch user details on mount
+    // If user is not logged in, API will return error and we'll use default values
+    checkAuthAndFetchDetails();
+  }, [checkAuthAndFetchDetails]);
 
   // checkAuthentication removed - AuthContext handles authentication
 

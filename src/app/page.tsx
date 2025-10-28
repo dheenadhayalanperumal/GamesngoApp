@@ -62,7 +62,7 @@ interface HomeData {
 }
 
 export default function Home() {
-  const { isLoggedIn, isLoading: authLoading } = useAuth();
+  const { isLoading: authLoading } = useAuth();
   const [homeData, setHomeData] = useState<HomeData>({});
   const [isLoading, setIsLoading] = useState(true);
 

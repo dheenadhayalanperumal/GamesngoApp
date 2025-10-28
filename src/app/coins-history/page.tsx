@@ -7,16 +7,12 @@ import {
   Card,
   CardContent,
   Button,
-  Chip,
 } from '@mui/material';
-import { Bolt } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
 import TabBar from "@/components/TabBar";
 import CoinIcon from '@/assets/icons/coin.png';
 import HeaderWithBack from '@/components/HeaderWithBack';
 
 export default function CoinsHistory() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState('All');
 
   // Sample transaction data

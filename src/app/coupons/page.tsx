@@ -23,11 +23,43 @@ export default function Coupons() {
   const { isLoggedIn, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('all');
   const [qrPopupOpen, setQrPopupOpen] = useState(false);
-  const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
+  const [selectedCoupon, setSelectedCoupon] = useState<{
+    id: number;
+    offerId: number;
+    voucherCode: string;
+    title: string;
+    discountPercent?: number;
+    shop?: {
+      name: string;
+      logoUrl?: string;
+    };
+    status: string;
+    isRedeemed: boolean;
+    isExpired: boolean;
+    issuedAt: string;
+    expiresAt?: string;
+    redeemedAt?: string;
+  } | null>(null);
   const [voucherClaimedOpen, setVoucherClaimedOpen] = useState(false);
   
   // API state
-  const [vouchers, setVouchers] = useState<any[]>([]);
+  const [vouchers, setVouchers] = useState<{
+    id: number;
+    offerId: number;
+    voucherCode: string;
+    title: string;
+    discountPercent?: number;
+    shop?: {
+      name: string;
+      logoUrl?: string;
+    };
+    status: string;
+    isRedeemed: boolean;
+    isExpired: boolean;
+    issuedAt: string;
+    expiresAt?: string;
+    redeemedAt?: string;
+  }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [pagination, setPagination] = useState({
@@ -38,13 +70,6 @@ export default function Coupons() {
     hasNext: false
   });
 
-  // Tab configuration
-  const tabs = [
-    { value: 'all', label: 'All' },
-    { value: 'active', label: 'Active' },
-    { value: 'redeemed', label: 'Redeemed' },
-    { value: 'expired', label: 'Expired' }
-  ];
 
   // API functions
   const fetchVouchers = async (filter: string = 'all', page: number = 1) => {
@@ -103,13 +128,45 @@ export default function Coupons() {
   };
 
   // Handle QR code click
-  const handleQRClick = (voucher: any) => {
+  const handleQRClick = (voucher: {
+    id: number;
+    offerId: number;
+    voucherCode: string;
+    title: string;
+    discountPercent?: number;
+    shop?: {
+      name: string;
+      logoUrl?: string;
+    };
+    status: string;
+    isRedeemed: boolean;
+    isExpired: boolean;
+    issuedAt: string;
+    expiresAt?: string;
+    redeemedAt?: string;
+  }) => {
     setSelectedCoupon(voucher);
     setQrPopupOpen(true);
   };
 
   // Handle voucher claim
-  const handleVoucherClaim = (voucher: any) => {
+  const handleVoucherClaim = (voucher: {
+    id: number;
+    offerId: number;
+    voucherCode: string;
+    title: string;
+    discountPercent?: number;
+    shop?: {
+      name: string;
+      logoUrl?: string;
+    };
+    status: string;
+    isRedeemed: boolean;
+    isExpired: boolean;
+    issuedAt: string;
+    expiresAt?: string;
+    redeemedAt?: string;
+  }) => {
     setSelectedCoupon(voucher);
     setVoucherClaimedOpen(true);
   };
@@ -231,7 +288,7 @@ export default function Coupons() {
         }}>
           {/* All Tab */}
           <Button
-            onClick={() => handleTabChange(null as any, 'all')}
+            onClick={() => handleTabChange(null as unknown as React.SyntheticEvent, 'all')}
             sx={{
               backgroundColor: activeTab === 'all' ? '#3C3CD2' : 'white',
               color: activeTab === 'all' ? 'white' : '#333333',
@@ -252,7 +309,7 @@ export default function Coupons() {
 
           {/* Active Tab */}
           <Button
-            onClick={() => handleTabChange(null as any, 'active')}
+            onClick={() => handleTabChange(null as unknown as React.SyntheticEvent, 'active')}
             sx={{
               backgroundColor: activeTab === 'active' ? '#3C3CD2' : 'white',
               color: activeTab === 'active' ? 'white' : '#333333',
@@ -273,7 +330,7 @@ export default function Coupons() {
 
           {/* Redeemed Tab */}
           <Button
-            onClick={() => handleTabChange(null as any, 'redeemed')}
+            onClick={() => handleTabChange(null as unknown as React.SyntheticEvent, 'redeemed')}
             sx={{
               backgroundColor: activeTab === 'redeemed' ? '#3C3CD2' : 'white',
               color: activeTab === 'redeemed' ? 'white' : '#333333',
@@ -294,7 +351,7 @@ export default function Coupons() {
 
           {/* Expired Tab */}
           <Button
-            onClick={() => handleTabChange(null as any, 'expired')}
+            onClick={() => handleTabChange(null as unknown as React.SyntheticEvent, 'expired')}
             sx={{
               backgroundColor: activeTab === 'expired' ? '#3C3CD2' : 'white',
               color: activeTab === 'expired' ? 'white' : '#333333',
@@ -533,7 +590,7 @@ export default function Coupons() {
                         lineHeight: 1.4
                       }}
                     >
-                      Expires: {formatDate(voucher.expiresAt)}
+                      Expires: {formatDate(voucher.expiresAt || '')}
                     </Typography>
                   </Box>
                 </Box>
@@ -634,7 +691,7 @@ export default function Coupons() {
       <QRCodePopup 
         open={qrPopupOpen}
         onClose={() => setQrPopupOpen(false)}
-        onClaimVoucher={handleVoucherClaim}
+        onClaimVoucher={() => selectedCoupon && handleVoucherClaim(selectedCoupon)}
         couponData={selectedCoupon}
       />
 

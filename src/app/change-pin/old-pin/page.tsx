@@ -5,10 +5,8 @@ import {
   Box,
   Typography,
   Button,
-  IconButton,
 } from '@mui/material';
 import {
-  ArrowBack,
   Visibility,
   VisibilityOff,
 } from '@mui/icons-material';
@@ -74,7 +72,7 @@ export default function OldPinPage() {
     return () => {
       document.removeEventListener('keydown', handleGlobalKeyPress);
     };
-  }, [currentIndex]);
+  }, [currentIndex, handleGlobalKeyPress]);
 
   const handleNext = async () => {
     const pinString = pin.join('');

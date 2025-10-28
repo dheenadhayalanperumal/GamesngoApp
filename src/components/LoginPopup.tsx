@@ -13,7 +13,7 @@ import {
   // Divider,
   Link,
 } from "@mui/material";
-import { Close, Phone, Lock, Google } from "@mui/icons-material";
+import { Close, Phone, Lock } from "@mui/icons-material";
 import Image from "next/image";
 import SignupPopup from "./SignupPopup";
 import { useAuth } from '@/contexts/AuthContext';
@@ -89,12 +89,6 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Handle Google login logic here
-    console.log("Google login clicked");
-    onLogin();
-    onClose();
-  };
 
   const handleSignupClick = () => {
     setIsSignupOpen(true);

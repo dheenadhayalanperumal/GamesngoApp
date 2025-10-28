@@ -13,7 +13,7 @@ import {
   Divider,
   Link
 } from '@mui/material';
-import { Close, Person, Phone, Google, Lock } from '@mui/icons-material';
+import { Close, Person, Phone, Lock } from '@mui/icons-material';
 import Image from 'next/image';
 import SetPinPopup from './SetPinPopup';
 import { useAuth } from '@/contexts/AuthContext';
@@ -49,12 +49,6 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
     onClose();
   };
 
-  const handleGoogleSignup = () => {
-    // Handle Google signup logic here
-    console.log('Google signup clicked');
-    onSignup();
-    onClose();
-  };
 
   const handleVerify = async () => {
     // Validate mobile number and user ID

@@ -138,7 +138,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         cookieOptions.forEach(option => {
           try {
             document.cookie = option;
-          } catch (e) {
+          } catch {
             // Ignore errors for invalid cookie options
           }
         });

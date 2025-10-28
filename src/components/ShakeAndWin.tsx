@@ -22,8 +22,7 @@ interface ShakeAndWinProps {
 }
 
 const ShakeAndWin: React.FC<ShakeAndWinProps> = ({
-  onShake,
-  coinCost = 15
+  onShake
 }) => {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const [isShaking, setIsShaking] = useState(false);

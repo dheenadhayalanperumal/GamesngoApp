@@ -520,11 +520,6 @@ export default function Profile() {
                           }}
                         >
                           {item.isLogout && isLoggingOut ? 'Logging out...' : item.title}
-                          {item.highlight && (
-                            <Typography component="span" sx={{ color: '#FAC200', fontWeight: 'bold' }}>
-                              {' '}(+100 Coins)
-                            </Typography>
-                          )}
                         </Typography>
                       }
                     />

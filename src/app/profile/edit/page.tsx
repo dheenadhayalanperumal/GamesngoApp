@@ -31,7 +31,6 @@ export default function EditProfile() {
     phone: '',
   });
   const [userImage, setUserImage] = useState('');
-  const [joinedAt, setJoinedAt] = useState('');
 
   useEffect(() => {
     // Load user data from localStorage
@@ -46,7 +45,6 @@ export default function EditProfile() {
             phone: '', // Will be fetched from API in future
           });
           setUserImage(userData.imageUrl || '');
-          setJoinedAt(userData.joinedAt || '');
         } catch (error) {
           console.error('Error parsing user data:', error);
         }
