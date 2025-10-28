@@ -1,106 +1,125 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
   Card,
   CardContent,
   Button,
+  CircularProgress,
+  Pagination,
 } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
+import { LocalOffer } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import TabBar from "@/components/TabBar";
 import QRCodePopup from "@/components/QRCodePopup";
 import VoucherClaimedPopup from "@/components/VoucherClaimedPopup";
 import HeaderWithBack from '@/components/HeaderWithBack';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Coupons() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('All');
+  const { isLoggedIn, isLoading: authLoading } = useAuth();
+  const [activeTab, setActiveTab] = useState('all');
   const [qrPopupOpen, setQrPopupOpen] = useState(false);
-  const [selectedCoupon, setSelectedCoupon] = useState<typeof coupons[0] | null>(null);
+  const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
   const [voucherClaimedOpen, setVoucherClaimedOpen] = useState(false);
+  
+  // API state
+  const [vouchers, setVouchers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [pagination, setPagination] = useState({
+    page: 1,
+    perPage: 10,
+    total: 0,
+    totalPages: 0,
+    hasNext: false
+  });
 
-  // Sample coupon data
-  const coupons = [
-    {
-      id: 1,
-      restaurantName: "Nandhana Palace",
-      discount: "10% Off",
-      status: "Active",
-      expiresDate: "12 Dec 11:59",
-      type: "active",
-      logo: "nandhana PALACE",
-      couponCode: "XDF21G"
-    },
-    {
-      id: 2,
-      restaurantName: "Nandhana Palace",
-      discount: "10% Off",
-      status: "Experied",
-      expiresDate: "12 Dec 11:59",
-      type: "expired",
-      logo: "nandhana PALACE",
-      couponCode: "XDF21G"
-    },
-    {
-      id: 3,
-      restaurantName: "Nandhana Palace",
-      discount: "10% Off",
-      status: "Redeemed",
-      expiresDate: "12 Dec 11:59",
-      type: "redeemed",
-      logo: "nandhana PALACE",
-      couponCode: "XDF21G"
-    },
-    {
-      id: 4,
-      restaurantName: "Nandhana Palace",
-      discount: "10% Off",
-      status: "Active",
-      expiresDate: "12 Dec 11:59",
-      type: "active",
-      logo: "nandhana PALACE",
-      couponCode: "XDF21G"
-    },
-    {
-      id: 5,
-      restaurantName: "Nandhana Palace",
-      discount: "10% Off",
-      status: "Experied",
-      expiresDate: "12 Dec 11:59",
-      type: "expired",
-      logo: "nandhana PALACE",
-      couponCode: "XDF21G"
-    },
-    {
-      id: 6,
-      restaurantName: "Nandhana Palace",
-      discount: "10% Off",
-      status: "Redeemed",
-      expiresDate: "12 Dec 11:59",
-      type: "redeemed",
-      logo: "nandhana PALACE",
-      couponCode: "XDF21G"
-    }
+  // Tab configuration
+  const tabs = [
+    { value: 'all', label: 'All' },
+    { value: 'active', label: 'Active' },
+    { value: 'redeemed', label: 'Redeemed' },
+    { value: 'expired', label: 'Expired' }
   ];
 
-  // Filter coupons based on active tab
-  const filteredCoupons = coupons.filter(coupon => {
-    if (activeTab === 'All') return true;
-    if (activeTab === 'Active') return coupon.type === 'active';
-    if (activeTab === 'Redeemed') return coupon.type === 'redeemed';
-    if (activeTab === 'Expired') return coupon.type === 'expired';
-    return true;
-  });
+  // API functions
+  const fetchVouchers = async (filter: string = 'all', page: number = 1) => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      console.log('Fetching vouchers with filter:', filter, 'page:', page);
+      
+      const response = await fetch(`/api/vendor/vouchers?filter=${filter}&page=${page}&perPage=10`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('Vouchers response:', data);
+
+      if (response.ok && data.status === 'success') {
+        setVouchers(data.vouchers || []);
+        setPagination(data.pagination || {
+          page: 1,
+          perPage: 10,
+          total: 0,
+          totalPages: 0,
+          hasNext: false
+        });
+      } else {
+        setError(data.message || 'Failed to fetch vouchers');
+        setVouchers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching vouchers:', error);
+      setError('Network error. Please try again.');
+      setVouchers([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load vouchers when component mounts or tab changes
+  useEffect(() => {
+    if (isLoggedIn && !authLoading) {
+      fetchVouchers(activeTab, 1);
+    }
+  }, [isLoggedIn, authLoading, activeTab]);
+
+  // Handle tab change
+  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+    setActiveTab(newValue);
+    setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page
+  };
+
+  // Handle page change
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+    fetchVouchers(activeTab, page);
+  };
+
+  // Handle QR code click
+  const handleQRClick = (voucher: any) => {
+    setSelectedCoupon(voucher);
+    setQrPopupOpen(true);
+  };
+
+  // Handle voucher claim
+  const handleVoucherClaim = (voucher: any) => {
+    setSelectedCoupon(voucher);
+    setVoucherClaimedOpen(true);
+  };
 
   // Get status color based on status
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active':
         return '#4CAF50'; // Green
-      case 'Experied':
+      case 'Expired':
         return '#F44336'; // Red
       case 'Redeemed':
         return '#FF9800'; // Orange
@@ -109,38 +128,70 @@ export default function Coupons() {
     }
   };
 
-  // Handle Show QR click
-  const handleShowQR = (coupon: typeof coupons[0]) => {
-    setSelectedCoupon(coupon);
-    setQrPopupOpen(true);
+  // Format date
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'No expiry';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
-  // Handle QR popup close
-  const handleCloseQR = () => {
-    setQrPopupOpen(false);
-    setSelectedCoupon(null);
-  };
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <CircularProgress sx={{ color: '#4848DB' }} />
+        <Typography variant="body2" color="text.secondary">
+          Checking authentication...
+        </Typography>
+      </Box>
+    );
+  }
 
-  // Handle voucher claim
-  const handleClaimVoucher = () => {
-    setQrPopupOpen(false);
-    setVoucherClaimedOpen(true);
-  };
-
-  // Handle voucher claimed popup close
-  const handleCloseVoucherClaimed = () => {
-    setVoucherClaimedOpen(false);
-    setSelectedCoupon(null);
-  };
+  // Show login message if not logged in
+  if (!isLoggedIn) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <Typography variant="h5" color="text.secondary">
+          Please log in to view your vouchers
+        </Typography>
+        <Button 
+          variant="contained" 
+          onClick={() => router.push('/')}
+          sx={{ backgroundColor: '#4848DB' }}
+        >
+          Go to Home
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
-      {/* Dark Purple Header with Back Button */}
-           <HeaderWithBack/>
+      {/* Header */}
+      <HeaderWithBack/>
 
-  {/* Blue Header Section with Title */}
-  <Box sx={{ 
-        backgroundColor: 'rgba(60, 60, 210, 0.60)', // Yellow color from reference
+      {/* Blue Header Section with Title */}
+      <Box sx={{ 
+        backgroundColor: 'rgba(60, 60, 210, 0.60)',
         padding: '20px 20px 125px',
         color: 'white',
         textAlign: 'center',
@@ -149,8 +200,8 @@ export default function Coupons() {
         <Typography 
           variant="h5" 
           sx={{ 
-            color: '#21175B', // Dark text on yellow background
-            fontSize: '26px', // Font size from reference
+            color: '#21175B',
+            fontSize: '26px',
             fontWeight: 'bold',
             lineHeight: 1.2
           }}
@@ -158,7 +209,6 @@ export default function Coupons() {
           Coupons
         </Typography>
       </Box>
-
 
       {/* Tab Navigation */}
       <Box sx={{ 
@@ -181,19 +231,19 @@ export default function Coupons() {
         }}>
           {/* All Tab */}
           <Button
-            onClick={() => setActiveTab('All')}
+            onClick={() => handleTabChange(null as any, 'all')}
             sx={{
-              backgroundColor: activeTab === 'All' ? '#3C3CD2' : 'white',
-              color: activeTab === 'All' ? 'white' : '#333333',
-              border: activeTab === 'All' ? 'none' : '1px solid #DDDDDD',
+              backgroundColor: activeTab === 'all' ? '#3C3CD2' : 'white',
+              color: activeTab === 'all' ? 'white' : '#333333',
+              border: activeTab === 'all' ? 'none' : '1px solid #DDDDDD',
               borderRadius: '20px', // Pill shape
               padding: '8px 16px',
               fontSize: '14px',
-              fontWeight: activeTab === 'All' ? 400 : 400,
+              fontWeight: activeTab === 'all' ? 400 : 400,
               textTransform: 'none',
               minWidth: '70px',
               '&:hover': {
-                backgroundColor: activeTab === 'All' ? '#3C3CD2' : '#f5f5f5'
+                backgroundColor: activeTab === 'all' ? '#3C3CD2' : '#f5f5f5'
               }
             }}
           >
@@ -202,19 +252,19 @@ export default function Coupons() {
 
           {/* Active Tab */}
           <Button
-            onClick={() => setActiveTab('Active')}
+            onClick={() => handleTabChange(null as any, 'active')}
             sx={{
-              backgroundColor: activeTab === 'Active' ? '#3C3CD2' : 'white',
-              color: activeTab === 'Active' ? 'white' : '#333333',
-              border: activeTab === 'Active' ? 'none' : '1px solid #DDDDDD',
+              backgroundColor: activeTab === 'active' ? '#3C3CD2' : 'white',
+              color: activeTab === 'active' ? 'white' : '#333333',
+              border: activeTab === 'active' ? 'none' : '1px solid #DDDDDD',
               borderRadius: '20px', // Pill shape
               padding: '8px 16px',
               fontSize: '14px',
-              fontWeight: activeTab === 'Active' ? 400 : 400,
+              fontWeight: activeTab === 'active' ? 400 : 400,
               textTransform: 'none',
               minWidth: '60px',
               '&:hover': {
-                backgroundColor: activeTab === 'Active' ? '#3C3CD2' : '#f5f5f5'
+                backgroundColor: activeTab === 'active' ? '#3C3CD2' : '#f5f5f5'
               }
             }}
           >
@@ -223,19 +273,19 @@ export default function Coupons() {
 
           {/* Redeemed Tab */}
           <Button
-            onClick={() => setActiveTab('Redeemed')}
+            onClick={() => handleTabChange(null as any, 'redeemed')}
             sx={{
-              backgroundColor: activeTab === 'Redeemed' ? '#3C3CD2' : 'white',
-              color: activeTab === 'Redeemed' ? 'white' : '#333333',
-              border: activeTab === 'Redeemed' ? 'none' : '1px solid #DDDDDD',
+              backgroundColor: activeTab === 'redeemed' ? '#3C3CD2' : 'white',
+              color: activeTab === 'redeemed' ? 'white' : '#333333',
+              border: activeTab === 'redeemed' ? 'none' : '1px solid #DDDDDD',
               borderRadius: '20px', // Pill shape
               padding: '8px 16px',
               fontSize: '14px',
-              fontWeight: activeTab === 'Redeemed' ? 400 : 400,
+              fontWeight: activeTab === 'redeemed' ? 400 : 400,
               textTransform: 'none',
               minWidth: '60px',
               '&:hover': {
-                backgroundColor: activeTab === 'Redeemed' ? '#3C3CD2' : '#f5f5f5'
+                backgroundColor: activeTab === 'redeemed' ? '#3C3CD2' : '#f5f5f5'
               }
             }}
           >
@@ -244,37 +294,101 @@ export default function Coupons() {
 
           {/* Expired Tab */}
           <Button
-            onClick={() => setActiveTab('Expired')}
+            onClick={() => handleTabChange(null as any, 'expired')}
             sx={{
-              backgroundColor: activeTab === 'Expired' ? '#3C3CD2' : 'white',
-              color: activeTab === 'Expired' ? 'white' : '#333333',
-              border: activeTab === 'Expired' ? 'none' : '1px solid #DDDDDD',
+              backgroundColor: activeTab === 'expired' ? '#3C3CD2' : 'white',
+              color: activeTab === 'expired' ? 'white' : '#333333',
+              border: activeTab === 'expired' ? 'none' : '1px solid #DDDDDD',
               borderRadius: '20px', // Pill shape
               padding: '8px 16px',
               fontSize: '14px',
-              fontWeight: activeTab === 'Expired' ? 400 : 400,
+              fontWeight: activeTab === 'expired' ? 400 : 400,
               textTransform: 'none',
               minWidth: '60px',
               '&:hover': {
-                backgroundColor: activeTab === 'Expired' ? '#3C3CD2' : '#f5f5f5'
+                backgroundColor: activeTab === 'expired' ? '#3C3CD2' : '#f5f5f5'
               }
             }}
           >
             Expired
           </Button> 
         </Box>
-      
+      </Box>
 
-      {/* Main Content Area - White Background */}
+      {/* Main Content Area */}
       <Box sx={{ 
-        backgroundColor: 'white', // White background from reference
+        backgroundColor: 'white',
         minHeight: 'calc(100vh - 200px)'
       }}>
+        {/* Error Message */}
+        {error && (
+          <Box sx={{ 
+            backgroundColor: '#ffebee', 
+            border: '1px solid #f44336',
+            borderRadius: '8px',
+            padding: '16px',
+            marginBottom: 3,
+            textAlign: 'center'
+          }}>
+            <Typography color="error" variant="body2">
+              {error}
+            </Typography>
+            <Button 
+              variant="outlined" 
+              color="error" 
+              size="small" 
+              onClick={() => fetchVouchers(activeTab, pagination.page)}
+              sx={{ marginTop: 1 }}
+            >
+              Retry
+            </Button>
+          </Box>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            minHeight: '200px',
+            flexDirection: 'column',
+            gap: 2
+          }}>
+            <CircularProgress sx={{ color: '#4848DB' }} />
+            <Typography variant="body2" color="text.secondary">
+              Loading vouchers...
+            </Typography>
+          </Box>
+        )}
+
+        {/* Vouchers List */}
+        {!isLoading && !error && vouchers.length === 0 && (
+          <Box sx={{ 
+            textAlign: 'center', 
+            padding: '40px 20px',
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <LocalOffer sx={{ fontSize: 48, color: '#ccc', marginBottom: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No vouchers found
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {activeTab === 'all' 
+                ? "You don't have any vouchers yet." 
+                : `No ${activeTab} vouchers found.`
+              }
+            </Typography>
+          </Box>
+        )}
+
         {/* Coupon Cards */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 2 }}>
-          {filteredCoupons.map((coupon) => (
+          {!isLoading && !error && vouchers.map((voucher) => (
             <Card 
-              key={coupon.id}
+              key={voucher.id}
               sx={{
                 backgroundColor: 'white',
                 borderRadius: '12px',
@@ -321,16 +435,6 @@ export default function Coupons() {
                 borderRadius: '50%',
                 zIndex: 2
               }} />
-              <Box sx={{
-                position: 'absolute',
-                left: '-8px',
-                bottom: '20px',
-                width: '16px',
-                height: '16px',
-                backgroundColor: '#f8f9fa',
-                borderRadius: '50%',
-                zIndex: 2
-              }} />
               
               {/* Right side cutouts */}
               <Box sx={{
@@ -370,8 +474,8 @@ export default function Coupons() {
                   }}>
                     <Box
                       component="img"
-                      src="/images/banner/nadana.svg"
-                      alt="Nandhana Palace Logo"
+                      src={voucher.shop?.logoUrl || "/images/banner/nadana.svg"}
+                      alt={voucher.shop?.name || 'Shop'}
                       sx={{
                         width: '100%',
                         height: '100%',
@@ -380,7 +484,7 @@ export default function Coupons() {
                     />
                   </Box>
 
-                  {/* Right Section - Coupon Details */}
+                  {/* Right Section - Content */}
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography 
                       variant="h6" 
@@ -392,19 +496,19 @@ export default function Coupons() {
                         lineHeight: 1.3
                       }}
                     >
-                      {coupon.restaurantName}...
+                      {voucher.shop?.name || 'Unknown Shop'}...
                     </Typography>
                     
                     <Typography 
                       variant="body2" 
                       sx={{ 
-                        color: getStatusColor(coupon.status),
+                        color: getStatusColor(voucher.status),
                         fontSize: '14px', // Font size from reference
                         fontWeight: 'bold',
                         marginBottom: 1
                       }}
                     >
-                      {coupon.status}
+                      {voucher.status}
                     </Typography>
 
                     <Typography 
@@ -417,7 +521,7 @@ export default function Coupons() {
                         lineHeight: 1.2
                       }}
                     >
-                      {coupon.discount}
+                      {voucher.discountPercent ? `${voucher.discountPercent}% Off` : 'Special Offer'}
                     </Typography>
 
                     <Typography 
@@ -429,7 +533,7 @@ export default function Coupons() {
                         lineHeight: 1.4
                       }}
                     >
-                      Expires: {coupon.expiresDate}
+                      Expires: {formatDate(voucher.expiresAt)}
                     </Typography>
                   </Box>
                 </Box>
@@ -452,7 +556,7 @@ export default function Coupons() {
                         textDecoration: 'underline'
                       }
                     }}
-                    onClick={() => handleShowQR(coupon)}
+                    onClick={() => handleQRClick(voucher)}
                   >
                     Show QR
                   </Typography>
@@ -461,10 +565,35 @@ export default function Coupons() {
             </Card>
           ))}
         </Box>
-        </Box>
+
+        {/* Pagination */}
+        {!isLoading && !error && vouchers.length > 0 && pagination.totalPages > 1 && (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            padding: '20px 0',
+            marginTop: 2
+          }}>
+            <Pagination
+              count={pagination.totalPages}
+              page={pagination.page}
+              onChange={handlePageChange}
+              color="primary"
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  color: '#4848DB',
+                  '&.Mui-selected': {
+                    backgroundColor: '#4848DB',
+                    color: 'white'
+                  }
+                }
+              }}
+            />
+          </Box>
+        )}
 
         {/* Empty State */}
-        {filteredCoupons.length === 0 && (
+        {!isLoading && !error && vouchers.length === 0 && (
           <Box sx={{ 
             display: 'flex', 
             flexDirection: 'column', 
@@ -504,15 +633,15 @@ export default function Coupons() {
       {/* QR Code Popup */}
       <QRCodePopup 
         open={qrPopupOpen}
-        onClose={handleCloseQR}
-        onClaimVoucher={handleClaimVoucher}
+        onClose={() => setQrPopupOpen(false)}
+        onClaimVoucher={handleVoucherClaim}
         couponData={selectedCoupon}
       />
 
       {/* Voucher Claimed Successfully Popup */}
       <VoucherClaimedPopup 
         open={voucherClaimedOpen}
-        onClose={handleCloseVoucherClaimed}
+        onClose={() => setVoucherClaimedOpen(false)}
         couponData={selectedCoupon}
       />
     </div>

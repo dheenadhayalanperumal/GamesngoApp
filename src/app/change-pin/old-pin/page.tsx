@@ -15,12 +15,16 @@ import {
 import { useRouter } from 'next/navigation';
 import TabBar from '@/components/TabBar';
 import HeaderWithBack from '@/components/HeaderWithBack';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function OldPinPage() {
   const router = useRouter();
+  const { isLoggedIn, isLoading: authLoading } = useAuth();
   const [pin, setPin] = useState(['', '', '', '']);
   const [showPin, setShowPin] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handlePinChange = (value: string, index: number) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
@@ -72,16 +76,100 @@ export default function OldPinPage() {
     };
   }, [currentIndex]);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const pinString = pin.join('');
-    if (pinString.length === 4) {
-      // For demo purposes, we'll accept any 4-digit PIN
-      // In real app, you'd validate against stored PIN
-      router.push('/change-pin/new-pin');
+    
+    if (pinString.length !== 4) {
+      setError('Please enter a 4-digit PIN');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      // Verify current PIN by calling the change-pin API with dummy new PIN
+      // This is a workaround to verify the current PIN
+      console.log('Verifying current PIN:', pinString);
+      const response = await fetch('/api/auth/change-pin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentPin: pinString,
+          newPin: pinString, // Try to set the same PIN (should fail with specific error)
+          confirmNewPin: pinString
+        }),
+      });
+
+      const data = await response.json();
+      console.log('PIN verification response:', response.status, data);
+      console.log('Response message:', data.message);
+      console.log('Response status field:', data.status);
+      
+      if (response.status === 422) {
+        if (data.message?.includes('New PIN must be different') || 
+            data.message?.includes('different from current') ||
+            data.message?.includes('must be different') ||
+            data.message?.includes('same as current')) {
+          // Current PIN is correct, proceed to new PIN page
+          console.log('Current PIN verified successfully');
+          // Store current PIN in localStorage for the next step
+          localStorage.setItem('currentPinForChange', pinString);
+          router.push('/change-pin/new-pin');
+        } else {
+          console.log('422 error but not the expected message:', data.message);
+          setError('Invalid current PIN. Please try again.');
+        }
+      } else if (response.status === 401) {
+        console.log('401 error - invalid current PIN');
+        setError('Invalid current PIN. Please try again.');
+      } else if (response.status === 400) {
+        console.log('400 error - bad request, likely invalid PIN format');
+        setError('Invalid PIN format. Please enter a 4-digit PIN.');
+      } else if (response.status === 200) {
+        // If API returns success, it means the PIN was changed (unexpected)
+        console.log('200 response - PIN was changed unexpectedly');
+        setError('Unexpected error. Please try again.');
+      } else {
+        console.error('Unexpected response:', response.status, data);
+        setError(`Failed to verify PIN. Server returned ${response.status}. Please try again.`);
+      }
+    } catch (error) {
+      console.error('Error verifying PIN:', error);
+      setError('Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const isFormValid = pin.every(digit => digit !== '');
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <Typography variant="body2" color="text.secondary">
+          Checking authentication...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Redirect to home if not logged in
+  if (!isLoggedIn) {
+    router.push('/');
+    return null;
+  }
 
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
@@ -124,6 +212,22 @@ export default function OldPinPage() {
         >
           Please enter your old PIN to proceed with verification and ensure account security now.
         </Typography>
+
+        {/* Error Message */}
+        {error && (
+          <Box sx={{ 
+            backgroundColor: '#ffebee',
+            border: '1px solid #f44336',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: 2,
+            textAlign: 'center'
+          }}>
+            <Typography variant="body2" sx={{ color: '#d32f2f', fontWeight: 500 }}>
+              {error}
+            </Typography>
+          </Box>
+        )}
 
         {/* PIN Input Circles */}
         <Box sx={{ 
@@ -220,22 +324,22 @@ export default function OldPinPage() {
         <Button
           fullWidth
           onClick={handleNext}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isLoading}
           sx={{
-            backgroundColor: isFormValid ? '#FAC200' : '#e0e0e0',
-            color: isFormValid ? '#ffffff' : '#666666',
+            backgroundColor: (isFormValid && !isLoading) ? '#FAC200' : '#e0e0e0',
+            color: (isFormValid && !isLoading) ? '#ffffff' : '#666666',
             borderRadius: '12px',
             padding: '16px',
             fontSize: '18px',
             fontWeight: 600,
             textTransform: 'none',
-            boxShadow: isFormValid ? '0 4px 12px rgba(250, 194, 0, 0.3)' : 'none',
+            boxShadow: (isFormValid && !isLoading) ? '0 4px 12px rgba(250, 194, 0, 0.3)' : 'none',
             '&:hover': {
-              backgroundColor: isFormValid ? '#FFA500' : '#d0d0d0',
+              backgroundColor: (isFormValid && !isLoading) ? '#FFA500' : '#d0d0d0',
             },
           }}
         >
-          Next
+          {isLoading ? 'Verifying...' : 'Next'}
         </Button>
       </Box>
 

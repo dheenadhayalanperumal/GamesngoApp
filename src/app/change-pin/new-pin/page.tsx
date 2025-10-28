@@ -16,9 +16,11 @@ import { useRouter } from 'next/navigation';
 import TabBar from '@/components/TabBar';
 import PinChangeSuccessPopup from '@/components/PinChangeSuccessPopup';
 import HeaderWithBack from '@/components/HeaderWithBack';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function NewPinPage() {
   const router = useRouter();
+  const { isLoggedIn, isLoading: authLoading } = useAuth();
   const [pin, setPin] = useState(['', '', '', '']);
   const [confirmPin, setConfirmPin] = useState(['', '', '', '']);
   const [showPin, setShowPin] = useState(false);
@@ -26,6 +28,7 @@ export default function NewPinPage() {
   const [isConfirming, setIsConfirming] = useState(false);
   const [error, setError] = useState('');
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handlePinChange = (value: string, index: number) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
@@ -94,7 +97,7 @@ export default function NewPinPage() {
     };
   }, [currentIndex]);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const pinString = pin.join('');
     const confirmPinString = confirmPin.join('');
     
@@ -102,12 +105,13 @@ export default function NewPinPage() {
       if (pinString.length === 4) {
         setIsConfirming(true);
         setCurrentIndex(0);
+        setError('');
       }
     } else {
       if (confirmPinString.length === 4) {
         if (pinString === confirmPinString) {
-          // PINs match, show success popup
-          setShowSuccessPopup(true);
+          // PINs match, call API to change PIN
+          await changePin(pinString);
         } else {
           setError('PINs do not match');
           setConfirmPin(['', '', '', '']);
@@ -117,8 +121,78 @@ export default function NewPinPage() {
     }
   };
 
+  const changePin = async (newPin: string) => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      // Get current PIN from localStorage
+      const currentPin = localStorage.getItem('currentPinForChange');
+      
+      if (!currentPin) {
+        setError('Session expired. Please start over.');
+        router.push('/change-pin/old-pin');
+        return;
+      }
+
+      const response = await fetch('/api/auth/change-pin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentPin: currentPin,
+          newPin: newPin,
+          confirmNewPin: newPin
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.status === 'success') {
+        console.log('PIN changed successfully');
+        // Clear the stored current PIN
+        localStorage.removeItem('currentPinForChange');
+        // Show success popup
+        setShowSuccessPopup(true);
+      } else {
+        setError(data.message || 'Failed to change PIN. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error changing PIN:', error);
+      setError('Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const getCurrentPin = () => isConfirming ? confirmPin : pin;
   const isFormValid = getCurrentPin().every(digit => digit !== '');
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <Typography variant="body2" color="text.secondary">
+          Checking authentication...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Redirect to home if not logged in
+  if (!isLoggedIn) {
+    router.push('/');
+    return null;
+  }
 
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
@@ -164,6 +238,22 @@ export default function NewPinPage() {
             : 'Please enter your new 4-digit PIN for account security.'
           }
         </Typography>
+
+        {/* Error Message */}
+        {error && (
+          <Box sx={{ 
+            backgroundColor: '#ffebee',
+            border: '1px solid #f44336',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: 2,
+            textAlign: 'center'
+          }}>
+            <Typography variant="body2" sx={{ color: '#d32f2f', fontWeight: 500 }}>
+              {error}
+            </Typography>
+          </Box>
+        )}
 
         {/* PIN Input Circles */}
         <Box sx={{ 
@@ -274,22 +364,22 @@ export default function NewPinPage() {
         <Button
           fullWidth
           onClick={handleNext}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isLoading}
           sx={{
-            backgroundColor: isFormValid ? '#FAC200' : '#e0e0e0',
-            color: isFormValid ? '#ffffff' : '#666666',
+            backgroundColor: (isFormValid && !isLoading) ? '#FAC200' : '#e0e0e0',
+            color: (isFormValid && !isLoading) ? '#ffffff' : '#666666',
             borderRadius: '12px',
             padding: '16px',
             fontSize: '18px',
             fontWeight: 600,
             textTransform: 'none',
-            boxShadow: isFormValid ? '0 4px 12px rgba(250, 194, 0, 0.3)' : 'none',
+            boxShadow: (isFormValid && !isLoading) ? '0 4px 12px rgba(250, 194, 0, 0.3)' : 'none',
             '&:hover': {
-              backgroundColor: isFormValid ? '#FFA500' : '#d0d0d0',
+              backgroundColor: (isFormValid && !isLoading) ? '#FFA500' : '#d0d0d0',
             },
           }}
         >
-          {isConfirming ? 'Confirm' : 'Next'}
+          {isLoading ? 'Changing PIN...' : (isConfirming ? 'Confirm' : 'Next')}
         </Button>
       </Box>
 
