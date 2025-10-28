@@ -137,7 +137,7 @@ export default function Profile() {
     { icon: <LocalOffer />, title: 'Coupons' },
     { icon: <Notifications />, title: 'Notifications', hasToggle: true },
     { icon: <Security />, title: 'Change PIN' },
-    { icon: <Share />, title: `Invite & Win (+${accountData.invite.rewardCoins} Coins)`, highlight: true },
+    { icon: <Share />, title: `Invite & Win` },
     { icon: <Description />, title: 'Terms & Conditions' },
     { icon: <Policy />, title: 'Privacy Policy' },
     { icon: <ContactSupport />, title: 'Contact Us' },
@@ -497,7 +497,7 @@ export default function Profile() {
                         router.push('/coupons');
                       } else if (item.title === 'Change PIN') {
                         router.push('/change-pin/old-pin');
-                      } else if (item.title === 'Invite & Win (+100 Coins)') {
+                      } else if (item.title === 'Invite & Win') {
                         router.push('/refer-win');
                       } else if (item.title === 'Log Out') {
                         handleLogout();

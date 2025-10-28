@@ -307,7 +307,7 @@ export default function ReferWin() {
                 lineHeight: 1.5
               }}
             >
-              Invite your friend and start earning 500 Coins per Referal.
+              Invite your friend and start earning {referralData?.rewardCoins || 500} Coins per Referal.
             </Typography>
           </Box>
           
