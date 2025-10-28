@@ -34,7 +34,6 @@ import {
   // TrendingUp,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import TabBar from "@/components/TabBar";
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -223,20 +222,15 @@ export default function Profile() {
             sx={{
               width: '120px',
               height: '120px',
-              backgroundColor: 'white',
+              backgroundColor: '#4848DB',
               border: '4px solid rgba(255,255,255,0.3)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+              fontSize: '48px',
+              fontWeight: 'bold',
+              color: 'white'
             }}
           >
-            {!accountData.user.imageUrl && (
-            <Image 
-              src="/logoblue.svg" 
-              alt="Profile" 
-              width={80} 
-              height={80}
-              style={{ objectFit: 'contain' }}
-            />
-            )}
+            {accountData.user.name ? accountData.user.name.charAt(0).toUpperCase() : 'U'}
           </Avatar>
         </Box>
 
@@ -276,7 +270,7 @@ export default function Profile() {
             <CardContent sx={{ padding: 2, textAlign: 'center' }}>
               <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center',justifyContent: 'space-evenly',}}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 1 }}>
-               <Image 
+               <img 
                    src="/coin.png" 
                    alt="Coins" 
                    width={40} 
@@ -317,7 +311,7 @@ export default function Profile() {
             <CardContent sx={{ padding: 2, textAlign: 'center' }}>
             <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly'}}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 1 }}>
-                <Image 
+                <img 
                   src="/coupons.svg" 
                   alt="Coupons" 
                   width={40} 
