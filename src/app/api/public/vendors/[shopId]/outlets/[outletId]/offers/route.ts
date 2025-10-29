@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { shopId: string; outletId: string } }
+  { params }: { params: Promise<{ shopId: string; outletId: string }> }
 ) {
   try {
-    const { shopId, outletId } = params;
+    const { shopId, outletId } = await params;
 
     console.log('Vendor Outlet Offers API - Request params:', { shopId, outletId });
 
