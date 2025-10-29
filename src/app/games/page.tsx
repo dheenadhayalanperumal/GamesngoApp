@@ -281,7 +281,18 @@ const GamesPage = () => {
           margin: '0 -15px', // Counteract global padding
         }}
       >
-        <Header />
+         <Header 
+        sx={{
+          backgroundColor: '#4848DB',
+          textAlign: 'center',
+          color: 'white',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+        }} 
+      />
         <Box
           sx={{
             display: 'flex',
@@ -309,7 +320,18 @@ const GamesPage = () => {
           margin: '0 -15px', // Counteract global padding
         }}
       >
-        <Header />
+          <Header 
+        sx={{
+          backgroundColor: '#4848DB',
+          textAlign: 'center',
+          color: 'white',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+        }} 
+      />
         <Box sx={{ padding: 4 }}>
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
@@ -331,7 +353,18 @@ const GamesPage = () => {
         margin: '0 -15px', // Counteract global padding
       }}
     >
-      <Header />
+       <Header 
+        sx={{
+          backgroundColor: '#4848DB',
+          textAlign: 'center',
+          color: 'white',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+        }} 
+      />
       
       <Box sx={{ padding: 2 }}>
         {/* Search Bar */}
