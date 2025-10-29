@@ -380,7 +380,8 @@ const GamesPage = () => {
             sx={{
               '& .MuiTab-root': {
                 textTransform: 'none',
-                fontWeight: 600,
+                fontSize: '18px', 
+                fontWeight: 700,
                 minWidth: 'auto',
                 px: 2,
               },
@@ -391,8 +392,8 @@ const GamesPage = () => {
                 key={category.id}
                 label={category.name}
                 sx={{
-                  color: activeTab === index ? '#4848DB' : '#666',
-                  borderBottom: activeTab === index ? '2px solid #4848DB' : 'none',
+                  color: activeTab === index ? '#21175B' : '#21175B',
+                  borderBottom: activeTab === index ? '2px solid #21175B' : 'none',
                 }}
               />
             ))}
