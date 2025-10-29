@@ -1,95 +1,179 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
   Card,
   CardContent,
   Button,
+  CircularProgress,
+  Pagination,
 } from '@mui/material';
 import TabBar from "@/components/TabBar";
 import CoinIcon from '@/assets/icons/coin.png';
 import HeaderWithBack from '@/components/HeaderWithBack';
+import { useAuth } from '@/contexts/AuthContext';
+
+// Transaction interface based on API documentation
+interface Transaction {
+  id: number;
+  type: 'credit' | 'debit';
+  direction: 'Earn' | 'Redeem';
+  title: string;
+  category: string;
+  amount: number;
+  signedAmount: number;
+  balanceAfter: number;
+  meta: Record<string, unknown>;
+  createdAt: string;
+  monthKey: string;
+  monthLabel: string;
+}
+
+interface WalletData {
+  balance: number;
+  transactions: Transaction[];
+  pagination: {
+    page: number;
+    perPage: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+  };
+}
 
 export default function CoinsHistory() {
+  const { isLoggedIn, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('All');
+  const [walletData, setWalletData] = useState<WalletData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage] = useState(10);
 
-  // Sample transaction data
-  const transactions = [
-    {
-      id: 1,
-      title: "Puzzle Challenge",
-      subtitle: "Daily Games",
-      amount: "+15 Coins",
-      date: "18 Sep 25 1.00am",
-      type: "earn",
-      isPositive: true
-    },
-    {
-      id: 2,
-      title: "Redeem",
-      subtitle: "Games n Go Store",
-      amount: "-599 Coins",
-      date: "18 Sep 25 1.00am",
-      type: "redeem",
-      isPositive: false
-    },
-    {
-      id: 3,
-      title: "Momo Nations",
-      subtitle: "Restaurant Games",
-      amount: "+15 Coins",
-      date: "18 Sep 25 1.00am",
-      type: "earn",
-      isPositive: true
-    },
-    {
-      id: 4,
-      title: "Puzzle Challenge",
-      subtitle: "Daily Games",
-      amount: "+15 Coins",
-      date: "18 Sep 25 1.00am",
-      type: "earn",
-      isPositive: true
-    },
-    {
-      id: 5,
-      title: "Redeem",
-      subtitle: "Games n Go Store",
-      amount: "-599 Coins",
-      date: "18 Sep 25 1.00am",
-      type: "redeem",
-      isPositive: false
-    },
-    {
-      id: 6,
-      title: "Momo Nations",
-      subtitle: "Restaurant Games",
-      amount: "+15 Coins",
-      date: "18 Sep 25 1.00am",
-      type: "earn",
-      isPositive: true
+  // API functions
+  const fetchWalletTransactions = useCallback(async (filter: string = 'all', page: number = 1) => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch(`/api/wallet/transactions?filter=${filter}&page=${page}&perPage=${perPage}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('Wallet transactions response:', data);
+
+      if (response.ok && data.status === 'success') {
+        setWalletData(data);
+        setCurrentPage(page);
+      } else {
+        console.error('Failed to fetch wallet transactions:', data.message || 'Unknown error');
+        setError(data.message || 'Failed to fetch transactions');
+      }
+    } catch (error) {
+      console.error('Error fetching wallet transactions:', error);
+      setError('Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  }, [perPage]);
 
-  // Filter transactions based on active tab
-  const filteredTransactions = transactions.filter(transaction => {
-    if (activeTab === 'All') return true;
-    if (activeTab === 'Earn') return transaction.type === 'earn';
-    if (activeTab === 'Redeem') return transaction.type === 'redeem';
-    return true;
-  });
+  // Fetch data on component mount and when filter changes
+  useEffect(() => {
+    if (isLoggedIn && !authLoading) {
+      const filter = activeTab === 'All' ? 'all' : activeTab.toLowerCase();
+      fetchWalletTransactions(filter, 1);
+    }
+  }, [isLoggedIn, authLoading, activeTab]);
 
-  // Group transactions by month
-  const groupedTransactions = filteredTransactions.reduce((groups, transaction) => {
-    const month = 'September'; // In real app, you'd extract from date
+  // Handle tab change
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    setCurrentPage(1);
+  };
+
+  // Handle page change
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+    const filter = activeTab === 'All' ? 'all' : activeTab.toLowerCase();
+    fetchWalletTransactions(filter, page);
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }).replace(',', '');
+  };
+
+  // Format amount for display
+  const formatAmount = (signedAmount: number) => {
+    const isPositive = signedAmount > 0;
+    const amount = Math.abs(signedAmount);
+    return `${isPositive ? '+' : '-'}${amount} Coins`;
+  };
+
+  // Get transactions from API data
+  const transactions = walletData?.transactions || [];
+
+  // Group transactions by month using monthLabel from API
+  const groupedTransactions = transactions.reduce((groups, transaction) => {
+    const month = transaction.monthLabel || 'Unknown';
     if (!groups[month]) {
       groups[month] = [];
     }
     groups[month].push(transaction);
     return groups;
-  }, {} as Record<string, typeof transactions>);
+  }, {} as Record<string, Transaction[]>);
+
+  // Show loading screen while checking authentication
+  if (authLoading) {
+    return (
+      <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
+        <HeaderWithBack />
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '50vh' 
+        }}>
+          <CircularProgress />
+        </Box>
+        <TabBar />
+      </div>
+    );
+  }
+
+  // Redirect to home if not logged in
+  if (!isLoggedIn) {
+    return (
+      <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
+        <HeaderWithBack />
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '50vh',
+          textAlign: 'center',
+          padding: '20px'
+        }}>
+          <Typography variant="h6" sx={{ color: '#666', marginBottom: 2 }}>
+            Please log in to view your coin history
+          </Typography>
+        </Box>
+        <TabBar />
+      </div>
+    );
+  }
 
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
@@ -138,7 +222,7 @@ export default function CoinsHistory() {
         }}>
           {/* All Tab */}
           <Button
-            onClick={() => setActiveTab('All')}
+            onClick={() => handleTabChange('All')}
             sx={{
               backgroundColor: activeTab === 'All' ? '#3C3CD2' : 'white',
               color: activeTab === 'All' ? 'white' : '#666666',
@@ -159,7 +243,7 @@ export default function CoinsHistory() {
 
           {/* Earn Tab */}
           <Button
-            onClick={() => setActiveTab('Earn')}
+            onClick={() => handleTabChange('Earn')}
             sx={{
               backgroundColor: activeTab === 'Earn' ? '#3C3CD2' : 'white',
               color: activeTab === 'Earn' ? 'white' : '#666666',
@@ -180,7 +264,7 @@ export default function CoinsHistory() {
 
           {/* Redeem Tab */}
           <Button
-            onClick={() => setActiveTab('Redeem')}
+            onClick={() => handleTabChange('Redeem')}
             sx={{
               backgroundColor: activeTab === 'Redeem' ? '#3C3CD2' : 'white',
               color: activeTab === 'Redeem' ? 'white' : '#666666',
@@ -199,16 +283,36 @@ export default function CoinsHistory() {
             Redeem
           </Button>
         </Box>
-     
 
-      {/* Main Content Area - Light Gray Background */}
-      {/* <Box sx={{ 
-        backgroundColor: '#f8f9fa', // Light gray background from reference
-        padding: '0 20px 100px 20px',
-        minHeight: 'calc(100vh - 200px)'
-      }}> */}
+        {/* Error State */}
+        {error && (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            padding: '20px',
+            marginTop: 2
+          }}>
+            <Typography variant="body1" sx={{ color: '#F44336' }}>
+              {error}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            padding: '40px'
+          }}>
+            <CircularProgress />
+          </Box>
+        )}
+
         {/* Transaction List */}
-        {Object.entries(groupedTransactions).map(([month, monthTransactions]) => (
+        {!isLoading && !error && Object.entries(groupedTransactions).map(([month, monthTransactions]) => (
           <Box key={month} sx={{ marginBottom: 3 }}>
             {/* Month Header */}
             <Typography 
@@ -263,7 +367,7 @@ export default function CoinsHistory() {
                             lineHeight: 1.4
                           }}
                         >
-                          {transaction.subtitle}
+                          {transaction.category}
                         </Typography>
                       </Box>
 
@@ -273,14 +377,14 @@ export default function CoinsHistory() {
                           <Typography 
                             variant="h6" 
                             sx={{ 
-                              color: transaction.isPositive ? '#4CAF50' : '#F44336', // Green for earn, red for redeem
+                              color: transaction.signedAmount > 0 ? '#4CAF50' : '#F44336', // Green for earn, red for redeem
                               fontSize: '14px', // Font size from reference
                               fontWeight: 'bold',
                               marginBottom: 0.5,
                               lineHeight: 1.3
                             }}
                           >
-                            {transaction.amount}
+                            {formatAmount(transaction.signedAmount)}
                           </Typography>
                           <Typography 
                             variant="body2" 
@@ -291,7 +395,7 @@ export default function CoinsHistory() {
                               lineHeight: 1.2
                             }}
                           >
-                            {transaction.date}
+                            {formatDate(transaction.createdAt)}
                           </Typography>
                         </Box>
 
@@ -317,7 +421,7 @@ export default function CoinsHistory() {
         ))}
 
         {/* Empty State */}
-        {filteredTransactions.length === 0 && (
+        {!isLoading && !error && transactions.length === 0 && (
           <Box sx={{ 
             display: 'flex', 
             flexDirection: 'column', 
@@ -347,6 +451,33 @@ export default function CoinsHistory() {
             >
               Your {activeTab.toLowerCase()} transactions will appear here
             </Typography>
+          </Box>
+        )}
+
+        {/* Pagination */}
+        {!isLoading && !error && walletData && walletData.pagination.totalPages > 1 && (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            padding: '20px',
+            marginTop: 2
+          }}>
+            <Pagination
+              count={walletData.pagination.totalPages}
+              page={currentPage}
+              onChange={handlePageChange}
+              color="primary"
+              size="large"
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  color: '#666',
+                  '&.Mui-selected': {
+                    backgroundColor: '#3C3CD2',
+                    color: 'white',
+                  },
+                },
+              }}
+            />
           </Box>
         )}
       </Box>
