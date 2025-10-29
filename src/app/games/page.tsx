@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Box, Typography, Tabs, Tab, CircularProgress, Alert, TextField, InputAdornment } from '@mui/material';
+import { Box, Typography, Tabs, Tab, CircularProgress, Alert } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import AllGamesCard from '@/components/AllGamesCard';
 import SearchBar from '@/components/SearchBar';
 import Header from '@/components/Header';
 import TabBar from '@/components/TabBar';
-import { Search as SearchIcon } from '@mui/icons-material';
 
 // Game type interfaces based on API documentation
 interface Game {
@@ -22,6 +21,20 @@ interface Game {
   durationMinutes: number;
   plays: number;
 }
+
+// Restaurant game format (for display purposes)
+interface RestaurantGame {
+  id: number;
+  name: string;
+  image: string;
+  rating: number;
+  action: string;
+  duration: string;
+  category: string;
+}
+
+// Union type for games that can be displayed
+type DisplayableGame = Game | RestaurantGame;
 
 interface Category {
   id: number;
@@ -88,20 +101,13 @@ const GamesPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [categories, setCategories] = useState<Category[]>([]);
   const [forYouGames, setForYouGames] = useState<Game[]>([]);
-  const [currentGames, setCurrentGames] = useState<Game[]>([]);
+  const [currentGames, setCurrentGames] = useState<DisplayableGame[]>([]);
   const [restaurants, setRestaurants] = useState<Vendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingGames, setIsLoadingGames] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    perPage: 12,
-    total: 0,
-    totalPages: 0,
-    hasNext: false
-  });
 
   // Fetch initial data (categories + For You games + restaurants)
   const fetchInitialData = useCallback(async () => {
@@ -175,17 +181,10 @@ const GamesPage = () => {
         // For "For You" category, we already have the data
         setCurrentGames(forYouGames);
         setCurrentCategory(category);
-        setPagination({
-          page: 1,
-          perPage: 12,
-          total: forYouGames.length,
-          totalPages: 1,
-          hasNext: false
-        });
         return;
       } else if (category.id === -1) {
         // For "Restaurants" category, show restaurants as games
-        const restaurantGames = restaurants.map(restaurant => ({
+        const restaurantGames: RestaurantGame[] = restaurants.map(restaurant => ({
           id: restaurant.id,
           name: restaurant.name,
           image: restaurant.logoUrl,
@@ -195,15 +194,8 @@ const GamesPage = () => {
           category: 'Restaurants'
         }));
         
-        setCurrentGames(restaurantGames as any);
+        setCurrentGames(restaurantGames);
         setCurrentCategory(category);
-        setPagination({
-          page: 1,
-          perPage: 12,
-          total: restaurants.length,
-          totalPages: 1,
-          hasNext: false
-        });
         return;
       } else {
         // For regular game categories
@@ -230,7 +222,6 @@ const GamesPage = () => {
         if (data.status === 'success') {
           setCurrentGames(data.games);
           setCurrentCategory(data.category);
-          setPagination(data.pagination);
           
           console.log('Games loaded for category:', data.category.name, 'Count:', data.games.length);
         } else {
@@ -418,18 +409,29 @@ const GamesPage = () => {
                     gap: 2,
                   }}
                 >
-                  {currentGames.map((game) => (
-                    <AllGamesCard
-                      key={game.id}
-                      id={game.id}
-                      name={game.name}
-                      image={game.bannerUrl || (game as any).image}
-                      rating={game.rating}
-                      action={(game as any).action || game.type}
-                      duration={(game as any).duration || `${game.durationMinutes} min`}
-                      onClick={() => handleGameClick(game.id)}
-                    />
-                  ))}
+                  {currentGames.map((game) => {
+                    // Type guard to check if it's a RestaurantGame
+                    const isRestaurantGame = (g: DisplayableGame): g is RestaurantGame => {
+                      return 'image' in g && 'action' in g && 'duration' in g;
+                    };
+                    
+                    const image = isRestaurantGame(game) ? game.image : game.bannerUrl;
+                    const action = isRestaurantGame(game) ? game.action : game.type;
+                    const duration = isRestaurantGame(game) ? game.duration : `${game.durationMinutes} min`;
+                    
+                    return (
+                      <AllGamesCard
+                        key={game.id}
+                        id={game.id}
+                        name={game.name}
+                        image={image}
+                        rating={game.rating}
+                        action={action}
+                        duration={duration}
+                        onClick={() => handleGameClick(game.id)}
+                      />
+                    );
+                  })}
                 </Box>
               ) : (
                 <Box

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button } from '@mui/material';
-import { useRouter } from 'next/navigation';
 import ScratchPopup from './ScratchPopup';
 import CouponPopup from './CouponPopup';
 import LoginPopup from './LoginPopup';
@@ -47,7 +46,6 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   coinCost = 15,
   scratchData
 }) => {
-  const router = useRouter();
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isCouponOpen, setIsCouponOpen] = useState(false);
