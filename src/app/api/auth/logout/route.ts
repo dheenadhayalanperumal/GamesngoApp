@@ -1,60 +1,64 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    console.log('Logout API - Clearing authentication cookies');
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://api.gamesngo.com';
     
-    // Create success response
-    const nextResponse = NextResponse.json(
-      { status: 'success', message: 'Logged out successfully' },
-      { status: 200 }
-    );
+    // Forward the request to the external API
+    const response = await fetch(`${baseUrl}/api/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': request.headers.get('cookie') || '',
+      },
+    });
+
+    const data = await response.json();
     
-    // Clear all auth cookies on the client side
-    // Note: The external API doesn't have a logout endpoint,
-    // so we just clear the cookies client-side
-    nextResponse.cookies.set('access_token', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 0,
-      path: '/',
+    // Create response
+    const nextResponse = NextResponse.json(data, { status: response.status });
+    
+    // Clear all authentication cookies on the server side
+    const cookiesToClear = [
+      'access_token',
+      'refresh_token', 
+      'registration_verified',
+      'session_token',
+      'auth_token',
+      'token',
+      'session',
+      'auth',
+      'jwt',
+      'user_token',
+      'gamesngo_session',
+      'gamesngo_auth',
+      'gamesngo_token'
+    ];
+    
+    // Set cookies to expire immediately
+    cookiesToClear.forEach(cookieName => {
+      nextResponse.cookies.set(cookieName, '', {
+        expires: new Date(0),
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
     });
     
-    nextResponse.cookies.set('refresh_token', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 0,
-      path: '/',
-    });
+    // Also forward Set-Cookie headers from the external API if any
+    const setCookieHeaders = response.headers.get('set-cookie');
+    if (setCookieHeaders) {
+      nextResponse.headers.set('Set-Cookie', setCookieHeaders);
+    }
     
-    nextResponse.cookies.set('registration_verified', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 0,
-      path: '/',
-    });
-    
-    console.log('Logout API - Cookies cleared successfully');
-    
+    console.log('🔐 Logout API: Cleared server-side cookies');
     return nextResponse;
   } catch (error) {
-    console.error('Logout API - Error:', error);
-    
-    // Even if there's an error, clear cookies and return success
-    const nextResponse = NextResponse.json(
-      { status: 'success', message: 'Logged out' },
-      { status: 200 }
+    console.error('Logout API error:', error);
+    return NextResponse.json(
+      { status: 'error', message: 'Internal server error' },
+      { status: 500 }
     );
-    
-    // Clear cookies
-    nextResponse.cookies.set('access_token', '', { maxAge: 0, path: '/' });
-    nextResponse.cookies.set('refresh_token', '', { maxAge: 0, path: '/' });
-    nextResponse.cookies.set('registration_verified', '', { maxAge: 0, path: '/' });
-    
-    return nextResponse;
   }
 }
-

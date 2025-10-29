@@ -2,36 +2,34 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://api.gamesngo.com';
     
-    // Get cookies from the request
-    const cookies = request.headers.get('cookie');
-    
-    // Forward the request to the actual API with cookies
-    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://api.gamesngo.com';
-    const response = await fetch(`${apiUrl}/api/auth/set-pin`, {
+    // Forward the request to the external API
+    const response = await fetch(`${baseUrl}/api/auth/set-pin`, {
       method: 'POST',
-      headers: cookies ? { 'Cookie': cookies } : {},
-      credentials: 'include',
-      body: formData,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': request.headers.get('cookie') || '',
+      },
+      body: JSON.stringify(await request.json()),
     });
 
     const data = await response.json();
     
-    // Create the response with cookies
+    // Forward the response with cookies
     const nextResponse = NextResponse.json(data, { status: response.status });
     
-    // Forward Set-Cookie headers from the API response
-    const setCookieHeader = response.headers.get('set-cookie');
-    if (setCookieHeader) {
-      nextResponse.headers.set('Set-Cookie', setCookieHeader);
+    // Forward Set-Cookie headers from the external API
+    const setCookieHeaders = response.headers.get('set-cookie');
+    if (setCookieHeaders) {
+      nextResponse.headers.set('Set-Cookie', setCookieHeaders);
     }
     
     return nextResponse;
   } catch (error) {
-    console.error('Proxy error:', error);
+    console.error('Set PIN API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { status: 'error', message: 'Internal server error' },
       { status: 500 }
     );
   }

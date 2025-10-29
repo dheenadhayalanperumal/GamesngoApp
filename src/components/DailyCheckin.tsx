@@ -5,21 +5,68 @@ import { Box, Typography } from '@mui/material';
 import DailyCheckBox from './DailyCheckBox';
 import ClaimButton from './ClaimButton';
 import CouponPopup from './CouponPopup';
+import LoginPopup from './LoginPopup';
+
+interface LoginStreakReward {
+  day: number;
+  type: 'coin' | 'product';
+  amount: number;
+}
+
+interface StreakData {
+  current: number;
+  max: number;
+  lastLoginDate: string;
+  totalLogins: number;
+  progress: {
+    current: number;
+    of: number;
+  };
+  hasRedeemedToday: boolean;
+}
+
+interface TodayReward {
+  day: number;
+  type: 'coin' | 'product';
+  amount: number;
+}
 
 interface DailyCheckinProps {
   onClaim?: () => void;
-  currentDay?: number;
-  hasRedeemedToday?: boolean;
+  streak?: StreakData;
+  todayReward?: TodayReward;
+  loginStreakRewards?: LoginStreakReward[];
+  isLoggedIn?: boolean;
 }
 
 const DailyCheckin: React.FC<DailyCheckinProps> = ({
   onClaim,
-  currentDay = 1,
-  hasRedeemedToday = false
+  streak,
+  todayReward,
+  loginStreakRewards = [],
+  isLoggedIn = false
 }) => {
-    const dailyRewards = [10, 15, 20, 25, 30, 35, 50];
+    // Use API data for rewards, fallback to default if not provided
+    const dailyRewards = loginStreakRewards.length > 0 
+      ? loginStreakRewards.map(reward => reward.amount)
+      : [10, 15, 20, 25, 30, 35, 50];
+    
+    // Get current day and redemption status from streak data
+    // For non-logged-in users, show day 1 as unlocked but not claimable
+    const currentDay = isLoggedIn ? (streak?.current || 1) : 1;
+    const hasRedeemedToday = isLoggedIn ? (streak?.hasRedeemedToday || false) : false;
+    
+    // Debug logging
+    console.log('🎯 DailyCheckin Debug:', {
+      isLoggedIn,
+      currentDay,
+      hasRedeemedToday,
+      streak,
+      loginStreakRewards: loginStreakRewards.length
+    });
     const [isClaiming, setIsClaiming] = useState(false);
     const [isRewardPopupOpen, setIsRewardPopupOpen] = useState(false);
+    const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
     const [rewardData, setRewardData] = useState<{
       day: number;
       type: 'coin' | 'product';
@@ -77,8 +124,17 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
         console.log('Streak redeem response:', data);
 
         if (response.ok && data.status === 'success') {
-          setRewardData(data.reward);
-          console.log('Reward received:', data.reward);
+          // Use todayReward data if available, otherwise use API response
+          const rewardInfo = todayReward || data.reward;
+          setRewardData({
+            day: rewardInfo.day || currentDay,
+            type: rewardInfo.type || 'coin',
+            amount: rewardInfo.amount || 0,
+            product: rewardInfo.product,
+            voucherId: rewardInfo.voucherId,
+            redemptionId: data.reward?.redemptionId || 0
+          });
+          console.log('Reward received:', rewardInfo);
           
           // Add current day to claimed days with animation
           setTimeout(() => {
@@ -89,7 +145,7 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
             setIsRewardPopupOpen(true);
           }, 1000);
           
-          return data.reward;
+          return rewardInfo;
         } else {
           console.error('Redeem failed:', response.status, data);
           setIsClaiming(false);
@@ -133,6 +189,18 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
     const handleRewardPopupClose = () => {
       setIsRewardPopupOpen(false);
       // Optionally refresh the page or update data
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
+    };
+
+    const handleLoginPopupClose = () => {
+      setIsLoginPopupOpen(false);
+    };
+
+    const handleLogin = () => {
+      setIsLoginPopupOpen(false);
+      // Optionally refresh the page to update the UI
       if (typeof window !== 'undefined') {
         window.location.reload();
       }
@@ -198,10 +266,25 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
             >
                 {dailyRewards.map((reward, index) => {
                     const dayNumber = index + 1;
-                    const isUnlocked = dayNumber <= currentDay;
-                    const isCompleted = dayNumber < currentDay;
-                    const isClaimed = localClaimedDays.includes(dayNumber);
+                    
+                    // For non-logged-in users, only day 1 is unlocked
+                    // For logged-in users, use the normal logic
+                    const isUnlocked = isLoggedIn 
+                        ? dayNumber <= currentDay 
+                        : dayNumber === 1;
+                    
                     const isCurrentDay = dayNumber === currentDay;
+                    
+                    // For non-logged-in users, no days are completed or claimed
+                    // For logged-in users, use the normal logic
+                    const isCompleted = isLoggedIn 
+                        ? (hasRedeemedToday ? dayNumber <= currentDay : dayNumber < currentDay)
+                        : false;
+                    
+                    const isClaimed = isLoggedIn 
+                        ? (isCurrentDay && hasRedeemedToday ? true : localClaimedDays.includes(dayNumber))
+                        : false;
+                    
                     const isAnimating = isCurrentDay && isClaiming;
                     
                     // Debug log for current day
@@ -262,9 +345,12 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
             </Box>
 
             <ClaimButton
-                onClick={handleClaim}
+                onClick={isLoggedIn ? handleClaim : () => {
+                    // For non-logged-in users, show login popup
+                    setIsLoginPopupOpen(true);
+                }}
                 onClaimed={handleClaimed}
-                disabled={ hasRedeemedToday}
+                disabled={!isLoggedIn || (isLoggedIn && (hasRedeemedToday || isClaiming || !currentDay || currentDay > 7))}
             />
 
             {/* Reward Popup */}
@@ -281,6 +367,13 @@ const DailyCheckin: React.FC<DailyCheckinProps> = ({
                     spent: 0,
                     attemptNo: rewardData.day
                 } : undefined}
+            />
+
+            {/* Login Popup */}
+            <LoginPopup
+                isOpen={isLoginPopupOpen}
+                onClose={handleLoginPopupClose}
+                onLogin={handleLogin}
             />
         </Box>
     );

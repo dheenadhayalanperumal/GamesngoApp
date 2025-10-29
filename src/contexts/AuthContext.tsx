@@ -103,6 +103,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const clearCookies = () => {
     if (typeof window !== 'undefined') {
+      // First, log all current cookies for debugging
+      console.log('🔐 Auth: Current cookies before clearing:', document.cookie);
+      
       // Clear authentication cookies by setting them to expire in the past
       const cookiesToClear = [
         'access_token',
@@ -114,13 +117,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         'session',
         'auth',
         'jwt',
-        'user_token'
+        'user_token',
+        'gamesngo_session',
+        'gamesngo_auth',
+        'gamesngo_token'
       ];
       
       const currentDomain = window.location.hostname;
       const currentPath = window.location.pathname;
       
-      cookiesToClear.forEach(cookieName => {
+      // Get all existing cookies and clear them too
+      const allCookies = document.cookie.split(';').map(cookie => cookie.trim().split('=')[0]);
+      const allCookiesToClear = [...new Set([...cookiesToClear, ...allCookies])];
+      
+      allCookiesToClear.forEach(cookieName => {
+        if (!cookieName) return;
+        
         // Clear with different path and domain combinations
         const cookieOptions = [
           `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`,
@@ -130,9 +142,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${currentPath}; domain=${currentDomain};`,
           `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${currentPath}; domain=.${currentDomain};`,
           `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; secure;`,
-          `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; httponly;`,
           `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; samesite=strict;`,
           `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; samesite=lax;`,
+          `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; samesite=none;`,
+          `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; httponly;`,
+          `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; secure; httponly;`,
         ];
         
         cookieOptions.forEach(option => {
@@ -144,7 +158,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       });
       
+      // Also try to clear cookies by setting them to empty values
+      allCookiesToClear.forEach(cookieName => {
+        if (!cookieName) return;
+        try {
+          document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+          document.cookie = `${cookieName}=; path=/; domain=${currentDomain}; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+          document.cookie = `${cookieName}=; path=/; domain=.${currentDomain}; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+        } catch {
+          // Ignore errors
+        }
+      });
+      
       console.log('🔐 Auth: Cookies cleared for domain:', currentDomain);
+      console.log('🔐 Auth: Cookies after clearing:', document.cookie);
     }
   };
 
@@ -187,7 +214,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Verify cookies are cleared
     setTimeout(() => {
       verifyCookiesCleared();
-    }, 100);
+      
+      // Force a hard reload to clear any remaining state
+      console.log('🔐 Auth: Forcing page reload to clear all state');
+      window.location.href = '/';
+    }, 200);
   };
 
   const value: AuthContextType = {
