@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button } from '@mui/material';
+import { useRouter } from 'next/navigation';
 import ScratchPopup from './ScratchPopup';
 import CouponPopup from './CouponPopup';
+import LoginPopup from './LoginPopup';
 
 // Move SVG component outside to prevent re-creation on every render
 const GiftBoxSVG = () => (
@@ -45,9 +47,11 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   coinCost = 15,
   scratchData
 }) => {
+  const router = useRouter();
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isCouponOpen, setIsCouponOpen] = useState(false);
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const [coinsWon, setCoinsWon] = useState(0);
   const [scratchQuote, setScratchQuote] = useState<{
     scratch: { id: number; title: string; type: string; amount?: number };
@@ -119,8 +123,27 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
         credentials: 'include',
       });
 
-      const data = await response.json();
-      console.log('Scratch quote response:', data);
+      console.log('Scratch quote response status:', response.status);
+
+      // Handle 401 immediately without trying to parse JSON
+      if (response.status === 401) {
+        console.log('User not logged in, showing login popup');
+        setIsLoginPopupOpen(true);
+        return null;
+      }
+
+      // Try to parse JSON for other responses
+      let data;
+      try {
+        const text = await response.text();
+        console.log('Scratch quote response text:', text);
+        data = text ? JSON.parse(text) : {};
+      } catch (parseError) {
+        console.error('Failed to parse scratch quote response:', parseError);
+        data = {};
+      }
+
+      console.log('Scratch quote parsed data:', data);
 
       if (response.ok && data.status === 'success') {
         setScratchQuote(data.quote);
@@ -128,9 +151,7 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
         return data.quote;
       } else {
         console.error('Quote fetch failed:', response.status, data);
-        if (response.status === 401) {
-          alert('Please login to play scratch cards');
-        } else if (response.status === 404) {
+        if (response.status === 404) {
           alert('Scratch card not available');
         } else if (response.status === 422) {
           alert(data.message || 'Invalid scratch card');
@@ -165,7 +186,14 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
       
-      // Try to parse JSON, handle errors
+      // Handle 401 immediately without trying to parse JSON
+      if (response.status === 401) {
+        console.log('User not logged in during redeem, showing login popup');
+        setIsLoginPopupOpen(true);
+        return null;
+      }
+      
+      // Try to parse JSON for other responses
       let data;
       try {
         const text = await response.text();
@@ -198,8 +226,6 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
         console.error('Redeem failed:', response.status, data);
         if (response.status === 402) {
           alert('Not enough coins for extra scratch');
-        } else if (response.status === 401) {
-          alert('Please login to play scratch cards');
         } else if (response.status === 404) {
           alert('Scratch card not available');
         } else if (response.status === 422) {
@@ -265,6 +291,17 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
 
   const handleCouponClose = () => {
     setIsCouponOpen(false);
+  };
+
+  const handleLoginPopupClose = () => {
+    setIsLoginPopupOpen(false);
+  };
+
+  const handleLogin = () => {
+    setIsLoginPopupOpen(false);
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
   };
 
   return (
@@ -525,6 +562,13 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
         onClose={handleCouponClose}
         coinsWon={coinsWon}
         rewardData={rewardData || undefined}
+      />
+
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={isLoginPopupOpen}
+        onClose={handleLoginPopupClose}
+        onLogin={handleLogin}
       />
     </Box>
   );
