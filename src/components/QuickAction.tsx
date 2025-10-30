@@ -1,5 +1,3 @@
-'use client';
-
 import { Box} from '@mui/material';
 import React from 'react';
 import { useRouter } from 'next/navigation';
@@ -7,17 +5,18 @@ import DailyGameImg from '../assets/images/banner/Daily_game.svg';
 import RedeemRewardsImg from '../assets/images/banner/Redeem_rewards.svg';
 
 const quickactioncard = [
-  { id: 1, src: DailyGameImg, alt: "Dailygame", link: "/games" },
-  { id: 2, src: RedeemRewardsImg, alt: "Redeemreward", link: "/refer-win" },
+  { id: 1, src: DailyGameImg, alt: "Dailygame" },
+  { id: 2, src: RedeemRewardsImg, alt: "Redeemreward" },
 ];
 
 const QuickAction = () => {
   const router = useRouter();
 
-  const handleCardClick = (link: string) => {
-    console.log('🎮 Quick Action clicked:', link);
-    console.log('🎮 Navigating to:', link);
-    router.push(link);
+  const handleCardClick = (cardId: number) => {
+    if (cardId === 1) {
+      router.push('/daily-games');
+    }
+    // Add other navigation logic for other cards if needed
   };
 
   return (
@@ -35,7 +34,7 @@ const QuickAction = () => {
         <Box
           key={card.id}
           className="quick-action-card"
-          onClick={() => handleCardClick(card.link)}
+          onClick={() => handleCardClick(card.id)}
           sx={{
             width: '100%',
             display: 'flex',
@@ -46,9 +45,6 @@ const QuickAction = () => {
             transition: 'transform 0.2s ease-in-out',
             '&:hover': {
               transform: 'scale(1.02)',
-            },
-            '&:active': {
-              transform: 'scale(0.98)',
             }
           }}
         >
@@ -60,7 +56,6 @@ const QuickAction = () => {
               height: 'auto',
               borderRadius: '8px',
               display: 'block',
-              pointerEvents: 'none',
             }}
           />
         </Box>

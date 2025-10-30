@@ -17,6 +17,7 @@ import { Close, Phone, Lock } from "@mui/icons-material";
 import Image from "next/image";
 import SignupPopup from "./SignupPopup";
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface LoginPopupProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
   onLogin,
 }) => {
   const { login } = useAuth();
+  const router = useRouter();
   const [mobileNumber, setMobileNumber] = useState("");
   const [pin, setPin] = useState("");
   const [isSignupOpen, setIsSignupOpen] = useState(false);
@@ -102,6 +104,12 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
     // Handle signup logic here
     console.log("Signup completed");
     onLogin(); // This will log the user in after signup
+  };
+
+  const handleForgotPinNavigate = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onClose();
+    router.push('/change-pin/old-pin');
   };
 
   return (
@@ -233,6 +241,28 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
                }}
             />
           </Box>
+        
+        {/* Forgot PIN Link */}
+        <Box sx={{ textAlign: "right", marginBottom: "20px" }}>
+          <Link
+            href="#"
+            onClick={handleForgotPinNavigate}
+            sx={{
+              color: "#3C3CD2",
+              textDecoration: "none",
+              fontFamily: "Rubik",
+              fontStyle: "normal",
+              fontSize: "16px",
+              fontWeight: "500",
+              cursor: "pointer",
+              "&:hover": {
+                textDecoration: "underline",
+              },
+            }}
+          >
+            Forgot PIN?
+          </Link>
+        </Box>
         
 
         {/* Next Button */}
