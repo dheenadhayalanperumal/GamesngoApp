@@ -88,7 +88,7 @@ const ForgotPinPopup: React.FC<ForgotPinPopupProps> = ({
     onClose(); // Also close the ForgotPinPopup
   };
 
-  const handleSetPinSuccess = () => {
+  const handleSetPinSuccess = (_pin?: string) => {
     // After PIN is set, close Set PIN popup and go to login popup
     setIsSetPinOpen(false);
     onClose(); // Close the ForgotPinPopup
@@ -159,7 +159,7 @@ const ForgotPinPopup: React.FC<ForgotPinPopupProps> = ({
             >
               Forgot your PIN?{" "}
               <Box component="span" sx={{ color: '#21175B' }}>
-                Let's fix it fast
+                Let&apos;s fix it fast
               </Box>
             </Typography>
           </Box>
@@ -315,8 +315,7 @@ const ForgotPinPopup: React.FC<ForgotPinPopupProps> = ({
       <SetPinPopup
         isOpen={isSetPinOpen}
         onClose={handleSetPinClose}
-        onSuccess={handleSetPinSuccess}
-        onGoToLogin={onGoToLogin}
+        onPinSet={handleSetPinSuccess}
       />
     </>
   );
