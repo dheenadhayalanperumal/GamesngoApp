@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, Tabs, Tab, CircularProgress, Alert } from '@mui/material';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AllGamesCard from '@/components/AllGamesCard';
 import SearchBar from '@/components/SearchBar';
 import Header from '@/components/Header';
@@ -98,6 +98,7 @@ interface GamesResponse {
 
 const GamesPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(0);
   const [categories, setCategories] = useState<Category[]>([]);
   const [forYouGames, setForYouGames] = useState<Game[]>([]);
@@ -270,6 +271,19 @@ const GamesPage = () => {
     fetchInitialData();
   }, [fetchInitialData]);
 
+  // Preselect Restaurants tab if tab=restaurant is present
+  useEffect(() => {
+    if (!categories.length) return;
+    const tabParam = searchParams?.get('tab');
+    if (tabParam && tabParam.toLowerCase() === 'restaurant') {
+      const idx = categories.findIndex(c => c.slug === 'restaurants' || c.name.toLowerCase() === 'restaurants');
+      if (idx >= 0) {
+        setActiveTab(idx);
+        fetchCategoryGames(categories[idx]);
+      }
+    }
+  }, [categories, searchParams, fetchCategoryGames]);
+
   if (isLoading) {
     return (
       <Box
@@ -380,7 +394,7 @@ const GamesPage = () => {
             sx={{
               '& .MuiTab-root': {
                 textTransform: 'none',
-                fontSize: '18px', 
+                fontSize: '16px', 
                 fontWeight: 700,
                 minWidth: 'auto',
                 px: 2,
