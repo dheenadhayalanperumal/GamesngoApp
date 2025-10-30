@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   // Typography,
@@ -16,6 +16,7 @@ import {
 import { Close, Phone, Lock } from "@mui/icons-material";
 import Image from "next/image";
 import SignupPopup from "./SignupPopup";
+import ForgotPinPopup from "./ForgotPinPopup";
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -35,7 +36,15 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
   const [mobileNumber, setMobileNumber] = useState("");
   const [pin, setPin] = useState("");
   const [isSignupOpen, setIsSignupOpen] = useState(false);
+  const [isForgotPinOpen, setIsForgotPinOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Ensure Forgot PIN popup does not persist across LoginPopup open/close cycles
+  useEffect(() => {
+    if (!isOpen) {
+      setIsForgotPinOpen(false);
+    }
+  }, [isOpen]);
 
   const handleLogin = async () => {
     // Validate input
@@ -108,8 +117,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
 
   const handleForgotPinNavigate = (e: React.MouseEvent) => {
     e.preventDefault();
-    onClose();
-    router.push('/change-pin/old-pin');
+    setIsForgotPinOpen(true);
   };
 
   return (
@@ -345,6 +353,17 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
         isOpen={isSignupOpen}
         onClose={handleSignupClose}
         onSignup={handleSignup}
+      />
+
+      {/* Forgot PIN Popup */}
+      <ForgotPinPopup
+        isOpen={isForgotPinOpen}
+        onClose={() => setIsForgotPinOpen(false)}
+        onSuccess={() => setIsForgotPinOpen(false)}
+        onGoToLogin={() => {
+          // Optionally reopen login if needed; here we just ensure this modal closes
+          setIsForgotPinOpen(false);
+        }}
       />
     </Dialog>
   );

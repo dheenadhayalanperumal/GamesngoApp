@@ -42,17 +42,25 @@ const ForgotPinPopup: React.FC<ForgotPinPopupProps> = ({
 
     setIsLoading(true);
     try {
-      // Mock OTP sending - replace with actual API call
-      console.log('Sending OTP to:', mobileNumber);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setIsOtpSent(true);
-      alert('OTP sent successfully!');
+      const formData = new FormData();
+      formData.append('mobile', mobileNumber);
+
+      const response = await fetch('/api/auth/forgot-pin/request', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        setIsOtpSent(true);
+        alert('If the account exists, an OTP has been sent.');
+      } else {
+        alert('Failed to request OTP. Please try again.');
+      }
     } catch (error) {
       console.error('Error sending OTP:', error);
-      alert('Failed to send OTP. Please try again.');
+      alert('Network error. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -66,18 +74,27 @@ const ForgotPinPopup: React.FC<ForgotPinPopupProps> = ({
 
     setIsLoading(true);
     try {
-      // Mock OTP verification - replace with actual API call
-      console.log('Verifying OTP:', otp);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Close this popup and open Set PIN popup directly
-      onClose();
-      setIsSetPinOpen(true);
+      const formData = new FormData();
+      formData.append('mobile', mobileNumber);
+      formData.append('otp', otp);
+
+      const response = await fetch('/api/auth/forgot-pin/verify', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        // Close this popup and open Set PIN popup directly
+        onClose();
+        setIsSetPinOpen(true);
+      } else {
+        alert('Invalid or expired OTP. Please try again.');
+      }
     } catch (error) {
       console.error('Error verifying OTP:', error);
-      alert('Invalid OTP. Please try again.');
+      alert('Network error. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -316,6 +333,7 @@ const ForgotPinPopup: React.FC<ForgotPinPopupProps> = ({
         isOpen={isSetPinOpen}
         onClose={handleSetPinClose}
         onPinSet={handleSetPinSuccess}
+        mode="forgot"
       />
     </>
   );

@@ -19,12 +19,14 @@ interface SetPinPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onPinSet: (pin: string) => void;
+  mode?: 'default' | 'forgot';
 }
 
 const SetPinPopup: React.FC<SetPinPopupProps> = ({
   isOpen,
   onClose,
-  onPinSet
+  onPinSet,
+  mode = 'default'
 }) => {
   const { login } = useAuth();
   const [pin, setPin] = useState('');
@@ -72,18 +74,22 @@ const SetPinPopup: React.FC<SetPinPopupProps> = ({
     try {
       console.log('Setting PIN...');
       
-      // Use FormData for set-pin API
+      const isForgotFlow = mode === 'forgot';
+      const endpoint = isForgotFlow ? '/api/auth/forgot-pin/set' : '/api/auth/set-pin';
+
       const formData = new FormData();
       formData.append('pin', pin);
       formData.append('confirmPin', confirmPin);
 
-      const response = await fetch('/api/auth/set-pin', {
+      const response = await fetch(endpoint, {
         method: 'POST',
-        credentials: 'include',
+        ...(isForgotFlow ? {} : { credentials: 'include' as RequestCredentials }),
         body: formData
       });
 
       const data = await response.json();
+      console.log('Set PIN API endpoint:', endpoint);
+      console.log('Set PIN API response:', data);
 
       if (response.ok && data.status === 'success') {
         console.log('PIN set successfully:', data.message);
