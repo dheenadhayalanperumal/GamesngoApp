@@ -9,6 +9,7 @@ interface PlayerCardProps {
   avatar: string;
   score: number;
   coins: number;
+  isCurrentUser?: boolean;
 }
 
 export default function PlayerCard({
@@ -17,16 +18,15 @@ export default function PlayerCard({
   avatar,
   score,
   coins,
+  isCurrentUser = false,
 }: PlayerCardProps) {
-  const isTopRank = rank === 1;
-
   return (
     <Box
       sx={{
         display: 'flex',
         alignItems: 'center',
         gap: 2,
-        backgroundColor: isTopRank ? '#C8E6C9' : '#F5F5F5',
+        backgroundColor: isCurrentUser ? '#C8E6C9' : '#F5F5F5',
         borderRadius: 3,
         p: 2,
       }}
@@ -35,7 +35,7 @@ export default function PlayerCard({
       <Typography
         sx={{
           fontWeight: 900,
-          fontSize: 20,
+          fontSize: 18,
           color: '#2d2350',
           minWidth: 20,
         }}
@@ -51,9 +51,9 @@ export default function PlayerCard({
         <Typography sx={{ fontWeight: 700, fontSize: 18, color: '#2d2350' }}>
           {name}
         </Typography>
-        <Typography sx={{ fontSize: 14, color: '#888' }}>
-          {score} Scores
-        </Typography>
+        {/* <Typography sx={{ fontSize: 14, color: '#888' }}>
+          {coins} Scores
+        </Typography> */}
       </Box>
 
       {/* Coins Badge */}
@@ -68,9 +68,9 @@ export default function PlayerCard({
           gap: 0.5,
         }}
       >
-        <Image src={CoinIcon} alt="Coin" width={18} height={18} />
+        {/* <Image src={CoinIcon} alt="Coin" width={18} height={18} /> */}
         <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 16 }}>
-          {coins}
+          {score}
         </Typography>
       </Box>
     </Box>

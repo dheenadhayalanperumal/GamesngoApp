@@ -8,15 +8,17 @@ interface Player {
   avatar: string;
   score: number;
   coins: number;
+  isCurrentUser?: boolean;
 }
 
 interface PlayersListProps {
   players: Player[];
   title?: string;
   removeMargins?: boolean;
+  userPlayer?: Player;
 }
 
-export default function PlayersList({ players, title = 'This Week', removeMargins = false }: PlayersListProps) {
+export default function PlayersList({ players, title = 'This Week', removeMargins = false, userPlayer }: PlayersListProps) {
   return (
     <Box
       sx={{
@@ -69,8 +71,29 @@ export default function PlayersList({ players, title = 'This Week', removeMargin
             avatar={player.avatar}
             score={player.score}
             coins={player.coins}
+            isCurrentUser={player.isCurrentUser}
           />
         ))}
+        
+        {/* Show user card if they're not in top 10 */}
+        {userPlayer && !players.some(p => p.isCurrentUser) && (
+          <>
+            {/* Separator if user is not in top 10 */}
+            <Box sx={{ pt: 2, pb: 1 }}>
+              <Typography sx={{ fontSize: 14, color: '#888', textAlign: 'center' }}>
+                Your Rank
+              </Typography>
+            </Box>
+            <PlayerCard
+              rank={userPlayer.rank}
+              name={userPlayer.name}
+              avatar={userPlayer.avatar}
+              score={userPlayer.score}
+              coins={userPlayer.coins}
+              isCurrentUser={true}
+            />
+          </>
+        )}
       </Box>
     </Box>
   );

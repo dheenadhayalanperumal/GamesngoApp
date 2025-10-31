@@ -1,86 +1,267 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, CircularProgress } from '@mui/material';
 import Header from '@/components/Header';
 import TabBar from '@/components/TabBar';
 import TabSelector from '@/components/leaderboard/TabSelector';
 import WinnerPodium from '@/components/leaderboard/WinnerPodium';
 import PrizesSection from '@/components/leaderboard/PrizesSection';
 import PlayersList from '@/components/leaderboard/PlayersList';
+import { useAuth } from '@/contexts/AuthContext';
 
-const pastWeekWinners = [
-  {
-    rank: 2,
-    name: 'Joe',
-    avatar: '/avatar1.jpg',
-    coins: 499,
-  },
-  {
-    rank: 1,
-    name: 'Jonitha',
-    avatar: '/avatar2.jpg',
-    coins: 482,
-  },
-  {
-    rank: 3,
-    name: 'Rithu',
-    avatar: '/avatar3.jpg',
-    coins: 482,
-  },
-];
+interface LeaderboardEntry {
+  rank: number;
+  user: {
+    id: number;
+    name: string;
+    avatar: string | null;
+  };
+  plays: number;
+  totalScore: number;
+  bestScore: number;
+}
 
-const allTimeWinners = [
-  {
-    rank: 2,
-    name: 'Alex',
-    avatar: '/avatar1.jpg',
-    coins: 8500,
-  },
-  {
-    rank: 1,
-    name: 'Sarah',
-    avatar: '/avatar2.jpg',
-    coins: 9200,
-  },
-  {
-    rank: 3,
-    name: 'Mike',
-    avatar: '/avatar3.jpg',
-    coins: 7800,
-  },
-];
+interface Prize {
+  rank: number;
+  type: 'coin' | 'voucher';
+  amount?: number;
+  voucher?: {
+    id: number;
+    name: string;
+    code: string;
+    percent: number;
+  };
+}
 
-// const allTimePlayers = [
-//   { rank: 1, name: 'Sarah', avatar: '/avatar2.jpg', score: 125000, coins: 9200 },
-//   { rank: 2, name: 'Alex', avatar: '/avatar1.jpg', score: 118500, coins: 8500 },
-//   { rank: 3, name: 'Mike', avatar: '/avatar3.jpg', score: 112000, coins: 7800 },
-//   { rank: 4, name: 'Emma', avatar: '/avatar4.jpg', score: 98000, coins: 6500 },
-//   { rank: 5, name: 'John', avatar: '/avatar4.jpg', score: 89000, coins: 5800 },
-//   { rank: 6, name: 'Lisa', avatar: '/avatar4.jpg', score: 82000, coins: 5200 },
-// ];
+interface LeaderboardData {
+  weekly: {
+    leaderboard: LeaderboardEntry[];
+    prizes: Prize[];
+    previousWeekTop?: LeaderboardEntry[];
+    previousWeekRange?: {
+      from: string;
+      to: string;
+    };
+    me?: {
+      rank: number | null;
+      plays: number;
+      totalScore: number;
+      bestScore: number;
+      position: number | null;
+    };
+  };
+  allTime: {
+    leaderboard: LeaderboardEntry[];
+    me?: {
+      rank: number | null;
+      plays: number;
+      totalScore: number;
+      bestScore: number;
+      position: number | null;
+    };
+  };
+}
 
-const thisWeekPlayers = [
-  { rank: 1, name: 'saj', avatar: '/avatar4.jpg', score: 2651, coins: 500 },
-  { rank: 2, name: 'jay', avatar: '/avatar4.jpg', score: 2651, coins: 500 },
-  { rank: 3, name: 'sanjay', avatar: '/avatar4.jpg', score: 2651, coins: 492 },
-  { rank: 4, name: 'Vinith', avatar: '/avatar4.jpg', score: 2651, coins: 481 },
-  { rank: 5, name: 'Bejoy', avatar: '/avatar4.jpg', score: 2651, coins: 480 },
-  { rank: 6, name: 'Vijay', avatar: '/avatar4.jpg', score: 2651, coins: 480 },
-];
+interface Winner {
+  rank: number;
+  name: string;
+  avatar: string;
+  coins: number;
+}
 
-const prizes = [
-  { rank: 1, coins: 1000 },
-  { rank: 2, coins: 800 },
-  { rank: 3, coins: 600 },
-  { rank: 4, coins: 500 },
-  { rank: 5, coins: 400 },
-];
+interface Player {
+  rank: number;
+  name: string;
+  avatar: string;
+  score: number;
+  coins: number;
+  isCurrentUser?: boolean;
+}
+
+interface PrizeDisplay {
+  rank: number;
+  coins: number;
+}
 
 export default function Leaderboard() {
+  const { isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState<'weekly' | 'alltime'>('weekly');
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>('');
+  const [userAvatar, setUserAvatar] = useState<string>('');
 
-  const currentWinners = activeTab === 'weekly' ? pastWeekWinners : allTimeWinners;
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const response = await fetch('/api/public/leaderboard/games', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === 'success') {
+          setLeaderboardData(data);
+        } else {
+          setError('Failed to load leaderboard data');
+        }
+      } catch (err) {
+        console.error('Error fetching leaderboard:', err);
+        setError('An error occurred while loading leaderboard');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLeaderboard();
+  }, []);
+
+  // Fetch user details if logged in
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (!isLoggedIn) {
+        setUserName('');
+        setUserAvatar('');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/home/details', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === 'success' && data.details?.user) {
+          setUserName(data.details.user.name || 'User');
+          setUserAvatar(data.details.user.imageUrl || '');
+        }
+      } catch (err) {
+        console.error('Error fetching user details:', err);
+      }
+    };
+
+    if (isLoggedIn) {
+      fetchUserDetails();
+    }
+  }, [isLoggedIn]);
+
+  // Transform API data to component formats
+  const transformToWinners = (entries: LeaderboardEntry[]): Winner[] => {
+    // Get top 3 for podium
+    return entries
+      .filter((entry) => entry.rank <= 3)
+      .map((entry) => ({
+        rank: entry.rank,
+        name: entry.user.name,
+        avatar: entry.user.avatar || '/avatar1.jpg',
+        coins: entry.totalScore, // Using totalScore as coins for display
+      }));
+  };
+
+  const transformToPlayers = (
+    entries: LeaderboardEntry[],
+    prizes: Prize[],
+    meData?: { rank: number | null; totalScore: number; position: number | null }
+  ): Player[] => {
+    // Create a map of prizes by rank for coin lookup
+    const prizeMap = new Map<number, number>();
+    prizes
+      .filter((p) => p.type === 'coin' && p.amount)
+      .forEach((p) => prizeMap.set(p.rank, p.amount || 0));
+
+    return entries.map((entry) => {
+      // Check if this entry is the current user (in top 10)
+      const isCurrentUser =
+        meData !== undefined &&
+        meData.position !== null &&
+        entry.rank === meData.position;
+
+      return {
+        rank: entry.rank,
+        name: entry.user.name,
+        avatar: entry.user.avatar || '/avatar4.jpg',
+        score: entry.totalScore,
+        coins: prizeMap.get(entry.rank) || 0, // Get coins from prizes if available, else 0
+        isCurrentUser,
+      };
+    });
+  };
+
+  const transformPrizes = (prizes: Prize[]): PrizeDisplay[] => {
+    // Only include coin-type prizes
+    return prizes
+      .filter((p) => p.type === 'coin' && p.amount)
+      .map((p) => ({
+        rank: p.rank,
+        coins: p.amount || 0,
+      }))
+      .sort((a, b) => a.rank - b.rank);
+  };
+
+  // Get current data based on active tab
+  // For weekly, use previousWeekTop for winners (past week result)
+  // For all-time, use the current leaderboard top 3
+  const currentWinners: Winner[] = leaderboardData
+    ? activeTab === 'weekly'
+      ? leaderboardData.weekly.previousWeekTop
+        ? transformToWinners(leaderboardData.weekly.previousWeekTop)
+        : []
+      : transformToWinners(leaderboardData.allTime.leaderboard)
+    : [];
+
+  const currentMeData = leaderboardData
+    ? activeTab === 'weekly'
+      ? leaderboardData.weekly.me
+      : leaderboardData.allTime.me
+    : undefined;
+
+  const currentPlayers: Player[] = leaderboardData
+    ? activeTab === 'weekly'
+      ? transformToPlayers(
+          leaderboardData.weekly.leaderboard,
+          leaderboardData.weekly.prizes,
+          leaderboardData.weekly.me
+        )
+      : transformToPlayers(
+          leaderboardData.allTime.leaderboard,
+          [],
+          leaderboardData.allTime.me
+        )
+    : [];
+
+  const prizes: PrizeDisplay[] = leaderboardData
+    ? transformPrizes(leaderboardData.weekly.prizes)
+    : [];
+
+  // Create user player card if user is not in top 10 and has a rank (has plays)
+  const userPlayer: Player | undefined =
+    isLoggedIn &&
+    currentMeData &&
+    currentMeData.position === null &&
+    currentMeData.rank !== null &&
+    currentMeData.rank > 0
+      ? {
+          rank: currentMeData.rank,
+          name: userName || 'You',
+          avatar: userAvatar || '/avatar4.jpg',
+          score: currentMeData.totalScore,
+          coins:
+            activeTab === 'weekly' && leaderboardData
+              ? leaderboardData.weekly.prizes
+                  .filter((p) => p.type === 'coin' && p.amount && p.rank === currentMeData.rank)
+                  .reduce((acc, p) => acc + (p.amount || 0), 0)
+              : 0,
+          isCurrentUser: true,
+        }
+      : undefined;
 
   return (
     <>
@@ -125,17 +306,42 @@ export default function Leaderboard() {
         {/* Weekly/All Time Tabs */}
         <TabSelector activeTab={activeTab} onTabChange={setActiveTab} />
 
-        {/* Winner Podium */}
-        <WinnerPodium
-          winners={currentWinners}
-          title={activeTab === 'weekly' ? 'Past Week Result' : 'All Time Result'}
-        />
+        {/* Loading State */}
+        {isLoading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+            <CircularProgress sx={{ color: 'white' }} />
+          </Box>
+        )}
 
-        {/* Prizes Section */}
-        <PrizesSection prizes={prizes} />
+        {/* Error State */}
+        {error && !isLoading && (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography sx={{ color: 'white', fontSize: 18 }}>
+              {error}
+            </Typography>
+          </Box>
+        )}
 
-        {/* This Week Players List */}
-        <PlayersList players={thisWeekPlayers} />
+        {/* Content */}
+        {!isLoading && !error && (
+          <>
+            {/* Winner Podium */}
+            <WinnerPodium
+              winners={currentWinners}
+              title={activeTab === 'weekly' ? 'Past Week Result' : 'All Time Result'}
+            />
+
+            {/* Prizes Section - Only show for weekly */}
+            {activeTab === 'weekly' && prizes.length > 0 && <PrizesSection prizes={prizes} />}
+
+            {/* Players List */}
+            <PlayersList 
+              players={currentPlayers} 
+              title={activeTab === 'weekly' ? 'This Week' : 'All Time'}
+              userPlayer={userPlayer}
+            />
+          </>
+        )}
       </Box>
 
       {/* Tab Bar */}

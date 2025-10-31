@@ -40,7 +40,7 @@ export default function PrizesSection({ prizes }: PrizesSectionProps) {
             sx={{
               backgroundColor: 'rgba(33, 23, 91, 0.20)',
               borderRadius: 3,
-              py: .4,
+              py: 2,
               px: .4,
               flex: 1,
               display: 'flex',

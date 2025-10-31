@@ -113,6 +113,7 @@ export default function PodiumCard({
           color: 'white',
           fontWeight: 700,
           fontSize: nameSize,
+          textAlign: 'center',
           mt: 2,
         }}
       >
