@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, CircularProgress } from '@mui/material';
 import EventCard from '@/components/EventCard';
 import Header from '@/components/Header';
 import TabBar from '@/components/TabBar';
@@ -35,16 +35,53 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+interface ApiEvent {
+  id: number;
+  title: string;
+  category: string;
+  entryCost: number;
+  roomSize: number;
+  startAt: string;
+  endAt: string;
+  timeLeftSeconds: number;
+  players: number;
+  game: {
+    id: number;
+    name: string;
+    bannerUrl: string;
+  };
+  prize: {
+    product?: {
+      id: number;
+      title: string;
+      coverUrl: string;
+      worthCoins: number;
+    };
+    prizeCoins: number | null;
+  };
+  status: string;
+  state: {
+    isLive: boolean;
+    isUpcoming: boolean;
+    isEnded: boolean;
+  };
+}
+
 const EventsPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [activeSubTab, setActiveSubTab] = useState(0);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [selectedYourEventId, setSelectedYourEventId] = useState<number | null>(null);
+  const [liveEvents, setLiveEvents] = useState<EventData[]>([]);
+  const [isLoadingLiveEvents, setIsLoadingLiveEvents] = useState(true);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
     // Reset sub-tab when switching main tabs
     setActiveSubTab(0);
+    // Reset selected event when switching tabs
+    setSelectedYourEventId(null);
   };
 
   const handleSubTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -74,6 +111,91 @@ const EventsPage = () => {
     console.log(`Playing game for mission ${missionId}`);
     // Add your game play logic here
   };
+
+  const handleEventClick = (eventId: number) => {
+    setSelectedYourEventId(eventId);
+    setActiveSubTab(0); // Reset to first sub-tab when selecting event
+  };
+
+  const handleBackToList = () => {
+    setSelectedYourEventId(null);
+    setActiveSubTab(0);
+  };
+
+  // Helper function to convert seconds to readable time format
+  const formatTimeLeft = (seconds: number): string => {
+    if (seconds <= 0) return 'Ended';
+    
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (days > 0) {
+      return `${days}d ${hours}h`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else {
+      return `${minutes}m`;
+    }
+  };
+
+  // Transform API event to EventData format
+  const transformEvent = (apiEvent: ApiEvent): EventData => {
+    const prizeValue = apiEvent.prize?.product?.worthCoins 
+      ? `₹${apiEvent.prize.product.worthCoins}` 
+      : apiEvent.prize?.prizeCoins 
+        ? `${apiEvent.prize.prizeCoins} Coins`
+        : 'No Prize';
+    
+    const imageUrl = apiEvent.game?.bannerUrl || apiEvent.prize?.product?.coverUrl || '/images/product/p1.png';
+    
+    return {
+      id: apiEvent.id,
+      title: apiEvent.title,
+      description: apiEvent.category || apiEvent.title,
+      image: imageUrl,
+      prizeValue,
+      players: apiEvent.players,
+      roomSize: apiEvent.roomSize,
+      timeLeft: formatTimeLeft(apiEvent.timeLeftSeconds),
+      entryCost: apiEvent.entryCost,
+      isLive: apiEvent.state.isLive,
+      isPrize: !!apiEvent.prize?.product || !!apiEvent.prize?.prizeCoins,
+    };
+  };
+
+  // Fetch live events from API
+  useEffect(() => {
+    const fetchLiveEvents = async () => {
+      if (activeTab !== 0) return; // Only fetch when on Live Events tab
+      
+      try {
+        setIsLoadingLiveEvents(true);
+        const response = await fetch('/api/public/events?filter=live');
+        const data = await response.json();
+
+        console.log('API Response:', data);
+        console.log('Number of events from API:', data.events?.length);
+
+        if (response.ok && data.status === 'success' && data.events) {
+          const transformedEvents = data.events.map(transformEvent);
+          console.log('Transformed events count:', transformedEvents.length);
+          console.log('Transformed events:', transformedEvents);
+          setLiveEvents(transformedEvents);
+        } else {
+          console.error('Failed to fetch live events:', data);
+          setLiveEvents([]);
+        }
+      } catch (error) {
+        console.error('Error fetching live events:', error);
+        setLiveEvents([]);
+      } finally {
+        setIsLoadingLiveEvents(false);
+      }
+    };
+
+    fetchLiveEvents();
+  }, [activeTab]);
 
   // Function to load mission data from API
   // const loadMissionData = async (missionId: number) => {
@@ -230,33 +352,6 @@ const EventsPage = () => {
     }
   ];
 
-  // Sample event data
-  const liveEvents: EventData[] = [
-    {
-      id: 1,
-      title: 'Gaming Chair',
-      description: 'Ergonomic RGB Gaming Chair - Worth ₹15,000',
-      image: '/images/product/p1.png',
-      prizeValue: '₹15,000',
-      players: 47,
-      timeLeft: '2d 15h',
-      entryCost: 50,
-      isLive: true,
-      isPrize: true,
-    },
-    {
-      id: 2,
-      title: 'Gaming Chair',
-      description: 'Ergonomic RGB Gaming Chair - Worth ₹15,000',
-      image: '/images/product/p1.png',
-      prizeValue: '₹15,000',
-      players: 47,
-      timeLeft: '2d 15h',
-      entryCost: 50,
-      isLive: true,
-      isPrize: true,
-    },
-  ];
 
   const yourEvents: EventData[] = [
     {
@@ -311,77 +406,102 @@ const EventsPage = () => {
       {/* Tab Content */}
       <Box sx={{ px: 2 }}>
         <TabPanel value={activeTab} index={0}>
-          <EventsList events={liveEvents} onBuyTickets={handleBuyTickets} />
+          {isLoadingLiveEvents ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+              <CircularProgress />
+            </Box>
+          ) : liveEvents.length > 0 ? (
+            <EventsList events={liveEvents} onBuyTickets={handleBuyTickets} />
+          ) : (
+            <EmptyState message="No live events available" />
+          )}
         </TabPanel>
 
         <TabPanel value={activeTab} index={1}>
-          {/* Sub-tabs for Your Events */}
-          <Box
-            sx={{
-              color: '#fff',
-              padding: '0 0 20px 0',
-              position: 'sticky',
-              top: 0,
-              zIndex: 1000,
-            }}
-          >
-            <EventTabs
-              activeTab={activeSubTab}
-              onTabChange={handleSubTabChange}
-              tabs={['Event Details', 'Mission', 'Leaderboard']}
-              indicatorColor="#FFD015"
-            />
-          </Box>
-
-          {/* Sub-tab Content */}
-          <Box sx={{ px: 2 }}>
-            {/* Event Details Sub-tab */}
-            <TabPanel value={activeSubTab} index={0}>
+          {selectedYourEventId === null ? (
+            // Show all events list
+            <>
+              {yourEvents.length > 0 ? (
+                <EventsList 
+                  events={yourEvents} 
+                  onBuyTickets={handleBuyTickets}
+                  hideBuyButton={true}
+                  onEventClick={handleEventClick}
+                />
+              ) : (
+                <EmptyState message="No events registered yet" />
+              )}
+            </>
+          ) : (
+            // Show selected event details with tabs
+            <>
+              {/* Sub-tabs for Your Events */}
               <Box
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 3,
+                  color: '#fff',
+                  padding: '0 0 20px 0',
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1000,
                 }}
               >
-                {yourEvents.length > 0 ? (
-                  yourEvents.map((event) => (
-                    <Box key={event.id}>
-                      <EventCard
-                        {...event}
-                        onBuyTickets={handleBuyTickets}
-                        hideBuyButton={true}
-                      />
-                      <EventDetailsSection details={eventDetails} />
-                    </Box>
-                  ))
-                ) : (
-                  <EmptyState message="No events registered yet" />
-                )}
+                <EventTabs
+                  activeTab={activeSubTab}
+                  onTabChange={handleSubTabChange}
+                  tabs={['Event Details', 'Mission', 'Leaderboard']}
+                  indicatorColor="#FFD015"
+                />
               </Box>
-            </TabPanel>
 
-            {/* Mission Sub-tab */}
-            <TabPanel value={activeSubTab} index={1}>
-              <MissionSection
-                missionData={missionData}
-                onPlayGame={handlePlayGame}
-              />
-            </TabPanel>
+              {/* Sub-tab Content */}
+              <Box sx={{ px: 2 }}>
+                {/* Event Details Sub-tab */}
+                <TabPanel value={activeSubTab} index={0}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3,
+                    }}
+                  >
+                    {yourEvents
+                      .filter((event) => event.id === selectedYourEventId)
+                      .map((event) => (
+                        <Box key={event.id}>
+                          <EventCard
+                            {...event}
+                            onBuyTickets={handleBuyTickets}
+                            hideBuyButton={true}
+                          />
+                          <EventDetailsSection details={eventDetails} />
+                        </Box>
+                      ))}
+                  </Box>
+                </TabPanel>
 
-            {/* Leaderboard Sub-tab */}
-            <TabPanel value={activeSubTab} index={2}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 3,
-                }}
-              >
-                <PlayersList players={playerrank} title="Event Leaderboard" removeMargins={true} />
+                {/* Mission Sub-tab */}
+                <TabPanel value={activeSubTab} index={1}>
+                  <MissionSection
+                    missionData={missionData}
+                    onPlayGame={handlePlayGame}
+                  />
+                </TabPanel>
+
+                {/* Leaderboard Sub-tab */}
+                <TabPanel value={activeSubTab} index={2}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3,
+                    }}
+                  >
+                    <PlayersList players={playerrank} title="Event Leaderboard" removeMargins={true} />
+                  </Box>
+                </TabPanel>
               </Box>
-            </TabPanel>
-          </Box>
+            </>
+          )}
         </TabPanel>
       </Box>
       <TabBar />

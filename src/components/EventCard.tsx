@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
-// import Image from 'next/image';
+import Image from 'next/image';
+import CoinIcon from '@/assets/icons/coin.png';
 
 interface EventCardProps {
   id: number;
@@ -11,12 +12,14 @@ interface EventCardProps {
   image: string;
   prizeValue: string;
   players: number;
+  roomSize?: number;
   timeLeft: string;
   entryCost: number;
   isLive?: boolean;
   isPrize?: boolean;
   onBuyTickets?: (eventId: number) => void;
   hideBuyButton?: boolean;
+  onClick?: () => void;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
@@ -26,15 +29,31 @@ const EventCard: React.FC<EventCardProps> = ({
   image,
   // prizeValue,
   players,
+  roomSize,
   timeLeft,
   entryCost,
   // isLive = true,
   isPrize = true,
   onBuyTickets,
   hideBuyButton = false,
+  onClick,
 }) => {
   return (
-    <Box sx={{ width: '100%', padding: '18px', backgroundColor: '#3920A6',borderRadius: '10px'}}>
+    <Box 
+      sx={{ 
+        width: '100%', 
+        padding: '18px', 
+        backgroundColor: '#3920A6',
+        borderRadius: '10px',
+        cursor: onClick ? 'pointer' : 'default',
+        '&:hover': onClick ? {
+          opacity: 0.9,
+          transform: 'translateY(-2px)',
+          transition: 'all 0.2s ease-in-out',
+        } : {},
+      }}
+      onClick={onClick}
+    >
     <Box
       sx={{
         width: '100%',
@@ -206,7 +225,7 @@ background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA
               mb: 0.5,
             }}
           >
-            {players}
+            {roomSize ? `${players}/${roomSize}` : players}
           </Typography>
           <Typography
             sx={{
@@ -258,16 +277,7 @@ background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA
             >
               {entryCost}
             </Typography>
-            <Typography
-              sx={{
-                // Font sizes: xs: 16px, sm: 18px, md: 20px
-                fontSize: { xs: 16, sm: 18, md: 20 },
-                color: '#ffd54f',
-                lineHeight: 1,
-              }}
-            >
-              🪙
-            </Typography>
+            <Image src={CoinIcon} alt="Coin" width={20} height={20} />
           </Box>
           <Typography
             sx={{
@@ -285,7 +295,7 @@ background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA
 
       {/* Buy Tickets Button */}
       {!hideBuyButton && (
-        <Box sx={{ px:'11px', pb:'11px'}}>
+        <Box sx={{ px:'11px', pb:'11px'}} onClick={(e) => e.stopPropagation()}>
           <Button
             fullWidth
             onClick={() => onBuyTickets?.(id)}
