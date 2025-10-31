@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
 import EventCard from '@/components/EventCard';
 import Header from '@/components/Header';
 import TabBar from '@/components/TabBar';
@@ -89,6 +89,72 @@ interface MyEventApiResponse {
   joinedAt: string;
 }
 
+interface EventDetailsApiResponse {
+  id: number;
+  title: string;
+  category: string;
+  entryCost: number;
+  roomSize: number;
+  startAt: string;
+  endAt: string;
+  timeLeftSeconds: number;
+  players: number;
+  game: {
+    id: number;
+    name: string;
+    bannerUrl: string;
+    assetUrl: string;
+    rating: number;
+    durationMinutes: number;
+    scoreType: string;
+  };
+  prize: {
+    product?: {
+      id: number;
+      title: string;
+      coverUrl: string;
+      worthCoins: number;
+    };
+    prizeCoins: number | null;
+  };
+  mission: string[];
+  status: string;
+  state: {
+    isLive: boolean;
+    isUpcoming: boolean;
+    isEnded: boolean;
+  };
+  canRegister: boolean;
+  alreadyRegistered?: boolean;
+}
+
+interface EventLeaderboardEntry {
+  rank: number;
+  user: {
+    id: number;
+    name: string;
+    avatar: string | null;
+  };
+  score: number;
+}
+
+interface EventLeaderboardResponse {
+  leaderboard: EventLeaderboardEntry[];
+  pagination: {
+    page: number;
+    perPage: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+  };
+  me: {
+    joined: boolean;
+    rank: number | null;
+    score: number | null;
+    position: number | null;
+  };
+}
+
 const EventsPage = () => {
   const { isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
@@ -102,6 +168,10 @@ const EventsPage = () => {
   const [isLoadingLiveEvents, setIsLoadingLiveEvents] = useState(true);
   const [isLoadingYourEvents, setIsLoadingYourEvents] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [selectedEventDetails, setSelectedEventDetails] = useState<EventDetailsApiResponse | null>(null);
+  const [isLoadingEventDetails, setIsLoadingEventDetails] = useState(false);
+  const [eventLeaderboard, setEventLeaderboard] = useState<EventLeaderboardResponse | null>(null);
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -226,13 +296,57 @@ const EventsPage = () => {
     // Add your game play logic here
   };
 
-  const handleEventClick = (eventId: number) => {
+  const handleEventClick = async (eventId: number) => {
     setSelectedYourEventId(eventId);
     setActiveSubTab(0); // Reset to first sub-tab when selecting event
+    
+    // Fetch event details
+    setIsLoadingEventDetails(true);
+    try {
+      const response = await fetch(`/api/public/events/${eventId}`);
+      const data = await response.json();
+      
+      console.log('Event details response:', data);
+      
+      if (response.ok && data.status === 'success' && data.event) {
+        setSelectedEventDetails(data.event);
+      } else {
+        console.error('Failed to fetch event details:', data);
+        setSelectedEventDetails(null);
+      }
+    } catch (error) {
+      console.error('Error fetching event details:', error);
+      setSelectedEventDetails(null);
+    } finally {
+      setIsLoadingEventDetails(false);
+    }
+
+    // Fetch event leaderboard
+    setIsLoadingLeaderboard(true);
+    try {
+      const leaderboardResponse = await fetch(`/api/public/events/${eventId}/leaderboard`);
+      const leaderboardData = await leaderboardResponse.json();
+      
+      console.log('Event leaderboard response:', leaderboardData);
+      
+      if (leaderboardResponse.ok && leaderboardData.status === 'success') {
+        setEventLeaderboard(leaderboardData);
+      } else {
+        console.error('Failed to fetch event leaderboard:', leaderboardData);
+        setEventLeaderboard(null);
+      }
+    } catch (error) {
+      console.error('Error fetching event leaderboard:', error);
+      setEventLeaderboard(null);
+    } finally {
+      setIsLoadingLeaderboard(false);
+    }
   };
 
   const handleBackToList = () => {
     setSelectedYourEventId(null);
+    setSelectedEventDetails(null);
+    setEventLeaderboard(null);
     setActiveSubTab(0);
   };
 
@@ -341,7 +455,7 @@ const EventsPage = () => {
       timeLeft: formatTimeLeft(timeLeftSeconds),
       entryCost: 0, // Not provided in my events API
       isLive: myEventApi.status === 'Joined', // Consider "Joined" as live
-      isPrize: false, // We don't have prize info in my events
+      isPrize: true, // Show prize indicator for registered events
       canRegister: false, // Already registered
       alreadyRegistered: true, // User has joined this event
       startAt: myEventApi.event.startAt,
@@ -664,15 +778,44 @@ const EventsPage = () => {
 
                 {/* Leaderboard Sub-tab */}
                 <TabPanel value={activeSubTab} index={2}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 3,
-                    }}
-                  >
-                    <PlayersList players={playerrank} title="Event Leaderboard" removeMargins={true} />
-                  </Box>
+                  {isLoadingLeaderboard ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : eventLeaderboard && eventLeaderboard.leaderboard.length > 0 ? (
+                    <PlayersList 
+                      players={eventLeaderboard.leaderboard.map(entry => ({
+                        rank: entry.rank,
+                        name: entry.user.name,
+                        avatar: entry.user.avatar || '/avatar4.jpg',
+                        score: entry.score,
+                        coins: 0, // Event leaderboard doesn't show coins
+                        isCurrentUser: eventLeaderboard.me.position === entry.rank
+                      }))}
+                      title="Event Leaderboard"
+                      removeMargins={true}
+                      userPlayer={
+                        eventLeaderboard.me.joined && 
+                        eventLeaderboard.me.rank && 
+                        eventLeaderboard.me.position === null
+                          ? {
+                              rank: eventLeaderboard.me.rank,
+                              name: 'You',
+                              avatar: '/avatar4.jpg',
+                              score: eventLeaderboard.me.score || 0,
+                              coins: 0,
+                              isCurrentUser: true
+                            }
+                          : undefined
+                      }
+                    />
+                  ) : (
+                    <Box sx={{ textAlign: 'center', py: 8 }}>
+                      <Typography sx={{ color: '#888', fontSize: 16 }}>
+                        No leaderboard data available
+                      </Typography>
+                    </Box>
+                  )}
                 </TabPanel>
               </Box>
             </>

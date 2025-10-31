@@ -273,69 +273,69 @@ background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA
             <Box sx={{ textAlign: 'center', flex: 1 }}>
               <Typography
                 sx={{
-                  fontSize: { xs: 12, sm: 13, md: 14 },
-                  fontWeight: 700,
-                  color: '#ffffff',
-                  lineHeight: 1.2,
-                  mb: 0.5,
-                }}
-              >
-                {formatDate(startAt)}
-              </Typography>
-              <Typography
-                sx={{
                   fontSize: { xs: 10, sm: 11, md: 13 },
                   fontWeight: 600,
                   color: 'rgba(255,255,255,0.9)',
+                  mb: 0.5,
                 }}
               >
                 Start Date
               </Typography>
-            </Box>
-
-            <Box sx={{ textAlign: 'center', flex: 1 }}>
               <Typography
                 sx={{
                   fontSize: { xs: 12, sm: 13, md: 14 },
                   fontWeight: 700,
                   color: '#ffffff',
                   lineHeight: 1.2,
-                  mb: 0.5,
                 }}
               >
-                {formatDate(endAt)}
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: { xs: 10, sm: 11, md: 13 },
-                  fontWeight: 600,
-                  color: 'rgba(255,255,255,0.9)',
-                }}
-              >
-                End Date
+                {formatDate(startAt)}
               </Typography>
             </Box>
 
             <Box sx={{ textAlign: 'center', flex: 1 }}>
               <Typography
                 sx={{
-                  fontSize: { xs: 20, sm: 24, md: 28 },
-                  fontWeight: 900,
-                  color: '#ffffff',
-                  lineHeight: 1,
+                  fontSize: { xs: 10, sm: 11, md: 13 },
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.9)',
                   mb: 0.5,
                 }}
               >
-                {timeLeft}
+                End Date
               </Typography>
+              <Typography
+                sx={{
+                  fontSize: { xs: 12, sm: 13, md: 14 },
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  lineHeight: 1.2,
+                }}
+              >
+                {formatDate(endAt)}
+              </Typography>
+            </Box>
+
+            <Box sx={{ textAlign: 'center', flex: 1 }}>
               <Typography
                 sx={{
                   fontSize: { xs: 10, sm: 11, md: 13 },
                   fontWeight: 600,
                   color: 'rgba(255,255,255,0.9)',
+                  mb: 0.5,
                 }}
               >
                 Time Left
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: { xs: 12, sm: 13, md: 14 },
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  lineHeight: 1.2,
+                }}
+              >
+                {timeLeft}
               </Typography>
             </Box>
           </>
