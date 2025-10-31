@@ -11,6 +11,7 @@ import EventDetailsSection from '@/components/events/EventDetailsSection';
 import MissionSection, { MissionData } from '@/components/events/MissionSection';
 import EventsList, { EventData } from '@/components/events/EventsList';
 import EmptyState from '@/components/events/EmptyState';
+import ConfirmBuyTicketsPopup from '@/components/events/ConfirmBuyTicketsPopup';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -37,6 +38,8 @@ function TabPanel(props: TabPanelProps) {
 const EventsPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [activeSubTab, setActiveSubTab] = useState(0);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -49,8 +52,22 @@ const EventsPage = () => {
   };
 
   const handleBuyTickets = (eventId: number) => {
-    console.log(`Buying tickets for event ${eventId}`);
-    // Add your ticket buying logic here
+    setSelectedEventId(eventId);
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmBuy = () => {
+    if (selectedEventId) {
+      console.log(`Buying tickets for event ${selectedEventId}`);
+      // Add your ticket buying logic here
+      // After successful purchase, you might want to refresh the events list
+    }
+    setSelectedEventId(null);
+  };
+
+  const handleCloseConfirm = () => {
+    setIsConfirmOpen(false);
+    setSelectedEventId(null);
   };
 
   const handlePlayGame = (missionId: number) => {
@@ -368,6 +385,13 @@ const EventsPage = () => {
         </TabPanel>
       </Box>
       <TabBar />
+
+      {/* Confirm Buy Tickets Popup */}
+      <ConfirmBuyTicketsPopup
+        isOpen={isConfirmOpen}
+        onClose={handleCloseConfirm}
+        onConfirm={handleConfirmBuy}
+      />
     </Box>
   );
 };
