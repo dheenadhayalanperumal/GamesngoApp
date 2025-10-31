@@ -252,7 +252,7 @@ const EventsPage = () => {
       timeLeft: '1d 8h',
       entryCost: 30,
       isLive: true,
-      isPrize: false,
+      isPrize: true,
     },
   ];
 
@@ -333,6 +333,7 @@ const EventsPage = () => {
                       <EventCard
                         {...event}
                         onBuyTickets={handleBuyTickets}
+                        hideBuyButton={true}
                       />
                       <EventDetailsSection details={eventDetails} />
                     </Box>

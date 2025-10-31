@@ -16,6 +16,7 @@ interface EventCardProps {
   isLive?: boolean;
   isPrize?: boolean;
   onBuyTickets?: (eventId: number) => void;
+  hideBuyButton?: boolean;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
@@ -30,6 +31,7 @@ const EventCard: React.FC<EventCardProps> = ({
   // isLive = true,
   isPrize = true,
   onBuyTickets,
+  hideBuyButton = false,
 }) => {
   return (
     <Box sx={{ width: '100%', padding: '18px', backgroundColor: '#3920A6',borderRadius: '10px'}}>
@@ -282,29 +284,31 @@ background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA
       </Box>
 
       {/* Buy Tickets Button */}
-      <Box sx={{ px:'11px', pb:'11px'}}>
-        <Button
-          fullWidth
-          onClick={() => onBuyTickets?.(id)}
-          sx={{
-            background: 'linear-gradient(180deg, #ffa726 0%, #ff8f00 100%)',
-            color: '#ffffff',
-            // Font sizes: xs: 16px, sm: 18px, md: 22px
-            fontSize: { xs: 16, sm: 18, md: 22 },
-            fontWeight: 900,
-            textTransform: 'none',
-            borderRadius: '30px',
-            padding: '14px',
-            boxShadow: '0 4px 12px rgba(255,152,0,0.4)',
-            '&:hover': {
-              background: 'linear-gradient(180deg, #ffb74d 0%, #ffa726 100%)',
-              boxShadow: '0 6px 16px rgba(255,152,0,0.6)',
-            },
-          }}
-        >
-          Buy Tickets
-        </Button>
-      </Box>
+      {!hideBuyButton && (
+        <Box sx={{ px:'11px', pb:'11px'}}>
+          <Button
+            fullWidth
+            onClick={() => onBuyTickets?.(id)}
+            sx={{
+              background: 'linear-gradient(180deg, #ffa726 0%, #ff8f00 100%)',
+              color: '#ffffff',
+              // Font sizes: xs: 16px, sm: 18px, md: 22px
+              fontSize: { xs: 16, sm: 18, md: 22 },
+              fontWeight: 900,
+              textTransform: 'none',
+              borderRadius: '30px',
+              padding: '14px',
+              boxShadow: '0 4px 12px rgba(255,152,0,0.4)',
+              '&:hover': {
+                background: 'linear-gradient(180deg, #ffb74d 0%, #ffa726 100%)',
+                boxShadow: '0 6px 16px rgba(255,152,0,0.6)',
+              },
+            }}
+          >
+            Buy Tickets
+          </Button>
+        </Box>
+      )}
     </Box>
     </Box>
   );
