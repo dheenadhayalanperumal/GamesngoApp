@@ -770,10 +770,37 @@ const EventsPage = () => {
 
                 {/* Mission Sub-tab */}
                 <TabPanel value={activeSubTab} index={1}>
-                  <MissionSection
-                    missionData={missionData}
-                    onPlayGame={handlePlayGame}
-                  />
+                  {isLoadingEventDetails ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : selectedEventDetails && selectedEventDetails.mission && selectedEventDetails.mission.length > 0 ? (
+                    <MissionSection
+                      missionData={{
+                        id: selectedEventDetails.id,
+                        title: selectedEventDetails.title,
+                        subtitle: selectedEventDetails.category,
+                        image: selectedEventDetails.game.bannerUrl || selectedEventDetails.prize?.product?.coverUrl || '/images/product/p1.png',
+                        playButtonText: 'Play Now',
+                        eventMission: {
+                          title: 'Event Mission',
+                          items: selectedEventDetails.mission.map((mission, index) => ({
+                            id: index + 1,
+                            title: mission,
+                            description: mission,
+                            isCompleted: false, // API doesn't provide completion status
+                          }))
+                        }
+                      }}
+                      onPlayGame={handlePlayGame}
+                    />
+                  ) : (
+                    <Box sx={{ textAlign: 'center', py: 8 }}>
+                      <Typography sx={{ color: '#888', fontSize: 16 }}>
+                        No mission data available
+                      </Typography>
+                    </Box>
+                  )}
                 </TabPanel>
 
                 {/* Leaderboard Sub-tab */}
