@@ -16,6 +16,10 @@ export interface EventData {
   entryCost: number;
   isLive: boolean;
   isPrize: boolean;
+  canRegister?: boolean;
+  alreadyRegistered?: boolean;
+  startAt?: string;
+  endAt?: string;
 }
 
 interface EventsListProps {

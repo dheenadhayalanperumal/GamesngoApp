@@ -17,6 +17,10 @@ interface EventCardProps {
   entryCost: number;
   isLive?: boolean;
   isPrize?: boolean;
+  canRegister?: boolean;
+  alreadyRegistered?: boolean;
+  startAt?: string;
+  endAt?: string;
   onBuyTickets?: (eventId: number) => void;
   hideBuyButton?: boolean;
   onClick?: () => void;
@@ -34,10 +38,58 @@ const EventCard: React.FC<EventCardProps> = ({
   entryCost,
   // isLive = true,
   isPrize = true,
+  canRegister,
+  alreadyRegistered,
+  startAt,
+  endAt,
   onBuyTickets,
   hideBuyButton = false,
   onClick,
 }) => {
+  // Format date to readable format
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = { 
+      month: 'short', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    };
+    return date.toLocaleDateString('en-US', options);
+  };
+  // Determine button state and text
+  // Priority: 1. Already Registered, 2. Room Full, 3. Can Buy
+  const isRoomFull = roomSize !== undefined && roomSize > 0 && players >= roomSize;
+  
+  // Check if user is already registered or cannot register
+  // If alreadyRegistered is explicitly true OR canRegister is explicitly false, user cannot register
+  const checkAlreadyRegistered = alreadyRegistered === true;
+  const checkCannotRegister = canRegister === false;
+  const isAlreadyRegistered = checkAlreadyRegistered || checkCannotRegister;
+  const isDisabled = isAlreadyRegistered || isRoomFull;
+  
+  // Determine button text with clear priority
+  let buttonText = 'Buy Tickets';
+  if (checkAlreadyRegistered || checkCannotRegister) {
+    buttonText = 'Already Registered';
+  } else if (isRoomFull) {
+    buttonText = 'Room is Full';
+  }
+  
+  // Debug logging
+  console.log('EventCard - Event ID:', id, {
+    alreadyRegistered,
+    canRegister,
+    checkAlreadyRegistered,
+    checkCannotRegister,
+    isAlreadyRegistered,
+    players,
+    roomSize,
+    isRoomFull,
+    isDisabled,
+    buttonText,
+    'Final button text will be': buttonText
+  });
   return (
     <Box 
       sx={{ 
@@ -214,83 +266,159 @@ background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA
           gap: 2,
         }}
       >
-        <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Typography
-            sx={{
-              // Font sizes: xs: 20px, sm: 24px, md: 28px
-              fontSize: { xs: 20, sm: 24, md: 28 },
-              fontWeight: 900,
-              color: '#ffffff',
-              lineHeight: 1,
-              mb: 0.5,
-            }}
-          >
-            {roomSize ? `${players}/${roomSize}` : players}
-          </Typography>
-          <Typography
-            sx={{
-              // Font sizes: xs: 10px, sm: 11px, md: 13px
-              fontSize: { xs: 10, sm: 11, md: 13 },
-              fontWeight: 600,
-              color: 'rgba(255,255,255,0.9)',
-            }}
-          >
-            Players
-          </Typography>
-        </Box>
+        {/* Show dates if this is "Your Events" (has startAt/endAt), otherwise show regular stats */}
+        {startAt && endAt ? (
+          <>
+            <Box sx={{ textAlign: 'center', flex: 1 }}>
+              <Typography
+                sx={{
+                  fontSize: { xs: 12, sm: 13, md: 14 },
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  lineHeight: 1.2,
+                  mb: 0.5,
+                }}
+              >
+                {formatDate(startAt)}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: { xs: 10, sm: 11, md: 13 },
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.9)',
+                }}
+              >
+                Start Date
+              </Typography>
+            </Box>
 
-        <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Typography
-            sx={{
-              // Font sizes: xs: 20px, sm: 24px, md: 28px
-              fontSize: { xs: 20, sm: 24, md: 28 },
-              fontWeight: 900,
-              color: '#ffffff',
-              lineHeight: 1,
-              mb: 0.5,
-            }}
-          >
-            {timeLeft}
-          </Typography>
-          <Typography
-            sx={{
-              // Font sizes: xs: 10px, sm: 11px, md: 13px
-              fontSize: { xs: 10, sm: 11, md: 13 },
-              fontWeight: 600,
-              color: 'rgba(255,255,255,0.9)',
-            }}
-          >
-            Time Left
-          </Typography>
-        </Box>
+            <Box sx={{ textAlign: 'center', flex: 1 }}>
+              <Typography
+                sx={{
+                  fontSize: { xs: 12, sm: 13, md: 14 },
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  lineHeight: 1.2,
+                  mb: 0.5,
+                }}
+              >
+                {formatDate(endAt)}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: { xs: 10, sm: 11, md: 13 },
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.9)',
+                }}
+              >
+                End Date
+              </Typography>
+            </Box>
 
-        <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-            <Typography
-              sx={{
-                // Font sizes: xs: 20px, sm: 24px, md: 28px
-                fontSize: { xs: 20, sm: 24, md: 28 },
-                fontWeight: 900,
-                color: '#ffffff',
-                lineHeight: 1,
-              }}
-            >
-              {entryCost}
-            </Typography>
-            <Image src={CoinIcon} alt="Coin" width={20} height={20} />
-          </Box>
-          <Typography
-            sx={{
-              // Font sizes: xs: 10px, sm: 11px, md: 13px
-              fontSize: { xs: 10, sm: 11, md: 13 },
-              fontWeight: 600,
-              color: 'rgba(255,255,255,0.9)',
-              mt: 0.5,
-            }}
-          >
-            Entry Cost
-          </Typography>
-        </Box>
+            <Box sx={{ textAlign: 'center', flex: 1 }}>
+              <Typography
+                sx={{
+                  fontSize: { xs: 20, sm: 24, md: 28 },
+                  fontWeight: 900,
+                  color: '#ffffff',
+                  lineHeight: 1,
+                  mb: 0.5,
+                }}
+              >
+                {timeLeft}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: { xs: 10, sm: 11, md: 13 },
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.9)',
+                }}
+              >
+                Time Left
+              </Typography>
+            </Box>
+          </>
+        ) : (
+          <>
+            <Box sx={{ textAlign: 'center', flex: 1 }}>
+              <Typography
+                sx={{
+                  // Font sizes: xs: 20px, sm: 24px, md: 28px
+                  fontSize: { xs: 20, sm: 24, md: 28 },
+                  fontWeight: 900,
+                  color: '#ffffff',
+                  lineHeight: 1,
+                  mb: 0.5,
+                }}
+              >
+                {roomSize ? `${players}/${roomSize}` : players}
+              </Typography>
+              <Typography
+                sx={{
+                  // Font sizes: xs: 10px, sm: 11px, md: 13px
+                  fontSize: { xs: 10, sm: 11, md: 13 },
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.9)',
+                }}
+              >
+                Players
+              </Typography>
+            </Box>
+
+            <Box sx={{ textAlign: 'center', flex: 1 }}>
+              <Typography
+                sx={{
+                  // Font sizes: xs: 20px, sm: 24px, md: 28px
+                  fontSize: { xs: 20, sm: 24, md: 28 },
+                  fontWeight: 900,
+                  color: '#ffffff',
+                  lineHeight: 1,
+                  mb: 0.5,
+                }}
+              >
+                {timeLeft}
+              </Typography>
+              <Typography
+                sx={{
+                  // Font sizes: xs: 10px, sm: 11px, md: 13px
+                  fontSize: { xs: 10, sm: 11, md: 13 },
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.9)',
+                }}
+              >
+                Time Left
+              </Typography>
+            </Box>
+
+            <Box sx={{ textAlign: 'center', flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                <Typography
+                  sx={{
+                    // Font sizes: xs: 20px, sm: 24px, md: 28px
+                    fontSize: { xs: 20, sm: 24, md: 28 },
+                    fontWeight: 900,
+                    color: '#ffffff',
+                    lineHeight: 1,
+                  }}
+                >
+                  {entryCost}
+                </Typography>
+                <Image src={CoinIcon} alt="Coin" width={20} height={20} />
+              </Box>
+              <Typography
+                sx={{
+                  // Font sizes: xs: 10px, sm: 11px, md: 13px
+                  fontSize: { xs: 10, sm: 11, md: 13 },
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.9)',
+                  mt: 0.5,
+                }}
+              >
+                Entry Cost
+              </Typography>
+            </Box>
+          </>
+        )}
       </Box>
 
       {/* Buy Tickets Button */}
@@ -298,9 +426,12 @@ background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA
         <Box sx={{ px:'11px', pb:'11px'}} onClick={(e) => e.stopPropagation()}>
           <Button
             fullWidth
-            onClick={() => onBuyTickets?.(id)}
+            disabled={isDisabled}
+            onClick={() => !isDisabled && onBuyTickets?.(id)}
             sx={{
-              background: 'linear-gradient(180deg, #ffa726 0%, #ff8f00 100%)',
+              background: isDisabled 
+                ? 'linear-gradient(180deg, #bdbdbd 0%, #9e9e9e 100%)'
+                : 'linear-gradient(180deg, #ffa726 0%, #ff8f00 100%)',
               color: '#ffffff',
               // Font sizes: xs: 16px, sm: 18px, md: 22px
               fontSize: { xs: 16, sm: 18, md: 22 },
@@ -308,14 +439,25 @@ background: 'radial-gradient(172.37% 47.88% at 21.37% 61.62%, #3128CA 0%, #231CA
               textTransform: 'none',
               borderRadius: '30px',
               padding: '14px',
-              boxShadow: '0 4px 12px rgba(255,152,0,0.4)',
+              boxShadow: isDisabled 
+                ? 'none'
+                : '0 4px 12px rgba(255,152,0,0.4)',
+              cursor: isDisabled ? 'not-allowed' : 'pointer',
               '&:hover': {
-                background: 'linear-gradient(180deg, #ffb74d 0%, #ffa726 100%)',
-                boxShadow: '0 6px 16px rgba(255,152,0,0.6)',
+                background: isDisabled
+                  ? 'linear-gradient(180deg, #bdbdbd 0%, #9e9e9e 100%)'
+                  : 'linear-gradient(180deg, #ffb74d 0%, #ffa726 100%)',
+                boxShadow: isDisabled 
+                  ? 'none'
+                  : '0 6px 16px rgba(255,152,0,0.6)',
+              },
+              '&:disabled': {
+                background: 'linear-gradient(180deg, #bdbdbd 0%, #9e9e9e 100%)',
+                color: '#ffffff',
               },
             }}
           >
-            Buy Tickets
+            {buttonText}
           </Button>
         </Box>
       )}

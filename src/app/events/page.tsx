@@ -12,6 +12,8 @@ import MissionSection, { MissionData } from '@/components/events/MissionSection'
 import EventsList, { EventData } from '@/components/events/EventsList';
 import EmptyState from '@/components/events/EmptyState';
 import ConfirmBuyTicketsPopup from '@/components/events/ConfirmBuyTicketsPopup';
+import LoginPopup from '@/components/LoginPopup';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -65,16 +67,41 @@ interface ApiEvent {
     isUpcoming: boolean;
     isEnded: boolean;
   };
+  canRegister: boolean;
+  alreadyRegistered?: boolean;
+}
+
+interface MyEventApiResponse {
+  id: number;
+  event: {
+    id: number;
+    title: string;
+    startAt: string;
+    endAt: string;
+  };
+  game: {
+    id: number;
+    name: string;
+    bannerUrl: string;
+  };
+  status: string;
+  score: number | null;
+  joinedAt: string;
 }
 
 const EventsPage = () => {
+  const { isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [activeSubTab, setActiveSubTab] = useState(0);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [selectedYourEventId, setSelectedYourEventId] = useState<number | null>(null);
   const [liveEvents, setLiveEvents] = useState<EventData[]>([]);
+  const [yourEvents, setYourEvents] = useState<EventData[]>([]);
   const [isLoadingLiveEvents, setIsLoadingLiveEvents] = useState(true);
+  const [isLoadingYourEvents, setIsLoadingYourEvents] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -89,22 +116,109 @@ const EventsPage = () => {
   };
 
   const handleBuyTickets = (eventId: number) => {
+    console.log('handleBuyTickets called with eventId:', eventId);
+    // Check if user is logged in
+    if (!isLoggedIn) {
+      setSelectedEventId(eventId);
+      setIsLoginPopupOpen(true);
+      return;
+    }
+    
+    // If logged in, show confirmation popup
     setSelectedEventId(eventId);
     setIsConfirmOpen(true);
   };
 
-  const handleConfirmBuy = () => {
-    if (selectedEventId) {
-      console.log(`Buying tickets for event ${selectedEventId}`);
-      // Add your ticket buying logic here
-      // After successful purchase, you might want to refresh the events list
+  const handleConfirmBuy = async () => {
+    if (!selectedEventId) return;
+    
+    console.log('handleConfirmBuy - selectedEventId:', selectedEventId);
+    console.log('Registering for event:', selectedEventId);
+    
+    setIsRegistering(true);
+    try {
+      const response = await fetch(`/api/events/${selectedEventId}/register`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        console.log('Event registration successful:', data);
+        alert('Successfully registered for the event!');
+        
+        // Close confirmation popup
+        setIsConfirmOpen(false);
+        setSelectedEventId(null);
+        
+        // Refresh live events list to update player counts
+        if (activeTab === 0) {
+          const refreshResponse = await fetch('/api/public/events?scope=live');
+          const refreshData = await refreshResponse.json();
+          if (refreshResponse.ok && refreshData.status === 'success' && refreshData.events) {
+            const transformedEvents = refreshData.events.map(transformEvent);
+            setLiveEvents(transformedEvents);
+          }
+        }
+      } else {
+        // Handle different error codes
+        let errorMessage = 'Failed to register for event';
+        
+        switch (response.status) {
+          case 401:
+            errorMessage = 'Please login to register for events';
+            setIsConfirmOpen(false);
+            setIsLoginPopupOpen(true);
+            break;
+          case 402:
+            errorMessage = 'Insufficient coins. Please recharge your wallet.';
+            break;
+          case 404:
+            errorMessage = 'Event not available';
+            break;
+          case 409:
+            errorMessage = 'You have already registered for this event';
+            break;
+          case 422:
+            errorMessage = data.message || 'Event not yet started, already ended, or full';
+            break;
+          case 500:
+            errorMessage = 'Registration error. Please try again.';
+            break;
+          default:
+            errorMessage = data.message || 'Failed to register for event';
+        }
+        
+        alert(errorMessage);
+      }
+    } catch (error) {
+      console.error('Error registering for event:', error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      setIsRegistering(false);
     }
-    setSelectedEventId(null);
   };
 
   const handleCloseConfirm = () => {
     setIsConfirmOpen(false);
     setSelectedEventId(null);
+  };
+
+  const handleLoginPopupClose = () => {
+    setIsLoginPopupOpen(false);
+    // Reset selected event if user closes login without logging in
+    if (!isLoggedIn) {
+      setSelectedEventId(null);
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    setIsLoginPopupOpen(false);
+    // After login, if there's a selected event, show confirmation popup
+    if (selectedEventId) {
+      setIsConfirmOpen(true);
+    }
   };
 
   const handlePlayGame = (missionId: number) => {
@@ -141,6 +255,8 @@ const EventsPage = () => {
 
   // Transform API event to EventData format
   const transformEvent = (apiEvent: ApiEvent): EventData => {
+    console.log('transformEvent - apiEvent.id:', apiEvent.id, 'apiEvent.game.id:', apiEvent.game?.id);
+    
     const prizeValue = apiEvent.prize?.product?.worthCoins 
       ? `₹${apiEvent.prize.product.worthCoins}` 
       : apiEvent.prize?.prizeCoins 
@@ -149,8 +265,8 @@ const EventsPage = () => {
     
     const imageUrl = apiEvent.game?.bannerUrl || apiEvent.prize?.product?.coverUrl || '/images/product/p1.png';
     
-    return {
-      id: apiEvent.id,
+    const transformedEvent = {
+      id: apiEvent.id, // Make sure we use event.id, NOT game.id
       title: apiEvent.title,
       description: apiEvent.category || apiEvent.title,
       image: imageUrl,
@@ -161,7 +277,17 @@ const EventsPage = () => {
       entryCost: apiEvent.entryCost,
       isLive: apiEvent.state.isLive,
       isPrize: !!apiEvent.prize?.product || !!apiEvent.prize?.prizeCoins,
+      canRegister: apiEvent.canRegister,
+      alreadyRegistered: apiEvent.alreadyRegistered,
     };
+    
+    console.log('transformEvent - Event ID:', transformedEvent.id, {
+      canRegister: transformedEvent.canRegister,
+      alreadyRegistered: transformedEvent.alreadyRegistered,
+      apiEventCanRegister: apiEvent.canRegister,
+      apiEventAlreadyRegistered: apiEvent.alreadyRegistered
+    });
+    return transformedEvent;
   };
 
   // Fetch live events from API
@@ -171,7 +297,7 @@ const EventsPage = () => {
       
       try {
         setIsLoadingLiveEvents(true);
-        const response = await fetch('/api/public/events?filter=live');
+        const response = await fetch('/api/public/events');
         const data = await response.json();
 
         console.log('API Response:', data);
@@ -196,6 +322,64 @@ const EventsPage = () => {
 
     fetchLiveEvents();
   }, [activeTab]);
+
+  // Transform "My Events" API response to EventData format
+  const transformMyEvent = (myEventApi: MyEventApiResponse): EventData => {
+    // Calculate time left from endAt
+    const endTime = new Date(myEventApi.event.endAt).getTime();
+    const now = new Date().getTime();
+    const timeLeftSeconds = Math.max(0, Math.floor((endTime - now) / 1000));
+    
+    return {
+      id: myEventApi.event.id, // Use event.id, not the participation id
+      title: myEventApi.event.title,
+      description: myEventApi.game.name,
+      image: myEventApi.game.bannerUrl || '/images/product/p1.png',
+      prizeValue: '—', // Not provided in my events API
+      players: 0, // Not provided in my events API
+      roomSize: undefined,
+      timeLeft: formatTimeLeft(timeLeftSeconds),
+      entryCost: 0, // Not provided in my events API
+      isLive: myEventApi.status === 'Joined', // Consider "Joined" as live
+      isPrize: false, // We don't have prize info in my events
+      canRegister: false, // Already registered
+      alreadyRegistered: true, // User has joined this event
+      startAt: myEventApi.event.startAt,
+      endAt: myEventApi.event.endAt,
+    };
+  };
+
+  // Fetch "Your Events" from API
+  useEffect(() => {
+    const fetchYourEvents = async () => {
+      if (activeTab !== 1 || !isLoggedIn) return; // Only fetch when on Your Events tab and user is logged in
+      
+      try {
+        setIsLoadingYourEvents(true);
+        const response = await fetch('/api/events/my');
+        const data = await response.json();
+
+        console.log('Your Events API Response:', data);
+        console.log('Number of your events:', data.events?.length);
+
+        if (response.ok && data.status === 'success' && data.events) {
+          const transformedEvents = data.events.map(transformMyEvent);
+          console.log('Transformed your events:', transformedEvents);
+          setYourEvents(transformedEvents);
+        } else {
+          console.error('Failed to fetch your events:', data);
+          setYourEvents([]);
+        }
+      } catch (error) {
+        console.error('Error fetching your events:', error);
+        setYourEvents([]);
+      } finally {
+        setIsLoadingYourEvents(false);
+      }
+    };
+
+    fetchYourEvents();
+  }, [activeTab, isLoggedIn]);
 
   // Function to load mission data from API
   // const loadMissionData = async (missionId: number) => {
@@ -353,20 +537,7 @@ const EventsPage = () => {
   ];
 
 
-  const yourEvents: EventData[] = [
-    {
-      id: 3,
-      title: 'My Gaming Event',
-      description: 'Your registered gaming event',
-      image: '/images/product/p1.png',
-      prizeValue: '₹10,000',
-      players: 32,
-      timeLeft: '1d 8h',
-      entryCost: 30,
-      isLive: true,
-      isPrize: true,
-    },
-  ];
+  // yourEvents is now fetched from API and stored in state
 
   // Event details data
   const eventDetails: string[] = [
@@ -421,7 +592,11 @@ const EventsPage = () => {
           {selectedYourEventId === null ? (
             // Show all events list
             <>
-              {yourEvents.length > 0 ? (
+              {isLoadingYourEvents ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+                  <CircularProgress />
+                </Box>
+              ) : yourEvents.length > 0 ? (
                 <EventsList 
                   events={yourEvents} 
                   onBuyTickets={handleBuyTickets}
@@ -511,6 +686,14 @@ const EventsPage = () => {
         isOpen={isConfirmOpen}
         onClose={handleCloseConfirm}
         onConfirm={handleConfirmBuy}
+        isLoading={isRegistering}
+      />
+
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={isLoginPopupOpen}
+        onClose={handleLoginPopupClose}
+        onLogin={handleLoginSuccess}
       />
     </Box>
   );

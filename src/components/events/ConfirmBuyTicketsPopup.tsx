@@ -15,16 +15,18 @@ interface ConfirmBuyTicketsPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  isLoading?: boolean;
 }
 
 const ConfirmBuyTicketsPopup: React.FC<ConfirmBuyTicketsPopupProps> = ({
   isOpen,
   onClose,
   onConfirm,
+  isLoading = false,
 }) => {
   const handleYes = () => {
     onConfirm();
-    onClose();
+    // Don't close here - let the parent handle closing after successful registration
   };
 
   const handleNo = () => {
@@ -122,6 +124,7 @@ const ConfirmBuyTicketsPopup: React.FC<ConfirmBuyTicketsPopupProps> = ({
             {/* No Button */}
             <Button
               onClick={handleNo}
+              disabled={isLoading}
               variant="outlined"
               sx={{
                 flex: 1,
@@ -138,6 +141,10 @@ const ConfirmBuyTicketsPopup: React.FC<ConfirmBuyTicketsPopupProps> = ({
                   borderColor: '#3F3F7F',
                   backgroundColor: 'rgba(63, 63, 127, 0.1)',
                 },
+                '&:disabled': {
+                  borderColor: '#ccc',
+                  color: '#ccc',
+                },
               }}
             >
               No
@@ -146,9 +153,10 @@ const ConfirmBuyTicketsPopup: React.FC<ConfirmBuyTicketsPopupProps> = ({
             {/* Yes Button */}
             <Button
               onClick={handleYes}
+              disabled={isLoading}
               sx={{
                 flex: 1,
-                backgroundColor: '#FFC107',
+                backgroundColor: isLoading ? '#ccc' : '#FFC107',
                 color: '#ffffff',
                 borderRadius: '10px',
                 padding: '14px',
@@ -156,14 +164,14 @@ const ConfirmBuyTicketsPopup: React.FC<ConfirmBuyTicketsPopupProps> = ({
                 fontWeight: 700,
                 textTransform: 'none',
                 fontFamily: 'Rubik',
-                boxShadow: '0 4px 12px rgba(255, 193, 7, 0.4)',
+                boxShadow: isLoading ? 'none' : '0 4px 12px rgba(255, 193, 7, 0.4)',
                 '&:hover': {
-                  backgroundColor: '#FFD54F',
-                  boxShadow: '0 6px 16px rgba(255, 193, 7, 0.6)',
+                  backgroundColor: isLoading ? '#ccc' : '#FFD54F',
+                  boxShadow: isLoading ? 'none' : '0 6px 16px rgba(255, 193, 7, 0.6)',
                 },
               }}
             >
-              Yes
+              {isLoading ? 'Registering...' : 'Yes'}
             </Button>
           </Box>
         </Box>
