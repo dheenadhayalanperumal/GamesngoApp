@@ -46,14 +46,15 @@ const EventCard: React.FC<EventCardProps> = ({
   hideBuyButton = false,
   onClick,
 }) => {
-  // Format date to readable format
+  // Format date to readable format with 24-hour time
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const options: Intl.DateTimeFormatOptions = { 
       month: 'short', 
       day: 'numeric', 
       hour: '2-digit', 
-      minute: '2-digit' 
+      minute: '2-digit',
+      hour12: false // Use 24-hour format
     };
     return date.toLocaleDateString('en-US', options);
   };
