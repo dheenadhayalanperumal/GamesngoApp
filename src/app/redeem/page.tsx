@@ -666,7 +666,7 @@ export default function RedeemPage() {
                       }}
                     >
                       <Image
-                        src={offer.product.coverUrl}
+                        src={offer.product.coverUrl || '/images/banner/headphone.svg'}
                         alt={offer.product.title}
                         width={140}
                         height={140}
