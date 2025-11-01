@@ -119,13 +119,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     if (!isLoggedIn) {
       setIsLoginOpen(true);
     } else {
-      router.push('/saved-address');
+      // Pass product ID as URL param
+      router.push(`/saved-address?productId=${resolvedParams.id}`);
     }
   };
 
   const handleLoginSuccess = () => {
     setIsLoginOpen(false);
-    router.push('/saved-address');
+    router.push(`/saved-address?productId=${resolvedParams.id}`);
   };
 
   const toggleBookmark = () => {

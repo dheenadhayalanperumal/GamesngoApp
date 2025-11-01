@@ -83,8 +83,18 @@ export default function SavedAddressPage() {
   };
 
   const handleAddressClick = (addressId: number) => {
-    // Navigate to items view page
-    router.push('/items-view');
+    // Get productId from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('productId');
+    
+    if (productId) {
+      // Navigate to items view page with product and address IDs
+      router.push(`/items-view?productId=${productId}&addressId=${addressId}`);
+    } else {
+      console.error('Product ID not found in URL');
+      // Fallback - navigate without productId (shouldn't happen in normal flow)
+      router.push(`/items-view?addressId=${addressId}`);
+    }
   };
 
   const handleRemoveAddress = (addressId: number) => {

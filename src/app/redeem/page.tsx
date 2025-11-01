@@ -203,17 +203,32 @@ export default function RedeemPage() {
     router.push(`/redeem/product/${productId}`);
   };
 
-  const handleRedeemClick = () => {
+  const handleRedeemClick = (productId?: number) => {
     if (!isLoggedIn) {
       setIsLoginOpen(true);
+      // Store productId in sessionStorage for after login
+      if (productId) {
+        sessionStorage.setItem('pendingProductId', productId.toString());
+      }
     } else {
-      router.push('/saved-address');
+      if (productId) {
+        router.push(`/saved-address?productId=${productId}`);
+      } else {
+        router.push('/saved-address');
+      }
     }
   };
 
   const handleLoginSuccess = () => {
     setIsLoginOpen(false);
-    router.push('/saved-address');
+    // Get pending productId from sessionStorage if exists
+    const pendingProductId = sessionStorage.getItem('pendingProductId');
+    if (pendingProductId) {
+      sessionStorage.removeItem('pendingProductId');
+      router.push(`/saved-address?productId=${pendingProductId}`);
+    } else {
+      router.push('/saved-address');
+    }
   };
 
   // Auto-slider functionality for banners
@@ -750,7 +765,10 @@ export default function RedeemPage() {
                       <Button
                       variant="contained"
                       fullWidth
-                      onClick={handleRedeemClick}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRedeemClick(offer.product.id);
+                      }}
                         sx={{
                         background: '#6E6EFF',
                         color: 'white',
@@ -938,7 +956,10 @@ export default function RedeemPage() {
 
                           {/* Redeem Button */}
                           <Button
-                            onClick={handleRedeemClick}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRedeemClick(product.id);
+                            }}
                             sx={{
                               background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
                               color: '#1A1A1A',
