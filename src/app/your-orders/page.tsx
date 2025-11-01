@@ -1,70 +1,132 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, Typography, IconButton, Card, CardContent, Button, Fab } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, IconButton, Card, CardContent, Button, Fab, CircularProgress, Alert } from '@mui/material';
 import { 
   ShoppingCart, 
-  KeyboardArrowDown, 
   ChevronLeft,
-  SportsEsports,
-  LocalMovies,
-  Restaurant,
-  Today,
-  Leaderboard,
-  Home,
-  Event,
   CheckCircle,
   RadioButtonUnchecked
 } from '@mui/icons-material';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import HeaderWithBack from '@/components/HeaderWithBack';
+import TabBar from '@/components/TabBar';
+
+interface Product {
+  id: number;
+  title: string;
+  coverUrl: string | null;
+  actualCoin: number;
+  discountCoin: number;
+  unitPrice: number;
+  qty: number;
+}
+
+interface Order {
+  id: number;
+  orderNo: string;
+  status: string;
+  createdAt: string;
+  product: Product;
+  total: number;
+}
+
+interface OrdersResponse {
+  status: string;
+  orders: Order[];
+}
 
 export default function YourOrdersPage() {
   const router = useRouter();
-  const [orders] = useState([
-    {
-      id: 1,
-      name: 'SanDisk SDCZ48-064G 6...',
-      storage: '64 GB RAM',
-      specs: ['USB 3.0 | 64 GB', 'Plastic Body...'],
-      status: 'In Progress',
-      statusColor: '#4CAF50',
-      deliveryDate: 'Expected Delivery by 12 Sep 25',
-      image: '/images/banner/usb_drive.svg'
-    },
-    {
-      id: 2,
-      name: 'SanDisk SDCZ48-064G 6...',
-      storage: '64 GB RAM',
-      specs: ['USB 3.0 | 64 GB', 'Plastic Body...'],
-      status: 'Delivered',
-      statusColor: '#3C3CD2',
-      deliveryDate: 'Delivered by 12 Sep 25',
-      image: '/images/banner/usb_drive.svg'
-    },
-    {
-      id: 3,
-      name: 'SanDisk SDCZ48-064G 6...',
-      storage: '64 GB RAM',
-      specs: ['USB 3.0 | 64 GB', 'Plastic Body...'],
-      status: 'Delivered',
-      statusColor: '#3C3CD2',
-      deliveryDate: 'Delivered by 12 Sep 25',
-      image: '/images/banner/usb_drive.svg'
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch orders from API
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetch('/api/orders?limit=50', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        const data: OrdersResponse = await response.json();
+        console.log('Orders API Response:', data);
+
+        if (response.ok && data.status === 'success') {
+          setOrders(data.orders || []);
+        } else {
+          if (response.status === 401) {
+            setError('Please login to view orders');
+          } else {
+            setError(data.message || 'Failed to fetch orders');
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching orders:', err);
+        setError('Failed to fetch orders. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  // Format date for display
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch {
+      return dateString;
     }
-  ]);
-
-  const handleBack = () => {
-    router.back();
   };
 
-  const handleViewDetails = (orderId: number) => {
-    router.push(`/order-details/${orderId}`);
+  // Get status color
+  const getStatusColor = (status: string): string => {
+    switch (status.toLowerCase()) {
+      case 'processing':
+        return '#4CAF50';
+      case 'shipped':
+        return '#FF9800';
+      case 'delivered':
+        return '#3C3CD2';
+      case 'cancelled':
+        return '#F44336';
+      default:
+        return '#616161';
+    }
   };
 
-  const handleBottomNavClick = (item: string) => {
-    console.log('Clicked bottom nav:', item);
-    // Handle navigation based on bottom nav item
+  // Get delivery message based on status
+  const getDeliveryMessage = (status: string, createdAt: string): string => {
+    switch (status.toLowerCase()) {
+      case 'processing':
+        return `Order placed on ${formatDate(createdAt)}`;
+      case 'shipped':
+        return 'Expected Delivery soon';
+      case 'delivered':
+        return `Delivered on ${formatDate(createdAt)}`;
+      default:
+        return `Order placed on ${formatDate(createdAt)}`;
+    }
+  };
+
+  const handleViewDetails = (orderIdOrNo: number | string) => {
+    router.push(`/order-details/${orderIdOrNo}`);
   };
 
   const handleFabClick = () => {
@@ -86,73 +148,18 @@ export default function YourOrdersPage() {
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 1100,
-          background: '#3C3CD2',
-          padding: { xs: '12px 16px', sm: '15px 20px', md: '15px 24px' },
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          minHeight: { xs: '60px', sm: '70px', md: '80px' }
+          zIndex: 1100
         }}
       >
-        {/* Back Button */}
-        <Box 
-          onClick={handleBack}
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            color: 'white',
-            cursor: 'pointer',
-            transition: 'opacity 0.3s ease',
-            '&:hover': {
-              opacity: 0.8
-            }
-          }}
-        >
-          <IconButton 
-            sx={{ 
-              color: 'white',
-              padding: { xs: 0.5, sm: 1, md: 1 },
-              mr: 1
-            }}
-          >
-            <ChevronLeft sx={{ 
-              fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-            }} />
-          </IconButton>
-          <Typography sx={{ 
-            fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-            fontWeight: 600,
-            fontFamily: 'Arial, sans-serif'
-          }}>
-            Back
-          </Typography>
-        </Box>
-
-        {/* Wallet */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          color: 'white',
-          gap: { xs: 0.5, sm: 1, md: 1 }
-        }}>
-          <Typography sx={{ 
-            mr: { xs: 0.5, sm: 1, md: 1 }, 
-            fontWeight: 600,
-            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-            fontFamily: 'Arial, sans-serif'
-          }}>
-            Wallet
-          </Typography>
-          <KeyboardArrowDown sx={{ 
-            fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-          }} />
-        </Box>
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#3C3CD2"
+        />
       </Box>
 
       {/* Main Content */}
       <Box sx={{ 
-        pt: { xs: '70px', sm: '80px', md: '90px' }, 
+        pt: { xs: '64px', sm: '64px', md: '64px' }, 
         pb: { xs: '100px', sm: '120px', md: '140px' },
         px: { xs: 2, sm: 3, md: 4 },
         background: '#ffffff',
@@ -174,16 +181,34 @@ export default function YourOrdersPage() {
           Your Orders
         </Typography>
 
-        {/* Orders List */}
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '6px',
-          padding: '12px',
-          borderRadius: '10px',
-          background: '#EEE'
-        }}>
-          {orders.map((order) => (
+        {/* Loading State */}
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+            <CircularProgress size={60} sx={{ color: '#3C3CD2' }} />
+          </Box>
+        ) : error ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+            <Alert severity="error">{error}</Alert>
+          </Box>
+        ) : orders.length === 0 ? (
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <Typography sx={{ color: '#666', fontSize: '1rem' }}>
+              No orders found. Start redeeming products to see your orders here.
+            </Typography>
+          </Box>
+        ) : (
+          /* Orders List */
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '6px',
+            padding: '12px',
+            borderRadius: '10px',
+            background: '#EEE'
+          }}>
+            {orders.map((order) => {
+              const statusColor = getStatusColor(order.status);
+              return (
             <Card
               key={order.id}
               sx={{
@@ -216,14 +241,17 @@ export default function YourOrdersPage() {
                     }}
                   >
                     <Image
-                      src={order.image}
-                      alt={order.name}
+                      src={order.product.coverUrl || '/images/banner/headphone.svg'}
+                      alt={order.product.title}
                       width={100}
                       height={100}
                       style={{
                         width: '100%',
                         height: '100%',
                         objectFit: 'contain'
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.src = '/images/banner/headphone.svg';
                       }}
                     />
                   </Box>
@@ -239,78 +267,78 @@ export default function YourOrdersPage() {
                       fontFamily: 'Arial, sans-serif',
                       lineHeight: 1.2
                     }}>
-                      {order.name}
+                      {order.product.title}
                     </Typography>
 
-                    {/* Storage */}
+                    {/* Order Number */}
                     <Typography sx={{
-                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                      fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
                       color: '#666666',
-                      mb: 1,
+                      mb: 0.5,
                       fontFamily: 'Arial, sans-serif'
                     }}>
-                      {order.storage}
+                      Order #{order.orderNo}
                     </Typography>
 
-                    {/* Specifications */}
-                    <Box sx={{ mb: 2 }}>
-                      {order.specs.map((spec, index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            mb: 0.5,
-                            fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
-                            color: '#AAAAAA',
-                            fontFamily: 'Arial, sans-serif'
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: 4,
-                              height: 4,
-                              borderRadius: '50%',
-                              background: '#AAAAAA',
-                              mr: 1,
-                              flexShrink: 0
-                            }}
-                          />
-                          {spec}
-                        </Box>
-                      ))}
+                    {/* Quantity and Price */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <Typography sx={{
+                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                        color: '#666666',
+                        fontFamily: 'Arial, sans-serif'
+                      }}>
+                        Qty: {order.product.qty}
+                      </Typography>
+                      <Typography sx={{
+                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                        color: '#666666',
+                        fontFamily: 'Arial, sans-serif'
+                      }}>
+                        •
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Typography sx={{
+                          fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                          fontWeight: 600,
+                          color: '#333333',
+                          fontFamily: 'Arial, sans-serif'
+                        }}>
+                          {order.total}
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.7rem', color: '#333333' }}>⚡</Typography>
+                      </Box>
                     </Box>
 
                     {/* Order Status */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                      {order.status === 'In Progress' ? (
+                      {order.status === 'Processing' ? (
                         <RadioButtonUnchecked sx={{ 
                           fontSize: '1.2rem', 
-                          color: order.statusColor 
+                          color: statusColor 
                         }} />
                       ) : (
                         <CheckCircle sx={{ 
                           fontSize: '1.2rem', 
-                          color: order.statusColor 
+                          color: statusColor 
                         }} />
                       )}
                       <Typography sx={{
                         fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
                         fontWeight: 700,
-                        color: order.statusColor,
+                        color: statusColor,
                         fontFamily: 'Arial, sans-serif'
                       }}>
                         {order.status}
                       </Typography>
                     </Box>
 
-                    {/* Delivery Date */}
+                    {/* Delivery Date/Message */}
                     <Typography sx={{
                       fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
                       color: '#AAAAAA',
                       fontFamily: 'Arial, sans-serif'
                     }}>
-                      {order.deliveryDate}
+                      {getDeliveryMessage(order.status, order.createdAt)}
                     </Typography>
                   </Box>
                 </Box>
@@ -330,7 +358,7 @@ export default function YourOrdersPage() {
                   pt: 2
                 }}>
                   <Button
-                    onClick={() => handleViewDetails(order.id)}
+                    onClick={() => handleViewDetails(order.orderNo)}
                     sx={{
                       color: '#3C3CD2',
                       fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
@@ -347,8 +375,10 @@ export default function YourOrdersPage() {
                 </Box>
               </CardContent>
             </Card>
-          ))}
-        </Box>
+            );
+            })}
+          </Box>
+        )}
       </Box>
 
       {/* Floating Action Button */}
@@ -373,90 +403,8 @@ export default function YourOrdersPage() {
         }} />
       </Fab>
 
-      {/* Custom Bottom Navigation */}
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          background: '#f5f5f5',
-          borderRadius: { xs: '16px 16px 0 0', sm: '20px 20px 0 0', md: '24px 24px 0 0' },
-          boxShadow: { 
-            xs: '0 -2px 16px rgba(0, 0, 0, 0.1)', 
-            sm: '0 -4px 20px rgba(0, 0, 0, 0.1)', 
-            md: '0 -6px 24px rgba(0, 0, 0, 0.1)' 
-          },
-          padding: { xs: '8px 0', sm: '10px 0', md: '12px 0' }
-        }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-          {[
-            { label: 'Games', icon: <SportsEsports />, active: false },
-            { label: 'Leader', icon: <Leaderboard />, active: false },
-            { label: 'Home', icon: <Home />, active: false },
-            { label: 'Redeem', icon: <ShoppingCart />, active: true },
-            { label: 'Events', icon: <Event />, active: false }
-          ].map((item) => (
-            <Box
-              key={item.label}
-              onClick={() => handleBottomNavClick(item.label)}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                cursor: 'pointer',
-                py: { xs: 0.5, sm: 1, md: 1.25 },
-                px: { xs: 0.5, sm: 1, md: 1.5 },
-                borderRadius: { xs: 1, sm: 1.5, md: 2 },
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  backgroundColor: 'rgba(60, 60, 210, 0.1)',
-                  transform: 'translateY(-2px)'
-                }
-              }}
-            >
-              <Box
-                sx={{
-                  width: { xs: 40, sm: 44, md: 48 },
-                  height: { xs: 40, sm: 44, md: 48 },
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: item.active ? '#3C3CD2' : 'transparent',
-                  color: item.active ? 'white' : '#3C3CD2',
-                  mb: { xs: 0.25, sm: 0.5, md: 0.5 },
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: item.active ? '#2A2A9E' : 'rgba(60, 60, 210, 0.1)',
-                    color: item.active ? 'white' : '#3C3CD2'
-                  }
-                }}
-              >
-                {React.cloneElement(item.icon, {
-                  sx: { 
-                    fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-                  }
-                })}
-              </Box>
-              <Typography
-                sx={{
-                  fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
-                  color: '#333333',
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  transition: 'color 0.3s ease',
-                  fontFamily: 'Arial, sans-serif'
-                }}
-              >
-                {item.label}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Box>
+      {/* Tab Bar */}
+      <TabBar />
     </Box>
   );
 }

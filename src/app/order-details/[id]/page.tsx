@@ -1,79 +1,192 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, Typography, IconButton, Card, CardContent, Button } from '@mui/material';
+import React, { useState, useEffect, use } from 'react';
+import { Box, Typography, Card, CardContent, CircularProgress, Alert } from '@mui/material';
 import { 
-  ShoppingCart, 
-  KeyboardArrowDown, 
-  ChevronLeft,
-  SportsEsports,
-  LocalMovies,
-  Restaurant,
-  Today,
-  Leaderboard,
-  Home,
-  Event,
-  CheckCircle,
-  RadioButtonUnchecked
+  CheckCircle
 } from '@mui/icons-material';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import HeaderWithBack from '@/components/HeaderWithBack';
+import TabBar from '@/components/TabBar';
 
-export default function OrderDetailsPage({ params }: { params: { id: string } }) {
+interface Product {
+  id: number;
+  title: string;
+  coverUrl: string | null;
+  gallery: string[];
+  actualCoin: number;
+  discountCoin: number;
+  description: string;
+  tagline: string;
+}
+
+interface DeliveryAddress {
+  line1: string;
+  line2: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+  landmark: string | null;
+}
+
+interface Delivery {
+  id: number;
+  status: string;
+  name: string;
+  phone: string;
+  address: DeliveryAddress;
+}
+
+interface TimelineItem {
+  label: string;
+  status: boolean;
+  at: string | null;
+}
+
+interface OrderDetail {
+  id: number;
+  orderNo: string;
+  status: string;
+  createdAt: string;
+  qty: number;
+  unitPrice: number;
+  total: number;
+  product: Product;
+  delivery: Delivery | null;
+  timeline: TimelineItem[];
+}
+
+interface OrderDetailsResponse {
+  status: string;
+  order: OrderDetail;
+}
+
+export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const [orderDetails] = useState({
-    id: params.id,
-    name: 'SanDisk SDCZ48-064G 6...',
-    storage: '64 GB RAM',
-    specs: ['USB 3.0 | 64 GB', 'Plastic Body...'],
-    status: 'In Progress',
-    statusColor: '#4CAF50',
-    deliveryDate: 'Expected Delivery by 12 Sep 25',
-    orderNumber: 'SF-25658AZ5468',
-    originalPrice: 500,
-    currentPrice: 250,
-    placedDate: '5 sep 25',
-    image: '/images/banner/usb_drive.svg',
-    timeline: [
-      {
-        status: 'Order Confirmed',
-        completed: true,
-        date: '5 sep 25 6:36 PM',
-        color: '#4CAF50'
-      },
-      {
-        status: 'Shipped',
-        completed: true,
-        date: '6 sep 25 9:26 AM',
-        color: '#4CAF50'
-      },
-      {
-        status: 'Out for Delivery',
-        completed: false,
-        date: '',
-        color: '#AAAAAA'
-      },
-      {
-        status: 'Delivered',
-        completed: false,
-        date: '',
-        color: '#AAAAAA'
+  const resolvedParams = use(params);
+  const [orderDetails, setOrderDetails] = useState<OrderDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch order details from API
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetch(`/api/orders/${resolvedParams.id}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        const data: OrderDetailsResponse = await response.json();
+        console.log('Order Details API Response:', data);
+
+        if (response.ok && data.status === 'success') {
+          setOrderDetails(data.order);
+        } else {
+          if (response.status === 401) {
+            setError('Please login to view order details');
+          } else if (response.status === 404) {
+            setError('Order not found');
+          } else {
+            setError(data.message || 'Failed to fetch order details');
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching order details:', err);
+        setError('Failed to fetch order details. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
-    ]
-  });
+    };
 
-  const handleBack = () => {
-    router.back();
+    fetchOrderDetails();
+  }, [resolvedParams.id]);
+
+  // Format date for display
+  const formatDate = (dateString: string | null): string => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateString;
+    }
   };
 
-  const handleBottomNavClick = (item: string) => {
-    console.log('Clicked bottom nav:', item);
-    // Handle navigation based on bottom nav item
+  // Format date short (date only)
+  const formatDateShort = (dateString: string | null): string => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
   };
 
-  const handleViewCompletedOrder = () => {
-    router.push(`/completed-order-details/${orderDetails.id}`);
+  // Get status color
+  const getStatusColor = (status: string): string => {
+    switch (status.toLowerCase()) {
+      case 'processing':
+        return '#4CAF50';
+      case 'shipped':
+        return '#FF9800';
+      case 'delivered':
+        return '#3C3CD2';
+      case 'cancelled':
+        return '#F44336';
+      default:
+        return '#616161';
+    }
   };
+
+  // Parse description into features
+  const getFeatures = (description: string): string[] => {
+    if (!description) return [];
+    return description.split('\n').filter(f => f.trim().length > 0);
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#f5f5f5' }}>
+        <CircularProgress size={60} sx={{ color: '#3C3CD2' }} />
+      </Box>
+    );
+  }
+
+  // Error state
+  if (error || !orderDetails) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#f5f5f5', p: 3 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>{error || 'Order not found'}</Alert>
+      </Box>
+    );
+  }
+
+  const statusColor = getStatusColor(orderDetails.status);
+  const features = getFeatures(orderDetails.product.description);
+  const allImages = [
+    orderDetails.product.coverUrl,
+    ...(orderDetails.product.gallery || [])
+  ].filter(Boolean) as string[];
 
   return (
     <Box
@@ -90,76 +203,19 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 1100,
-          background: '#3C3CD2',
-          padding: { xs: '12px 16px', sm: '15px 20px', md: '15px 24px' },
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          minHeight: { xs: '60px', sm: '70px', md: '80px' }
+          zIndex: 1100
         }}
       >
-        {/* Back Button */}
-        <Box 
-          onClick={handleBack}
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            color: 'white',
-            cursor: 'pointer',
-            transition: 'opacity 0.3s ease',
-            '&:hover': {
-              opacity: 0.8
-            }
-          }}
-        >
-          <IconButton 
-            sx={{ 
-              color: 'white',
-              padding: { xs: 0.5, sm: 1, md: 1 },
-              mr: 1
-            }}
-          >
-            <ChevronLeft sx={{ 
-              fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-            }} />
-          </IconButton>
-          <Typography sx={{ 
-            fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-            fontWeight: 600,
-            fontFamily: 'Arial, sans-serif'
-          }}>
-            Back
-          </Typography>
-        </Box>
-
-      
-
-        {/* Wallet */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          color: 'white',
-          gap: { xs: 0.5, sm: 1, md: 1 }
-        }}>
-          <Typography sx={{ 
-            mr: { xs: 0.5, sm: 1, md: 1 }, 
-            fontWeight: 600,
-            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-            fontFamily: 'Arial, sans-serif'
-          }}>
-            Wallet
-          </Typography>
-          <KeyboardArrowDown sx={{ 
-            fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-          }} />
-        </Box>
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#3C3CD2"
+        />
       </Box>
 
 
        {/* Main Content */}
        <Box sx={{ 
-         pt: { xs: '70px', sm: '80px', md: '90px' }, 
+         pt: { xs: '64px', sm: '64px', md: '64px' }, 
          pb: { xs: '100px', sm: '120px', md: '140px' },
          px: { xs: 2, sm: 3, md: 4 },
          background: '#f5f5f5'
@@ -206,14 +262,17 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 }}
               >
                 <Image
-                  src={orderDetails.image}
-                  alt={orderDetails.name}
+                  src={allImages[0] || '/images/banner/headphone.svg'}
+                  alt={orderDetails.product.title}
                   width={100}
                   height={100}
                   style={{
                     width: '100%',
                     height: '100%',
                     objectFit: 'contain'
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.src = '/images/banner/headphone.svg';
                   }}
                 />
               </Box>
@@ -229,47 +288,40 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   fontFamily: 'Arial, sans-serif',
                   lineHeight: 1.2
                 }}>
-                  {orderDetails.name}
+                  {orderDetails.product.title}
                 </Typography>
 
-                {/* Storage */}
-                <Typography sx={{
-                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                  color: '#666666',
-                  mb: 1,
-                  fontFamily: 'Arial, sans-serif'
-                }}>
-                  {orderDetails.storage}
-                </Typography>
-
-                {/* Specifications */}
-                <Box sx={{ mb: 2 }}>
-                  {orderDetails.specs.map((spec, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        mb: 0.5,
-                        fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
-                        color: '#AAAAAA',
-                        fontFamily: 'Arial, sans-serif'
-                      }}
-                    >
-                      <Box
+                {/* Specifications/Features */}
+                {features.length > 0 && (
+                  <Box sx={{ mb: 2 }}>
+                    {features.slice(0, 3).map((feature, index) => (
+                      <Typography
+                        key={index}
+                        component="div"
                         sx={{
-                          width: 4,
-                          height: 4,
-                          borderRadius: '50%',
-                          background: '#AAAAAA',
-                          mr: 1,
-                          flexShrink: 0
+                          display: 'flex',
+                          alignItems: 'center',
+                          mb: 0.5,
+                          fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
+                          color: '#AAAAAA',
+                          fontFamily: 'Arial, sans-serif'
                         }}
-                      />
-                      {spec}
-                    </Box>
-                  ))}
-                </Box>
+                      >
+                        <Box
+                          sx={{
+                            width: 4,
+                            height: 4,
+                            borderRadius: '50%',
+                            background: '#AAAAAA',
+                            mr: 1,
+                            flexShrink: 0
+                          }}
+                        />
+                        {feature.trim()}
+                      </Typography>
+                    ))}
+                  </Box>
+                )}
 
                 {/* Order Status */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
@@ -278,7 +330,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                       width: 12,
                       height: 12,
                       borderRadius: '50%',
-                      background: orderDetails.statusColor,
+                      background: statusColor,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -297,20 +349,20 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   <Typography sx={{
                     fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
                     fontWeight: 700,
-                    color: orderDetails.statusColor,
+                    color: statusColor,
                     fontFamily: 'Arial, sans-serif'
                   }}>
                     {orderDetails.status}
                   </Typography>
                 </Box>
 
-                {/* Delivery Date */}
+                {/* Order Date */}
                 <Typography sx={{
                   fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
-                  color: orderDetails.statusColor,
+                  color: '#AAAAAA',
                   fontFamily: 'Arial, sans-serif'
                 }}>
-                  {orderDetails.deliveryDate}
+                  Order placed on {formatDateShort(orderDetails.createdAt)}
                 </Typography>
               </Box>
             </Box>
@@ -322,6 +374,18 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
               mb: 2 
             }} />
 
+            {/* Quantity Info */}
+            <Box sx={{ mb: 2 }}>
+              <Typography sx={{
+                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                color: '#666666',
+                fontFamily: 'Arial, sans-serif',
+                mb: 0.5
+              }}>
+                Quantity: {orderDetails.qty} × {orderDetails.unitPrice} coins
+              </Typography>
+            </Box>
+
             {/* Order Summary Section */}
             <Box sx={{ 
               display: 'flex', 
@@ -329,7 +393,6 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
               alignItems: 'center',
               mb: 2,
               borderTop: '1px solid rgba(0, 0, 0, 0.15)',
-         
               pt: 2
             }}>
               {/* Order Number */}
@@ -347,7 +410,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   color: '#333333',
                   fontFamily: 'Arial, sans-serif'
                 }}>
-                  {orderDetails.orderNumber}
+                  {orderDetails.orderNo}
                 </Typography>
               </Box>
 
@@ -366,7 +429,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   color: '#333333',
                   fontFamily: 'Arial, sans-serif'
                 }}>
-                  {orderDetails.placedDate}
+                  {formatDateShort(orderDetails.createdAt)}
                 </Typography>
               </Box>
 
@@ -380,14 +443,16 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   Total
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
-                  <Typography sx={{ 
-                    color: '#AAAAAA', 
-                    textDecoration: 'line-through', 
-                    fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                    fontFamily: 'Arial, sans-serif'
-                  }}>
-                    {orderDetails.originalPrice}
-                  </Typography>
+                  {orderDetails.product.actualCoin > orderDetails.unitPrice && (
+                    <Typography sx={{ 
+                      color: '#AAAAAA', 
+                      textDecoration: 'line-through', 
+                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                      fontFamily: 'Arial, sans-serif'
+                    }}>
+                      {orderDetails.product.actualCoin}
+                    </Typography>
+                  )}
                   <Box
                     sx={{
                       width: 16,
@@ -414,7 +479,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                     color: '#333333',
                     fontFamily: 'Arial, sans-serif'
                   }}>
-                    {orderDetails.currentPrice}
+                    {orderDetails.total}
                   </Typography>
                 </Box>
               </Box>
@@ -427,6 +492,48 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
               mb: 3 
             }} />
 
+            {/* Delivery Address Section */}
+            {orderDetails.delivery && (
+              <Box sx={{ mb: 3 }}>
+                <Typography sx={{
+                  fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+                  fontWeight: 700,
+                  color: '#333333',
+                  mb: 2,
+                  fontFamily: 'Arial, sans-serif'
+                }}>
+                  Delivery Address
+                </Typography>
+                <Typography sx={{
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                  color: '#666666',
+                  mb: 0.5,
+                  fontFamily: 'Arial, sans-serif'
+                }}>
+                  {orderDetails.delivery.name}
+                </Typography>
+                <Typography sx={{
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                  color: '#666666',
+                  mb: 0.5,
+                  fontFamily: 'Arial, sans-serif'
+                }}>
+                  {orderDetails.delivery.phone}
+                </Typography>
+                <Typography sx={{
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                  color: '#666666',
+                  fontFamily: 'Arial, sans-serif',
+                  lineHeight: 1.5
+                }}>
+                  {orderDetails.delivery.address.line1}
+                  {orderDetails.delivery.address.line2 && `, ${orderDetails.delivery.address.line2}`}
+                  {`, ${orderDetails.delivery.address.city}, ${orderDetails.delivery.address.state} ${orderDetails.delivery.address.pincode}`}
+                  {orderDetails.delivery.address.landmark && `, ${orderDetails.delivery.address.landmark}`}
+                </Typography>
+              </Box>
+            )}
+
             {/* Order Status Timeline */}
             <Box sx={{ position: 'relative' }}>
               {/* Timeline Line */}
@@ -437,7 +544,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   top: 0,
                   bottom: 0,
                   width: 2,
-                  background: '#4CAF50',
+                  background: orderDetails.timeline.some(item => item.status) ? '#4CAF50' : '#E0E0E0',
                   zIndex: 1
                 }}
               />
@@ -460,8 +567,8 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                       width: 24,
                       height: 24,
                       borderRadius: '50%',
-                      background: item.completed ? item.color : 'white',
-                      border: `2px solid ${item.color}`,
+                      background: item.status ? '#4CAF50' : 'white',
+                      border: `2px solid ${item.status ? '#4CAF50' : '#AAAAAA'}`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -469,7 +576,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                       flexShrink: 0
                     }}
                   >
-                    {item.completed && (
+                    {item.status && (
                       <CheckCircle sx={{ 
                         fontSize: '1rem', 
                         color: 'white' 
@@ -482,19 +589,19 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                     <Typography sx={{
                       fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
                       fontWeight: 700,
-                      color: item.completed ? '#333333' : '#AAAAAA',
+                      color: item.status ? '#333333' : '#AAAAAA',
                       fontFamily: 'Arial, sans-serif',
                       mb: 0.5
                     }}>
-                      {item.status}
+                      {item.label}
                     </Typography>
-                    {item.date && (
+                    {item.at && (
                       <Typography sx={{
                         fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
                         color: '#AAAAAA',
                         fontFamily: 'Arial, sans-serif'
                       }}>
-                        {item.date}
+                        {formatDate(item.at)}
                       </Typography>
                     )}
                   </Box>
@@ -506,90 +613,8 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         </Card>
       </Box>
 
-      {/* Custom Bottom Navigation */}
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          background: '#f5f5f5',
-          borderRadius: { xs: '16px 16px 0 0', sm: '20px 20px 0 0', md: '24px 24px 0 0' },
-          boxShadow: { 
-            xs: '0 -2px 16px rgba(0, 0, 0, 0.1)', 
-            sm: '0 -4px 20px rgba(0, 0, 0, 0.1)', 
-            md: '0 -6px 24px rgba(0, 0, 0, 0.1)' 
-          },
-          padding: { xs: '8px 0', sm: '10px 0', md: '12px 0' }
-        }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-          {[
-            { label: 'Games', icon: <SportsEsports />, active: false },
-            { label: 'Leader', icon: <Leaderboard />, active: false },
-            { label: 'Home', icon: <Home />, active: false },
-            { label: 'Redeem', icon: <ShoppingCart />, active: true },
-            { label: 'Events', icon: <Event />, active: false }
-          ].map((item) => (
-            <Box
-              key={item.label}
-              onClick={() => handleBottomNavClick(item.label)}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                cursor: 'pointer',
-                py: { xs: 0.5, sm: 1, md: 1.25 },
-                px: { xs: 0.5, sm: 1, md: 1.5 },
-                borderRadius: { xs: 1, sm: 1.5, md: 2 },
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  backgroundColor: 'rgba(60, 60, 210, 0.1)',
-                  transform: 'translateY(-2px)'
-                }
-              }}
-            >
-              <Box
-                sx={{
-                  width: { xs: 40, sm: 44, md: 48 },
-                  height: { xs: 40, sm: 44, md: 48 },
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: item.active ? '#3C3CD2' : 'transparent',
-                  color: item.active ? 'white' : '#3C3CD2',
-                  mb: { xs: 0.25, sm: 0.5, md: 0.5 },
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: item.active ? '#2A2A9E' : 'rgba(60, 60, 210, 0.1)',
-                    color: item.active ? 'white' : '#3C3CD2'
-                  }
-                }}
-              >
-                {React.cloneElement(item.icon, {
-                  sx: { 
-                    fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-                  }
-                })}
-              </Box>
-              <Typography
-                sx={{
-                  fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
-                  color: '#333333',
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  transition: 'color 0.3s ease',
-                  fontFamily: 'Arial, sans-serif'
-                }}
-              >
-                {item.label}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Box>
+      {/* Tab Bar */}
+      <TabBar />
     </Box>
   );
 }

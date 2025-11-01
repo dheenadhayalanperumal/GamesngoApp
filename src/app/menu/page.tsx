@@ -22,6 +22,8 @@ import {
   Description
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
+import TabBar from '@/components/TabBar';
+import HeaderWithBack from '@/components/HeaderWithBack';
 
 // ========================================
 // MAIN COMPONENT
@@ -97,66 +99,7 @@ export default function MenuPage() {
       {/* ========================================
           HEADER SECTION
           ======================================== */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1100,
-          background: '#3C3CD2',
-          padding: { xs: '10px 12px', sm: '12px 16px', md: '15px 20px', lg: '18px 24px' },
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          minHeight: { xs: '56px', sm: '64px', md: '72px', lg: '80px' }
-        }}
-      >
-        {/* Back Button - Left side navigation */}
-        <Box sx={{ display: 'flex', alignItems: 'center', color: 'white' }}>
-          <IconButton 
-            onClick={handleBack}
-            sx={{ 
-              color: 'white',
-              padding: { xs: 0.4, sm: 0.6, md: 0.8, lg: 1 },
-              mr: { xs: 0.5, sm: 0.75, md: 1 }
-            }}
-          >
-            <ChevronLeft sx={{ 
-              fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem', lg: '1.7rem' }
-            }} />
-          </IconButton>
-          <Typography sx={{ 
-            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem', lg: '1.2rem' },
-            fontWeight: 600,
-            fontFamily: 'Arial, sans-serif',
-            lineHeight: 1.2
-          }}>
-            Back
-          </Typography>
-        </Box>
-
-        {/* Wallet Section - Right side */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          color: 'white',
-          gap: { xs: 0.4, sm: 0.6, md: 0.8, lg: 1 }
-        }}>
-          <Typography sx={{ 
-            mr: { xs: 0.4, sm: 0.6, md: 0.8, lg: 1 }, 
-            fontWeight: 600,
-            fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1.05rem', lg: '1.15rem' },
-            fontFamily: 'Arial, sans-serif',
-            lineHeight: 1.2
-          }}>
-            Wallet
-          </Typography>
-          <KeyboardArrowDown sx={{ 
-            fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem', lg: '1.7rem' }
-          }} />
-        </Box>
-      </Box>
+     <HeaderWithBack/>
 
       {/* ========================================
           MAIN CONTENT SECTION
@@ -466,75 +409,7 @@ export default function MenuPage() {
         }}
       >
         {/* Navigation Items Container */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-          {/* Navigation Items Array - Games, Leader, Home, Redeem, Events */}
-          {[
-            { label: 'Games', icon: <SportsEsports />, active: false },
-            { label: 'Leader', icon: <Leaderboard />, active: false },
-            { label: 'Home', icon: <Home />, active: false },
-            { label: 'Redeem', icon: <ShoppingCart />, active: true },
-            { label: 'Events', icon: <Event />, active: false }
-          ].map((item) => (
-            <Box
-              key={item.label}
-              onClick={() => handleBottomNavClick(item.label)}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                cursor: 'pointer',
-                py: 0.5,
-                px: 1,
-                borderRadius: 2,
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  backgroundColor: 'rgba(60, 60, 210, 0.1)',
-                  transform: 'translateY(-2px)'
-                }
-              }}
-            >
-              {/* Icon Container */}
-              <Box
-                sx={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: item.active ? '#3C3CD2' : 'transparent',
-                  color: item.active ? 'white' : '#6E6EFF',
-                  mb: 0.5,
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: item.active ? '#2A2A9E' : 'rgba(60, 60, 210, 0.1)',
-                    color: item.active ? 'white' : '#6E6EFF'
-                  }
-                }}
-              >
-                {React.cloneElement(item.icon, {
-                  sx: { 
-                    fontSize: '1.5rem'
-                  }
-                })}
-              </Box>
-              {/* Navigation Label */}
-              <Typography
-                sx={{
-                  fontSize: '12px',
-                  color: '#4A4A4A',
-                  fontWeight: 500,
-                  textAlign: 'center',
-                  transition: 'color 0.3s ease',
-                  fontFamily: 'Arial, sans-serif',
-                  lineHeight: 1.2
-                }}
-              >
-                {item.label}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
+        <TabBar />
       </Box>
     </Box>
   );

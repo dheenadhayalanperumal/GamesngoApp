@@ -26,7 +26,15 @@ const TabBar: React.FC = () => {
       setValue(1); // Leader
     } else if (pathname.startsWith('/events')) {
       setValue(4); // Events
-    } else if (pathname.startsWith('/redeem')) {
+    } else if (
+      pathname.startsWith('/redeem') ||
+      pathname.startsWith('/menu') ||
+      pathname.startsWith('/your-orders') ||
+      pathname.startsWith('/order-details') ||
+      pathname.startsWith('/saved-address') ||
+      pathname.startsWith('/add-address') ||
+      pathname.startsWith('/items-view')
+    ) {
       setValue(3); // Redeem
     }
   }, [pathname]);
