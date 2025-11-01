@@ -58,7 +58,8 @@ interface OrderDetail {
 
 interface OrderDetailsResponse {
   status: string;
-  order: OrderDetail;
+  order?: OrderDetail;
+  message?: string;
 }
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -93,7 +94,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
           } else if (response.status === 404) {
             setError('Order not found');
           } else {
-            setError(data.message || 'Failed to fetch order details');
+            setError((data as { message?: string }).message || 'Failed to fetch order details');
           }
         }
       } catch (err) {
