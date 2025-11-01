@@ -291,7 +291,9 @@ export default function RedeemPage() {
         >
           {/* Today Category - Always first */}
             <Box
-            onClick={() => handleCategoryClick('Today')}
+            onClick={() => {
+              handleCategoryClick('Today');
+            }}
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -352,7 +354,9 @@ export default function RedeemPage() {
           {categories.map((category) => (
             <Box
               key={category.id}
-              onClick={() => handleCategoryClick(category.id)}
+              onClick={() => {
+                handleCategoryClick(category.id);
+              }}
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
