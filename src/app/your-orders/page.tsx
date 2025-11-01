@@ -33,7 +33,8 @@ interface Order {
 
 interface OrdersResponse {
   status: string;
-  orders: Order[];
+  orders?: Order[];
+  message?: string;
 }
 
 export default function YourOrdersPage() {
