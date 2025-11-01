@@ -1,15 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, use } from 'react';
 import { Box, Typography, IconButton, Card, CardContent, Button } from '@mui/material';
 import { 
   ShoppingCart, 
   KeyboardArrowDown, 
   ChevronLeft,
   SportsEsports,
-  LocalMovies,
-  Restaurant,
-  Today,
   Leaderboard,
   Home,
   Event,
@@ -19,10 +16,11 @@ import {
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-export default function CompletedOrderDetailsPage({ params }: { params: { id: string } }) {
+export default function CompletedOrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const resolvedParams = use(params);
   const [orderDetails] = useState({
-    id: params.id,
+    id: resolvedParams.id,
     name: 'SanDisk SDCZ48-064G 6...',
     storage: '64 GB RAM',
     specs: ['USB 3.0 | 64 GB', 'Plastic Body...'],
