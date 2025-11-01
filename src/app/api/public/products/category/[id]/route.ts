@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
+  const categoryId = resolvedParams.id;
+  
   try {
-    const categoryId = params.id;
     const searchParams = request.nextUrl.searchParams;
     const limit = searchParams.get('limit') || '50';
 
@@ -46,7 +48,7 @@ export async function GET(
   } catch (error) {
     console.error('Category Products API - Proxy error:', error);
     return NextResponse.json(
-      { category: { id: Number(params.id), name: '', slug: '' }, products: [] },
+      { category: { id: Number(categoryId), name: '', slug: '' }, products: [] },
       { status: 200 }
     );
   }
