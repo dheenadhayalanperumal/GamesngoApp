@@ -6,7 +6,6 @@ import {
   CheckCircle
 } from '@mui/icons-material';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import HeaderWithBack from '@/components/HeaderWithBack';
 import TabBar from '@/components/TabBar';
 
@@ -63,7 +62,6 @@ interface OrderDetailsResponse {
 }
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const router = useRouter();
   const resolvedParams = use(params);
   const [orderDetails, setOrderDetails] = useState<OrderDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);

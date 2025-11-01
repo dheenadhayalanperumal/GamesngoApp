@@ -126,7 +126,7 @@ export default function FAQPage() {
           mb: 2,
           fontFamily: 'Arial, sans-serif'
         }}>
-          FAQ's
+          FAQ&apos;s
         </Typography>
 
         {/* FAQ Accordion */}

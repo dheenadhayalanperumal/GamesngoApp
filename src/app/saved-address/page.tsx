@@ -1,13 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, IconButton, Card, CardContent, Button, Chip, CircularProgress, Alert } from '@mui/material';
+import { Box, Typography, Card, CardContent, Button, Chip, CircularProgress, Alert } from '@mui/material';
 import { 
-  ChevronLeft,
-  Add,
-  Home,
-  Edit,
-  Remove
+  Home
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import HeaderWithBack from '@/components/HeaderWithBack';
@@ -68,10 +64,6 @@ export default function SavedAddressPage() {
 
     fetchAddresses();
   }, []);
-
-  const handleBack = () => {
-    router.back();
-  };
 
   const handleAddAddress = () => {
     router.push('/add-address');

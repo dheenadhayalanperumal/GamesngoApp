@@ -146,7 +146,7 @@ export default function ItemsViewPage() {
           if (response.status === 401) {
             setError('Please login to continue');
           } else {
-            setError((data as any).message || 'Failed to get quote');
+            setError((data as { message?: string }).message || 'Failed to get quote');
           }
         }
       } catch (err) {
@@ -159,10 +159,6 @@ export default function ItemsViewPage() {
 
     fetchQuote();
   }, [productId, product, quantity]);
-
-  const handleBack = () => {
-    router.back();
-  };
 
   const handleQuantityChange = (change: number) => {
     setQuantity(prev => Math.max(1, prev + change));
@@ -817,7 +813,7 @@ export default function ItemsViewPage() {
                   lineHeight: 1.5
                 }}
               >
-                By clicking 'Yes' you are using coins from Wallet
+                By clicking &apos;Yes&apos; you are using coins from Wallet
               </Typography>
 
               {/* Buttons */}

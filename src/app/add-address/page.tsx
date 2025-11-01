@@ -1,10 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Typography, IconButton, Card, CardContent, Button, TextField, CircularProgress, Alert } from '@mui/material';
-import { 
-  ChevronLeft
-} from '@mui/icons-material';
+import { Box, Typography, Card, CardContent, Button, TextField, CircularProgress, Alert } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import HeaderWithBack from '@/components/HeaderWithBack';
 
@@ -25,10 +22,6 @@ export default function AddAddressPage() {
     pinCode: '',
     landmark: ''
   });
-
-  const handleBack = () => {
-    router.back();
-  };
 
 
   const handleInputChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {

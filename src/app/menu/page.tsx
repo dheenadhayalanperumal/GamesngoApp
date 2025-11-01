@@ -4,19 +4,10 @@
 // IMPORTS
 // ========================================
 import React from 'react';
-import { Box, Typography, IconButton, Card, CardContent, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
+import { Box, Typography, Card, CardContent, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { 
-  ShoppingCart, 
-  KeyboardArrowDown, 
-  ChevronLeft,
-  SportsEsports,
-  LocalMovies,
-  Restaurant,
-  Today,
-  Leaderboard,
-  Home,
-  Event,
   ShoppingBag,
+  ShoppingCart,
   Support,
   Help,
   Description
@@ -35,13 +26,6 @@ export default function MenuPage() {
   // EVENT HANDLERS
   // ========================================
   
-  /**
-   * Handle back button click - navigates to previous page
-   */
-  const handleBack = () => {
-    router.back();
-  };
-
   /**
    * Handle interactive card clicks - navigates to respective pages
    * @param cardType - Type of card clicked ('orders', 'saved', 'address')
@@ -76,14 +60,6 @@ export default function MenuPage() {
     }
   };
 
-  /**
-   * Handle bottom navigation clicks
-   * @param item - Bottom nav item clicked
-   */
-  const handleBottomNavClick = (item: string) => {
-    console.log('Clicked bottom nav:', item);
-    // Handle navigation based on bottom nav item
-  };
 
   // ========================================
   // RENDER COMPONENT
