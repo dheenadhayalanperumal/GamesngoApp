@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, use } from 'react';
-import { Box, Typography, Button, IconButton, Card, CardContent } from '@mui/material';
+import React, { useState, useEffect, use } from 'react';
+import { Box, Typography, Button, IconButton, Card, CardContent, CircularProgress, Alert } from '@mui/material';
 import { 
   ShoppingCart, 
   KeyboardArrowDown, 
@@ -21,39 +21,93 @@ import {
 } from '@mui/icons-material';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import TabBar from '@/components/TabBar';
+import HeaderWithBack from '@/components/HeaderWithBack';
+
+interface Product {
+  id: number;
+  title: string;
+  actualCoin: number;
+  discountCoin: number;
+  coverUrl: string | null;
+  gallery: string[];
+  description: string;
+  tagline: string;
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+  } | null;
+}
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [selectedImage, setSelectedImage] = useState(0);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Unwrap params using React.use()
   const resolvedParams = use(params);
 
-  // Sample product data based on the reference image
-  const product = {
-    id: params.id,
-    name: 'Zebronics Mouse Z-300 Wireless Technology',
-    rating: 4.9,
-    originalPrice: 500,
-    currentPrice: 250,
-    features: [
-      'Wireless technology',
-      'Ai Noise Cancellation',
-      '40 Hours Playback',
-      '20 Mins Charging Time',
-      'Ergonomic Design',
-      'High Precision Sensor',
-      'Long Battery Life',
-      'Plug & Play'
-    ],
-    images: [
-      '/images/banner/mouse_product.svg',
-      '/images/banner/mouse_product.svg',
-      '/images/banner/mouse_product.svg',
-      '/images/banner/mouse_product.svg'
-    ]
+  // Fetch product details from API
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetch(`/api/public/products/${resolvedParams.id}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          cache: 'no-store',
+        });
+
+        const data = await response.json();
+        console.log('Product Details Response:', data);
+
+        if (!response.ok) {
+          setError(data.message || 'Failed to fetch product details');
+          setIsLoading(false);
+          return;
+        }
+
+        setProduct(data);
+      } catch (err) {
+        console.error('Error fetching product details:', err);
+        setError('Failed to fetch product details');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProductDetails();
+  }, [resolvedParams.id]);
+
+  // Parse description into features array (split by newline)
+  const getFeatures = (): string[] => {
+    if (!product?.description) return [];
+    return product.description.split('\n').filter(f => f.trim().length > 0);
+  };
+
+  // Get all images (coverUrl + gallery)
+  const getAllImages = (): string[] => {
+    if (!product) return [];
+    const images: string[] = [];
+    if (product.coverUrl) {
+      images.push(product.coverUrl);
+    }
+    if (product.gallery && product.gallery.length > 0) {
+      images.push(...product.gallery);
+    }
+    // Fallback if no images
+    if (images.length === 0) {
+      return ['/images/banner/headphone.svg'];
+    }
+    return images;
   };
 
 
@@ -74,85 +128,79 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     router.push('/menu');
   };
 
+  const features = getFeatures();
+  const images = getAllImages();
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'transparent'
+        }}
+      >
+        <CircularProgress size={60} sx={{ color: '#6E6EFF' }} />
+      </Box>
+    );
+  }
+
+  // Error state
+  if (error || !product) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'transparent',
+          p: 3
+        }}
+      >
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error || 'Product not found'}
+        </Alert>
+        <Button onClick={() => router.back()} variant="contained">
+          Go Back
+        </Button>
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        position: 'relative'
+        position: 'relative',
+        backgroundColor: 'transparent'
       }}
     >
-      {/* Header */}
+      {/* Header with Back */}
       <Box
         sx={{
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 1100,
-          background: '#3C3CD2',
-          padding: { xs: '12px 16px', sm: '15px 20px', md: '15px 24px' },
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          minHeight: { xs: '60px', sm: '70px', md: '80px' }
+          zIndex: 1100
         }}
       >
-
-        {/* Cart Icon */}
-        <Box sx={{ position: 'relative' }}>
-          <IconButton sx={{ 
-            color: 'white',
-            padding: { xs: 1, sm: 1.5, md: 2 }
-          }}>
-            <ShoppingCart sx={{ 
-              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }
-            }} />
-          </IconButton>
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              background: '#ff4444',
-              color: 'white',
-              borderRadius: '50%',
-              width: { xs: 18, sm: 20, md: 22 },
-              height: { xs: 18, sm: 20, md: 22 },
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' },
-              fontWeight: 'bold'
-            }}
-          >
-            3
-          </Box>
-        </Box>
-
-        {/* Wallet */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          color: 'white',
-          gap: { xs: 0.5, sm: 1, md: 1 }
-        }}>
-          <Typography sx={{ 
-            mr: { xs: 0.5, sm: 1, md: 1 }, 
-            fontWeight: 600,
-            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' }
-          }}>
-            Wallet
-          </Typography>
-          <KeyboardArrowDown sx={{ 
-            fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-          }} />
-        </Box>
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#4848DB"
+        />
       </Box>
 
       {/* Main Content */}
       <Box sx={{ 
-        pt: { xs: '70px', sm: '80px', md: '90px' }, 
-        pb: { xs: '100px', sm: '120px', md: '140px' }
+        pt: { xs: '64px', sm: '64px', md: '64px' }, 
+        pb: { xs: '100px', sm: '120px', md: '140px' },
+        backgroundColor: 'transparent'
       }}>
         {/* Search Bar */}
         <Box sx={{ py: 2, px: { xs: 2, sm: 3, md: 4 } }}>
@@ -162,7 +210,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               sx={{
                 flex: 1,
                 position: 'relative',
-                background: 'white',
+                background: 'transparent',
                 borderRadius: '10px',
                 border: '1px solid rgba(0, 0, 0, 0.20)',
                 display: 'flex',
@@ -190,7 +238,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <IconButton
               onClick={handleMenuClick}
               sx={{
-                backgroundColor: 'white',
+                backgroundColor: 'transparent',
                 border: '1px solid rgba(0, 0, 0, 0.20)',
                 borderRadius: 2,
                 width: 45,
@@ -212,8 +260,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           <Card
             sx={{
              // borderRadius: 3,
-              background: 'white',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+              background: 'transparent',
+              boxShadow: 'none',
               overflow: 'hidden',
               position: 'relative'
             }}
@@ -239,7 +287,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             {/* Main Product Image */}
             <Box
               sx={{
-                background: 'white',
+                background: 'transparent',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -247,8 +295,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               }}
             >
               <Image
-                src={product.images[selectedImage]}
-                alt={product.name}
+                src={images[selectedImage]}
+                alt={product.title}
                 width={200}
                 height={200}
                 style={{
@@ -256,54 +304,66 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   height: 'auto',
                   objectFit: 'contain'
                 }}
+                onError={(e) => {
+                  e.currentTarget.src = '/images/banner/headphone.svg';
+                }}
               />
             </Box>
 
             {/* Thumbnail Images */}
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 1,
-                p: 2,
-                background: '#f8f9fa'
-              }}
-            >
-              {product.images.map((image, index) => (
-                <Box
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  sx={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 2,
-                    border: selectedImage === index ? '2px solid #6E6EFF' : '2px solid transparent',
-                    background: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    overflow: 'hidden'
-                  }}
-                >
-                  <Image
-                    src={image}
-                    alt={`Product view ${index + 1}`}
-                    width={50}
-                    height={50}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain'
+            {images.length > 1 && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  p: 2,
+                  background: 'transparent',
+                  overflowX: 'auto',
+                  '&::-webkit-scrollbar': { display: 'none' },
+                  scrollbarWidth: 'none'
+                }}
+              >
+                {images.map((image, index) => (
+                  <Box
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: 2,
+                      border: selectedImage === index ? '2px solid #6E6EFF' : '2px solid transparent',
+                      background: 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      flexShrink: 0
                     }}
-                  />
-                </Box>
-              ))}
-        </Box>
+                  >
+                    <Image
+                      src={image}
+                      alt={`Product view ${index + 1}`}
+                      width={50}
+                      height={50}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain'
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.src = '/images/banner/headphone.svg';
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            )}
 
             {/* Product Information */}
             <CardContent sx={{ 
               p: { xs: 2.5, sm: 3, md: 3.5 },
-              background: 'white',
+              background: 'transparent',
               height: '100%',
               display: 'flex',
               flexDirection: 'column',
@@ -320,10 +380,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   lineHeight: 1.2
                 }}
               >
-                {product.name}
+                {product.title}
               </Typography>
 
-              {/* Rating */}
+              {/* Rating - Default to 4.5 if not available */}
               <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1.5, sm: 2, md: 2.5 } }}>
                 <Star sx={{ color: '#FFD700', fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' }, mr: 0.75 }} />
                 <Typography sx={{ 
@@ -332,7 +392,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   fontWeight: 600,
                   fontFamily: 'Arial, sans-serif'
                 }}>
-                  {product.rating}
+                  4.5
                 </Typography>
               </Box>
 
@@ -365,7 +425,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   mr: { xs: 1.25, sm: 1.5, md: 1.75 },
                   fontWeight: 500
                 }}>
-                  {product.originalPrice}
+                  {product.actualCoin}
                 </Typography>
                 <Typography sx={{ 
                   fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.8rem' }, 
@@ -373,64 +433,67 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   color: '#21175B',
                   fontFamily: 'Arial, sans-serif'
                 }}>
-                  {product.currentPrice}
+                  {product.discountCoin}
                 </Typography>
               </Box>
 
               {/* Features */}
-              <Box sx={{ mb: { xs: 2.5, sm: 3, md: 3.5 }, flex: 1 }}>
-                {(showAllFeatures ? product.features : product.features.slice(0, 4)).map((feature, index) => (
-                  <Typography
-                    key={index}
-                    sx={{
-                      fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
-                      color: '#4A4A4A',
-                      mb: { xs: 0.75, sm: 1, md: 1.25 },
-                      fontFamily: 'Arial, sans-serif',
-                      fontWeight: 500,
-                      lineHeight: 1.4,
-                      display: 'flex',
-                      alignItems: 'flex-start'
-                    }}
-                  >
-                    <Box
+              {features.length > 0 && (
+                <Box sx={{ mb: { xs: 2.5, sm: 3, md: 3.5 }, flex: 1 }}>
+                  {(showAllFeatures ? features : features.slice(0, 4)).map((feature, index) => (
+                    <Typography
+                      key={index}
+                      component="div"
                       sx={{
-                        width: { xs: 3, sm: 4, md: 4 },
-                        height: { xs: 3, sm: 4, md: 4 },
-                        borderRadius: '50%',
-                        background: '#4A4A4A',
-                        mr: { xs: 1, sm: 1.25, md: 1.5 },
-                        mt: { xs: 0.5, sm: 0.6, md: 0.7 },
-                        flexShrink: 0
+                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                        color: '#4A4A4A',
+                        mb: { xs: 0.75, sm: 1, md: 1.25 },
+                        fontFamily: 'Arial, sans-serif',
+                        fontWeight: 500,
+                        lineHeight: 1.4,
+                        display: 'flex',
+                        alignItems: 'flex-start'
                       }}
-                    />
-                    {feature}
-                  </Typography>
-                ))}
-                
-                {product.features.length > 4 && (
-                  <Box
-                    onClick={toggleFeatures}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      color: '#6E6EFF',
-                      fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
-                      fontWeight: 600,
-                      mt: { xs: 1, sm: 1.25, md: 1.5 }
-                    }}
-                  >
-                    <ExpandMore sx={{ 
-                      fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-                      transform: showAllFeatures ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.3s ease',
-                      mr: 0.5
-                    }} />
-                    {showAllFeatures ? 'Show Less' : 'Show More'}
-                  </Box>
-                )}
-              </Box>
+                    >
+                      <Box
+                        sx={{
+                          width: { xs: 3, sm: 4, md: 4 },
+                          height: { xs: 3, sm: 4, md: 4 },
+                          borderRadius: '50%',
+                          background: '#4A4A4A',
+                          mr: { xs: 1, sm: 1.25, md: 1.5 },
+                          mt: { xs: 0.5, sm: 0.6, md: 0.7 },
+                          flexShrink: 0
+                        }}
+                      />
+                      {feature.trim()}
+                    </Typography>
+                  ))}
+                  
+                  {features.length > 4 && (
+                    <Box
+                      onClick={toggleFeatures}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        color: '#6E6EFF',
+                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                        fontWeight: 600,
+                        mt: { xs: 1, sm: 1.25, md: 1.5 }
+                      }}
+                    >
+                      <ExpandMore sx={{ 
+                        fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+                        transform: showAllFeatures ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.3s ease',
+                        mr: 0.5
+                      }} />
+                      {showAllFeatures ? 'Show Less' : 'Show More'}
+                    </Box>
+                  )}
+                </Box>
+              )}
 
               {/* Redeem Button */}
               <Button
@@ -462,88 +525,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         </Box>
       </Box>
 
-      {/* Custom Bottom Navigation */}
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          background: 'white',
-          borderRadius: { xs: '16px 16px 0 0', sm: '20px 20px 0 0', md: '24px 24px 0 0' },
-          boxShadow: { 
-            xs: '0 -2px 16px rgba(0, 0, 0, 0.1)', 
-            sm: '0 -4px 20px rgba(0, 0, 0, 0.1)', 
-            md: '0 -6px 24px rgba(0, 0, 0, 0.1)' 
-          },
-          padding: { xs: '8px 0', sm: '10px 0', md: '12px 0' }
-        }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-          {[
-            { label: 'Games', icon: <SportsEsports />, active: false },
-            { label: 'Leader', icon: <Leaderboard />, active: false },
-            { label: 'Home', icon: <Home />, active: false },
-            { label: 'Redeem', icon: <ShoppingCart />, active: true },
-            { label: 'Events', icon: <Event />, active: false }
-          ].map((item) => (
-            <Box
-              key={item.label}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                cursor: 'pointer',
-                py: { xs: 0.5, sm: 1, md: 1.25 },
-                px: { xs: 0.5, sm: 1, md: 1.5 },
-                borderRadius: { xs: 1, sm: 1.5, md: 2 },
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  backgroundColor: 'rgba(110, 110, 255, 0.1)',
-                  transform: 'translateY(-2px)'
-                }
-              }}
-            >
-              <Box
-                sx={{
-                  width: { xs: 40, sm: 44, md: 48 },
-                  height: { xs: 40, sm: 44, md: 48 },
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: item.active ? '#6E6EFF' : 'transparent',
-                  color: item.active ? 'white' : '#8E8E93',
-                  mb: { xs: 0.25, sm: 0.5, md: 0.5 },
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: item.active ? '#5A5AFF' : 'rgba(110, 110, 255, 0.1)',
-                    color: item.active ? 'white' : '#6E6EFF'
-                  }
-                }}
-              >
-                {React.cloneElement(item.icon, {
-                  sx: { 
-                    fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-                  }
-                })}
-              </Box>
-              <Typography
-                sx={{
-                  fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
-                  color: item.active ? '#6E6EFF' : '#8E8E93',
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  transition: 'color 0.3s ease'
-                }}
-              >
-                {item.label}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Box>
+      {/* Tab Bar */}
+      <TabBar />
     </Box>
   );
 }
