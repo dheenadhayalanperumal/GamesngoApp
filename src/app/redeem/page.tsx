@@ -509,7 +509,6 @@ export default function RedeemPage() {
               }
             }}
           >
-              {console.log('Banners in render:', banners, 'Current banner index:', currentBanner)}
               {banners.length > 0 && (
             <Box
               sx={{
