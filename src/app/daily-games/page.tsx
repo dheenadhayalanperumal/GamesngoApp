@@ -1,48 +1,149 @@
 'use client';
 
-import React from 'react';
-import { Box, Typography, Button, LinearProgress } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Button, CircularProgress, Alert } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import HeaderWithBack from '@/components/HeaderWithBack';
-// Import assets from src so bundler resolves them
 import DailyInnerBg from '@/assets/images/banner/dailygame-innerbackground.png';
 import DailyInnerImg from '@/assets/images/banner/dailygame-innerimg.png';
-import GameImg1 from '@/assets/images/banner/gameimg1.png';
-import GameImg2 from '@/assets/images/banner/gameimg2.png';
-import GameImg3 from '@/assets/images/banner/gameimg3.png';
+
+// API Types
+interface GameCategory {
+  id: number;
+  name: string;
+}
+
+interface Game {
+  index: number;
+  id: number;
+  name: string;
+  type: string;
+  category: GameCategory;
+  bannerUrl: string | null;
+  assetUrl: string;
+  coins: number;
+  played: boolean;
+  wonCoins: number;
+  completed: boolean;
+  status: string;
+  canPlay: boolean;
+  locked: boolean;
+  order: number;
+}
+
+interface ProgressStep {
+  index: number;
+  coins: number;
+  completed: boolean;
+}
+
+interface Progress {
+  completed: number;
+  total: number;
+  steps: ProgressStep[];
+  nextIndex: number;
+  summary: string;
+}
+
+interface Header {
+  title: string;
+  bonusCoins: number;
+  timeRemainingSeconds: number;
+  bonusAlreadyCredited: boolean;
+  totalGames: number;
+  totalEarnedCoinsToday: number;
+}
+
+interface DailyGamesResponse {
+  status: string;
+  header: Header;
+  progress: Progress;
+  games: Game[];
+  message?: string;
+}
 
 const DailyGames = () => {
   const router = useRouter();
+  const [data, setData] = useState<DailyGamesResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<string>('');
 
-  const games = [
-    {
-      id: 1,
-      title: "Word Puzzle",
-      category: "Game One Line...",
-      tags: ["Action", "2 min"],
-      reward: 500,
-      status: "completed",
-      thumbnail: (GameImg1 as unknown as { src: string }).src || (GameImg1 as unknown as string)
-    },
-    {
-      id: 2,
-      title: "Orbit Rush",
-      category: "Game One Line...",
-      tags: ["Action", "2 min"],
-      reward: 500,
-      status: "play",
-      thumbnail: (GameImg2 as unknown as { src: string }).src || (GameImg2 as unknown as string)
-    },
-    {
-      id: 3,
-      title: "Cross Word",
-      category: "Game One Line...",
-      tags: ["Action", "2 min"],
-      reward: 500,
-      status: "play",
-      thumbnail: (GameImg3 as unknown as { src: string }).src || (GameImg3 as unknown as string)
-    }
-  ];
+  // Fetch daily games data
+  useEffect(() => {
+    const fetchDailyGames = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetch('/api/daily-games', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        const apiData: DailyGamesResponse = await response.json();
+        console.log('Daily Games API Response:', apiData);
+
+        if (response.ok && apiData.status === 'success') {
+          setData(apiData);
+          // Initialize time remaining
+          updateTimeRemaining(apiData.header.timeRemainingSeconds);
+        } else {
+          if (response.status === 401) {
+            setError('Please login to view daily games');
+          } else {
+            setError(apiData.message || 'Failed to fetch daily games');
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching daily games:', err);
+        setError('Failed to fetch daily games. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDailyGames();
+  }, []);
+
+  // Update time remaining every second
+  useEffect(() => {
+    if (!data) return;
+
+    const interval = setInterval(() => {
+      const currentSeconds = data.header.timeRemainingSeconds;
+      if (currentSeconds > 0) {
+        updateTimeRemaining(currentSeconds - 1);
+        // Update the data's timeRemainingSeconds
+        setData(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            header: {
+              ...prev.header,
+              timeRemainingSeconds: currentSeconds - 1
+            }
+          };
+        });
+      } else {
+        clearInterval(interval);
+        // Reload data when time expires
+        window.location.reload();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [data]);
+
+  const updateTimeRemaining = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    setTimeRemaining(`${hours}h ${minutes}m`);
+  };
 
   const getCurrentDate = () => {
     const now = new Date();
@@ -55,32 +156,100 @@ const DailyGames = () => {
     return now.toLocaleDateString('en-US', options);
   };
 
-  const getTimeRemaining = () => {
-    // Mock time remaining - 18h 32m
-    return "18h 32m";
+  const formatGameStatus = (game: Game): string => {
+    if (game.completed) return 'Completed';
+    if (game.locked) return 'Locked';
+    if (game.canPlay) return 'Play';
+    return game.status;
   };
+
+  const getStatusColor = (game: Game): string => {
+    if (game.completed) return '#9CA3AF';
+    if (game.locked) return '#9CA3AF';
+    return '#F59E0B';
+  };
+
+  const getProgressStepColor = (step: ProgressStep, currentIndex: number): string => {
+    if (step.completed) return '#10B981'; // Green for completed
+    if (step.index === currentIndex) return '#F59E0B'; // Orange for current
+    return '#D1D5DB'; // Gray for locked/pending
+  };
+
+  const handlePlayGame = (game: Game) => {
+    if (!game.canPlay || game.locked) return;
+    // Navigate to game - you may need to adjust this based on your routing
+    router.push(`/games/${game.id}`);
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Box sx={{ 
+        minHeight: '100vh', 
+        backgroundColor: '#f8f9fa',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <CircularProgress size={60} sx={{ color: '#F59E0B' }} />
+      </Box>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <Box sx={{ 
+        minHeight: '100vh', 
+        backgroundColor: '#f8f9fa',
+        margin: '0 -15px',
+        width: 'calc(100% + 30px)',
+      }}>
+        <HeaderWithBack />
+        <Box sx={{ padding: 2, paddingTop: '15px' }}>
+          <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+        </Box>
+      </Box>
+    );
+  }
+
+  // No data state
+  if (!data) {
+    return (
+      <Box sx={{ 
+        minHeight: '100vh', 
+        backgroundColor: '#f8f9fa',
+        margin: '0 -15px',
+        width: 'calc(100% + 30px)',
+      }}>
+        <HeaderWithBack />
+        <Box sx={{ padding: 2, paddingTop: '15px' }}>
+          <Alert severity="info">No daily games available.</Alert>
+        </Box>
+      </Box>
+    );
+  }
+
+  const { header, progress, games } = data;
 
   return (
     <Box sx={{ 
       minHeight: '100vh', 
       backgroundColor: '#f8f9fa',
-      margin: '0 -15px', // Negative margin to counteract the content-container padding
-      width: 'calc(100% + 30px)', // Extend width to cover the removed padding
+      margin: '0 -15px',
+      width: 'calc(100% + 30px)',
       fontFamily: 'Paytone One, sans-serif',
       fontWeight: '400',
     }}>
-      {/* Custom Header */}
-     <HeaderWithBack/>
-     
+      <HeaderWithBack />
 
       <Box sx={{ padding: 2, paddingTop: '15px', display: 'flex', flexDirection: 'column', gap: 2 }}>
         {/* Daily Games Card */}
         <Box sx={{
-        // background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
-         backgroundImage: `url(${(DailyInnerBg as unknown as { src: string }).src || (DailyInnerBg as unknown as string)})`,
-         backgroundSize: 'cover',
-         backgroundPosition: 'center',
-         backgroundRepeat: 'no-repeat',
+          backgroundImage: `url(${(DailyInnerBg as unknown as { src: string }).src || (DailyInnerBg as unknown as string)})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
           borderRadius: '16px',
           padding: '24px',
           position: 'relative',
@@ -108,7 +277,7 @@ const DailyGames = () => {
               </svg>
             </Box>
             <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
-              {getTimeRemaining()}
+              {timeRemaining || `${Math.floor(header.timeRemainingSeconds / 3600)}h ${Math.floor((header.timeRemainingSeconds % 3600) / 60)}m`}
             </Typography>
           </Box>
 
@@ -123,7 +292,7 @@ const DailyGames = () => {
                 marginBottom: '12px',
                 marginTop: '-12px',
               }}>
-                Daily Games
+                {header.title}
               </Typography>
               <Typography variant="body1" sx={{ 
                 color: 'white', 
@@ -139,7 +308,7 @@ const DailyGames = () => {
                 textAlign: 'left',
                 marginBottom: '16px'
               }}>
-                Complete all 3 games today to unlock bonus coins!
+                Complete all {header.totalGames} games today to unlock bonus coins!
               </Typography>
             </Box>
 
@@ -147,19 +316,18 @@ const DailyGames = () => {
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: '25px' }}>
                   <Box sx={{ width: 30, height: 30, display: 'flex', alignItems: 'center' }}>
-                   <img src="/coin.png" alt="bonuscoin" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src="/coin.png" alt="bonuscoin" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </Box>
                   <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
-                    + 500 Bonus
+                    + {header.bonusCoins} Bonus
                   </Typography>
                 </Box>
                 <Typography variant="body2" sx={{ color: 'white', opacity: 0.9 }}>
-                  1/3 Games Completed
+                  {progress.summary}
                 </Typography>
               </Box>
 
               {/* Astronaut Illustration */}
-              
               <Box 
                 sx={{ 
                   display: { xs: 'flex', sm: 'flex' },
@@ -197,102 +365,56 @@ const DailyGames = () => {
           </Typography>
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-            {/* Game 1 - Completed */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            {progress.steps.map((step, index) => {
+              const isLast = index === progress.steps.length - 1;
+              const stepColor = getProgressStepColor(step, progress.nextIndex);
+              const stepLabel = index === 0 ? '1st Game' : index === 1 ? '2nd Game' : '3rd Game';
               
-              <Typography variant="body2" sx={{ color: '#374151', fontWeight: 500, fontSize: '14px' }}>1st Game</Typography>
-              <Box sx={{
-                width: '40px',
-                height: '40px',
-                backgroundColor: '#10B981',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>
-                  1
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: 16, height: 16, display: 'flex', alignItems: 'center' }}>
-                 <img src="/coin.png" alt="coin" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </Box>
-                <Typography variant="body2" sx={{ color: '#374151', fontWeight: 500 }}>
-                  100
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Connecting Line */}
-            <Box sx={{ 
-              height: '2px', 
-              backgroundColor: '#10B981', 
-              flex: 1,
-              marginTop: '0px'
-            }} />
-
-            {/* Game 2 - In Progress */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-             
-             <Typography variant="body2" sx={{ color: '#374151', fontWeight: 500, fontSize: '14px' }}>2nd Game</Typography>
-              <Box sx={{
-                width: '40px',
-                height: '40px',
-                backgroundColor: '#F59E0B',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>
-                  2
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: 16, height: 16, display: 'flex', alignItems: 'center' }}>
-                 <img src="/coin.png" alt="coin" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </Box>
-                <Typography variant="body2" sx={{ color: '#374151', fontWeight: 500 }}>
-                  150
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Connecting Line */}
-            <Box sx={{ 
-              height: '2px', 
-              backgroundColor: '#D1D5DB', 
-              flex: 1,
-              marginTop: '0px'
-            }} />
-
-            {/* Game 3 - Pending */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-             
-             <Typography variant="body2" sx={{ color: '#374151', fontWeight: 500, fontSize: '14px' }}>3rd Game</Typography>
-              <Box sx={{
-                width: '40px',
-                height: '40px',
-                backgroundColor: '#D1D5DB',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>
-                  3
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: 16, height: 16, display: 'flex', alignItems: 'center' }}>
-                 <img src="/coin.png" alt="coin" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </Box>
-                <Typography variant="body2" sx={{ color: '#9CA3AF', fontWeight: 500 }}>
-                  250
-                </Typography>
-              </Box>
-            </Box>
+              return (
+                <React.Fragment key={step.index}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" sx={{ color: '#374151', fontWeight: 500, fontSize: '14px' }}>
+                      {stepLabel}
+                    </Typography>
+                    <Box sx={{
+                      width: '40px',
+                      height: '40px',
+                      backgroundColor: stepColor,
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>
+                        {step.index}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Box sx={{ width: 16, height: 16, display: 'flex', alignItems: 'center' }}>
+                        <img src="/coin.png" alt="coin" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </Box>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: step.completed ? '#374151' : '#9CA3AF', 
+                          fontWeight: 500 
+                        }}
+                      >
+                        {step.coins}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  {!isLast && (
+                    <Box sx={{ 
+                      height: '2px', 
+                      backgroundColor: step.completed ? stepColor : '#D1D5DB', 
+                      flex: 1,
+                      marginTop: '0px'
+                    }} />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </Box>
         </Box>
 
@@ -301,11 +423,8 @@ const DailyGames = () => {
           {games.map((game) => (
             <Box key={game.id} sx={{
               backgroundColor: 'white',
-              //borderRadius: '12px',
-             // padding: '16px',
               display: 'flex',
               gap: '16px',
-             // boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
               {/* Game Thumbnail */}
               <Box sx={{
@@ -316,9 +435,22 @@ const DailyGames = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexShrink: 0
+                flexShrink: 0,
+                overflow: 'hidden'
               }}>
-                <img src={game.thumbnail} alt={game.title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
+                {game.bannerUrl ? (
+                  <Image
+                    src={game.bannerUrl}
+                    alt={game.name}
+                    width={200}
+                    height={200}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }}
+                  />
+                ) : (
+                  <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Typography sx={{ color: '#9CA3AF', fontSize: '14px' }}>No Image</Typography>
+                  </Box>
+                )}
               </Box>
 
               {/* Game Details */}
@@ -328,54 +460,53 @@ const DailyGames = () => {
                   fontWeight: '700',
                   fontSize: '22px'
                 }}>
-                  {game.title}
+                  {game.name}
                 </Typography>
                 <Typography variant="body2" sx={{ 
                   color: 'rgba(0, 0, 0, 0.50)',
                   fontSize: '16px',
                   fontWeight: '400'
                 }}>
-                  {game.category}
+                  {game.category.name}
                 </Typography>
                 
                 {/* Tags */}
                 <Box sx={{ display: 'flex', gap: 1, marginY: 1 }}>
-                  {game.tags.map((tag, index) => (
-                    <Box key={index} sx={{
-                      backgroundColor: '#E0E7FF',
-                      color: '#6366F1',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                      fontWeight: 500
-                    }}>
-                      {tag}
-                    </Box>
-                  ))}
+                  <Box sx={{
+                    backgroundColor: '#E0E7FF',
+                    color: '#6366F1',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: 500
+                  }}>
+                    {game.type}
+                  </Box>
                 </Box>
 
                 {/* Reward and Button */}
-                <Box >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 , marginBottom: '10px',}}>
-                      <Box sx={{ width: 26, height: 26, display: 'flex', alignItems: 'center' }}>
-                        <img src="/coin.png" alt="coin" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </Box>
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, marginBottom: '10px' }}>
+                    <Box sx={{ width: 26, height: 26, display: 'flex', alignItems: 'center' }}>
+                      <img src="/coin.png" alt="coin" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </Box>
                     <Typography variant="body2" sx={{ 
                       color: 'rgba(0, 0, 0, 0.80)', 
                       fontWeight: 700,
                       fontSize: '16px',
                       lineHeight: '24px',
                       letterSpacing: '0.5px',
-
                     }}>
-                      {game.reward} Coins
+                      {game.coins} Coins
                     </Typography>
                   </Box>
 
                   <Button
                     variant="contained"
+                    onClick={() => handlePlayGame(game)}
+                    disabled={game.completed || game.locked || !game.canPlay}
                     sx={{
-                      backgroundColor: game.status === 'completed' ? '#9CA3AF' : '#F59E0B',
+                      backgroundColor: getStatusColor(game),
                       color: 'white',
                       borderRadius: '20px',
                       padding: '8px 24px',
@@ -384,12 +515,15 @@ const DailyGames = () => {
                       width: '100%',
                       textTransform: 'none',
                       '&:hover': {
-                        backgroundColor: game.status === 'completed' ? '#6B7280' : '#D97706',
+                        backgroundColor: game.completed || game.locked ? '#6B7280' : '#D97706',
+                      },
+                      '&:disabled': {
+                        backgroundColor: '#9CA3AF',
+                        color: 'white'
                       }
                     }}
-                    disabled={game.status === 'completed'}
                   >
-                    {game.status === 'completed' ? 'Completed' : 'Play'}
+                    {formatGameStatus(game)}
                   </Button>
                 </Box>
               </Box>
