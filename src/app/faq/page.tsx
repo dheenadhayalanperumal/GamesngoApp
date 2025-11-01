@@ -1,16 +1,73 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, Typography, IconButton, Card, CardContent, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, IconButton, Card, Accordion, AccordionSummary, AccordionDetails, CircularProgress, Alert } from '@mui/material';
 import { 
   ChevronLeft,
   ExpandMore
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 
+interface FAQ {
+  id: number;
+  question: string;
+  answer: string;
+  sortOrder: number;
+}
+
+interface FAQsResponse {
+  status: string;
+  faqs?: FAQ[];
+  reason?: string;
+}
+
 export default function FAQPage() {
   const router = useRouter();
-  const [expanded, setExpanded] = useState<string | false>('panel1');
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | false>(false);
+
+  // Fetch FAQs from API
+  useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const response = await fetch('/api/public/faqs', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          cache: 'no-store',
+        });
+
+        const data: FAQsResponse = await response.json();
+        console.log('FAQs API Response:', data);
+
+        if (response.ok && data.status === 'success' && data.faqs) {
+          // Sort FAQs by sortOrder ascending
+          const sortedFaqs = [...data.faqs].sort((a, b) => a.sortOrder - b.sortOrder);
+          setFaqs(sortedFaqs);
+          
+          // Expand first FAQ by default if available
+          if (sortedFaqs.length > 0) {
+            setExpanded(`panel-${sortedFaqs[0].id}`);
+          }
+        } else {
+          setError(data.reason || 'Failed to fetch FAQs');
+        }
+      } catch (err) {
+        console.error('Error fetching FAQs:', err);
+        setError('Failed to load FAQs. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFAQs();
+  }, []);
 
   const handleBack = () => {
     router.back();
@@ -19,39 +76,6 @@ export default function FAQPage() {
   const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
-
-  const faqItems = [
-    {
-      id: 'panel1',
-      question: '1. How it Works ?',
-      answer: 'You can redeem your Games N Go coins for exciting real rewards, gift vouchers, and exclusive benefits directly inside the app anytime.'
-    },
-    {
-      id: 'panel2',
-      question: '2. How it Works ?',
-      answer: 'You can redeem your Games N Go coins for exciting real rewards, gift vouchers, and exclusive benefits directly inside the app anytime.'
-    },
-    {
-      id: 'panel3',
-      question: '3. How it Works ?',
-      answer: 'You can redeem your Games N Go coins for exciting real rewards, gift vouchers, and exclusive benefits directly inside the app anytime.'
-    },
-    {
-      id: 'panel4',
-      question: '4. How it Works ?',
-      answer: 'You can redeem your Games N Go coins for exciting real rewards, gift vouchers, and exclusive benefits directly inside the app anytime.'
-    },
-    {
-      id: 'panel5',
-      question: '5. How it Works ?',
-      answer: 'You can redeem your Games N Go coins for exciting real rewards, gift vouchers, and exclusive benefits directly inside the app anytime.'
-    },
-    {
-      id: 'panel6',
-      question: '6. How it Works ?',
-      answer: 'You can redeem your Games N Go coins for exciting real rewards, gift vouchers, and exclusive benefits directly inside the app anytime.'
-    }
-  ];
 
   return (
     <Box
@@ -129,71 +153,94 @@ export default function FAQPage() {
           FAQ&apos;s
         </Typography>
 
+        {/* Loading State */}
+        {isLoading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+            <CircularProgress size={60} sx={{ color: '#3F51B5' }} />
+          </Box>
+        )}
+
+        {/* Error State */}
+        {error && !isLoading && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
         {/* FAQ Accordion */}
-        <Card
-          sx={{
-            borderRadius: 3,
-            background: 'white',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            overflow: 'hidden'
-          }}
-        >
-          {faqItems.map((item, index) => (
-            <Accordion
-              key={item.id}
-              expanded={expanded === item.id}
-              onChange={handleChange(item.id)}
-              sx={{
-                '&:before': {
-                  display: 'none',
-                },
-                '&.Mui-expanded': {
-                  margin: 0,
-                },
-                boxShadow: 'none',
-                borderBottom: index < faqItems.length - 1 ? '1px solid #e0e0e0' : 'none'
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMore sx={{ color: '#212121' }} />}
+        {!isLoading && !error && faqs.length > 0 && (
+          <Card
+            sx={{
+              borderRadius: 3,
+              background: 'white',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              overflow: 'hidden'
+            }}
+          >
+            {faqs.map((faq, index) => (
+              <Accordion
+                key={faq.id}
+                expanded={expanded === `panel-${faq.id}`}
+                onChange={handleChange(`panel-${faq.id}`)}
                 sx={{
-                  padding: { xs: '16px 20px', sm: '20px 24px', md: '24px 28px' },
-                  '&.Mui-expanded': {
-                    minHeight: 'auto',
+                  '&:before': {
+                    display: 'none',
                   },
-                  '& .MuiAccordionSummary-content': {
+                  '&.Mui-expanded': {
                     margin: 0,
-                    '&.Mui-expanded': {
-                      margin: 0,
-                    }
-                  }
+                  },
+                  boxShadow: 'none',
+                  borderBottom: index < faqs.length - 1 ? '1px solid #e0e0e0' : 'none'
                 }}
               >
-                <Typography sx={{
-                  fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-                  fontWeight: 700,
-                  color: '#21175B',
-                  fontFamily: 'Arial, sans-serif'
+                <AccordionSummary
+                  expandIcon={<ExpandMore sx={{ color: '#212121' }} />}
+                  sx={{
+                    padding: { xs: '16px 20px', sm: '20px 24px', md: '24px 28px' },
+                    '&.Mui-expanded': {
+                      minHeight: 'auto',
+                    },
+                    '& .MuiAccordionSummary-content': {
+                      margin: 0,
+                      '&.Mui-expanded': {
+                        margin: 0,
+                      }
+                    }
+                  }}
+                >
+                  <Typography sx={{
+                    fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+                    fontWeight: 700,
+                    color: '#21175B',
+                    fontFamily: 'Arial, sans-serif'
+                  }}>
+                    {faq.question}
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{
+                  padding: { xs: '0 20px 20px 20px', sm: '0 24px 24px 24px', md: '0 28px 28px 28px' }
                 }}>
-                  {item.question}
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{
-                padding: { xs: '0 20px 20px 20px', sm: '0 24px 24px 24px', md: '0 28px 28px 28px' }
-              }}>
-                <Typography sx={{
-                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                  color: '#21175B',
-                  fontFamily: 'Arial, sans-serif',
-                  lineHeight: 1.6,
-                  paddingLeft: { xs: 0, sm: 0, md: 0 }
-                }}>
-                  {item.answer}
-                </Typography>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </Card>
+                  <Typography sx={{
+                    fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                    color: '#21175B',
+                    fontFamily: 'Arial, sans-serif',
+                    lineHeight: 1.6,
+                    paddingLeft: { xs: 0, sm: 0, md: 0 }
+                  }}>
+                    {faq.answer}
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Card>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && faqs.length === 0 && (
+          <Alert severity="info">
+            No FAQs available at the moment.
+          </Alert>
+        )}
       </Box>
     </Box>
   );
