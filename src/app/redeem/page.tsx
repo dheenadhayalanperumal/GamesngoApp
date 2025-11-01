@@ -23,6 +23,8 @@ import {
 import Image from 'next/image';
 import Header from '@/components/Header';
 import TabBar from '@/components/TabBar';
+import LoginPopup from '@/components/LoginPopup';
+import { useAuth } from '@/contexts/AuthContext';
 
 // API Types
 interface Category {
@@ -71,11 +73,13 @@ interface OffersApiResponse {
 
 export default function RedeemPage() {
   const router = useRouter();
+  const { isLoggedIn } = useAuth();
   const [activeCategory, setActiveCategory] = useState<number | 'Today'>('Today');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentBanner, setCurrentBanner] = useState(0);
-  
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+
   // API data state
   const [categories, setCategories] = useState<Category[]>([]);
   const [todayOffers, setTodayOffers] = useState<TodayOffer[]>([]);
@@ -199,6 +203,19 @@ export default function RedeemPage() {
     router.push(`/redeem/product/${productId}`);
   };
 
+  const handleRedeemClick = () => {
+    if (!isLoggedIn) {
+      setIsLoginOpen(true);
+    } else {
+      router.push('/saved-address');
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    setIsLoginOpen(false);
+    router.push('/saved-address');
+  };
+
   // Auto-slider functionality for banners
   useEffect(() => {
     if (banners.length === 0) return;
@@ -258,33 +275,33 @@ export default function RedeemPage() {
           }}
         >
           {/* Today Category - Always first */}
-          <Box
-            onClick={() => handleCategoryClick('Today')}
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              cursor: 'pointer',
-              minWidth: { xs: '80px', sm: '80px', md: '90px' },
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'scale(1.05)'
-              }
-            }}
-          >
             <Box
+            onClick={() => handleCategoryClick('Today')}
               sx={{
-                width: { xs: 80, sm: 80, md: 80 },
-                height: { xs: 80, sm: 80, md: 80 },
-                borderRadius: '50%',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                mb: { xs: 0.5, sm: 1, md: 1 },
-                background: activeCategory === 'Today' ? '#6E6EFF' : 'white',
-                border: '2px solid white',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                cursor: 'pointer',
+                minWidth: { xs: '80px', sm: '80px', md: '90px' },
                 transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.05)'
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  width: { xs: 80, sm: 80, md: 80 },
+                  height: { xs: 80, sm: 80, md: 80 },
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: { xs: 0.5, sm: 1, md: 1 },
+                background: activeCategory === 'Today' ? '#6E6EFF' : 'white',
+                  border: '2px solid white',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                  transition: 'all 0.3s ease',
               }}
             >
               <Today sx={{ fontSize: 40, color: activeCategory === 'Today' ? 'white' : '#6E6EFF' }} />
@@ -304,7 +321,7 @@ export default function RedeemPage() {
             {activeCategory === 'Today' && (
               <Box
                 sx={{
-                  width: '100%',
+                    width: '100%',
                   height: 6,
                   background: '#201070',
                   borderRadius: '2px',
@@ -452,96 +469,96 @@ export default function RedeemPage() {
         {/* Banner - Only show for Today category */}
         {activeCategory === 'Today' && (
           <Box sx={{ position: 'sticky', top: 0, zIndex: 100 }}>
-            <Card
-              sx={{
-                borderRadius: { xs: 2, sm: 3, md: 3, lg: 3 },
-                background: 'linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%)',
-                position: 'relative',
-                overflow: 'hidden',
-                minHeight: { xs: '190px', sm: '220px', md: '300px', lg: '320px', xl: '380px' },
-                boxShadow: { 
-                  xs: '0 2px 10px rgba(0, 0, 0, 0.2)', 
-                  sm: '0 4px 20px rgba(0, 0, 0, 0.3)',
-                  md: '0 4px 20px rgba(0, 0, 0, 0.3)'
-                },
-                mx: { xs: 0.5, sm: 2, md: 0 },
-                '@media (max-width: 480px)': {
+          <Card
+            sx={{
+              borderRadius: { xs: 2, sm: 3, md: 3, lg: 3 },
+              background: 'linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%)',
+              position: 'relative',
+              overflow: 'hidden',
+              minHeight: { xs: '190px', sm: '220px', md: '300px', lg: '320px', xl: '380px' },
+              boxShadow: { 
+                xs: '0 2px 10px rgba(0, 0, 0, 0.2)', 
+                sm: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                md: '0 4px 20px rgba(0, 0, 0, 0.3)'
+              },
+              mx: { xs: 0.5, sm: 2, md: 0 },
+              '@media (max-width: 480px)': {
                   minHeight: '160px',
-                  borderRadius: 2
+                borderRadius: 2
+              },
+              '@media (min-width: 1920px)': {
+                minHeight: '480px'
+              }
+            }}
+          >
+              {console.log('Banners in render:', banners, 'Current banner index:', currentBanner)}
+              {banners.length > 0 && (
+            <Box
+              sx={{
+                width: '100%',
+                    height: { xs: '180px', sm: '220px', md: '280px', lg: '280px', xl: '380px' },
+                    backgroundImage: `url(${banners[currentBanner]?.url || '/images/banner/deals_banner.svg'})`,
+                backgroundSize: { 
+                  xs: 'cover', 
+                  sm: 'cover', 
+                  md: 'cover', 
+                  lg: 'cover',
+                  xl: 'cover'
+                },
+                backgroundPosition: { 
+                  xs: 'center center', 
+                  sm: 'center center', 
+                  md: 'center center',
+                  lg: 'center center',
+                  xl: 'center center'
+                },
+                backgroundRepeat: 'no-repeat',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                minHeight: { xs: '180px', sm: '220px', md: '280px', lg: '320px', xl: '380px' },
+                '@media (max-width: 480px)': {
+                  height: '160px',
+                  minHeight: '160px'
                 },
                 '@media (min-width: 1920px)': {
-                  minHeight: '480px'
+                  height: '420px',
+                  minHeight: '420px'
                 }
               }}
             >
-              {console.log('Banners in render:', banners, 'Current banner index:', currentBanner)}
-              {banners.length > 0 && (
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: { xs: '180px', sm: '220px', md: '280px', lg: '280px', xl: '380px' },
-                    backgroundImage: `url(${banners[currentBanner]?.url || '/images/banner/deals_banner.svg'})`,
-                    backgroundSize: { 
-                      xs: 'cover', 
-                      sm: 'cover', 
-                      md: 'cover', 
-                      lg: 'cover',
-                      xl: 'cover'
-                    },
-                    backgroundPosition: { 
-                      xs: 'center center', 
-                      sm: 'center center', 
-                      md: 'center center',
-                      lg: 'center center',
-                      xl: 'center center'
-                    },
-                    backgroundRepeat: 'no-repeat',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    position: 'relative',
-                    minHeight: { xs: '180px', sm: '220px', md: '280px', lg: '320px', xl: '380px' },
-                    '@media (max-width: 480px)': {
-                      height: '160px',
-                      minHeight: '160px'
-                    },
-                    '@media (min-width: 1920px)': {
-                      height: '420px',
-                      minHeight: '420px'
-                    }
-                  }}
-                >
                 </Box>
               )}
-            </Card>
+          </Card>
 
-            {/* Carousel Dots */}
+          {/* Carousel Dots */}
             {banners.length > 1 && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>
-                {banners.map((banner, index) => (
-                  <Box
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>
+            {banners.map((banner, index) => (
+              <Box
                     key={banner.offerId}
-                    onClick={() => {
-                      setCurrentBanner(index);
+                onClick={() => {
+                  setCurrentBanner(index);
                       console.log('Switching to banner:', banner.title);
-                    }}
-                    sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      background: index === currentBanner ? '#6E6EFF' : '#ccc',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        background: '#6E6EFF',
-                        transform: 'scale(1.2)'
-                      }
-                    }}
-                  />
-                ))}
-              </Box>
-            )}
+                }}
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: index === currentBanner ? '#6E6EFF' : '#ccc',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    background: '#6E6EFF',
+                    transform: 'scale(1.2)'
+                  }
+                }}
+              />
+            ))}
           </Box>
+            )}
+        </Box>
         )}
 
         {/* Products Display - Today's Offers or Category Products */}
@@ -675,7 +692,7 @@ export default function RedeemPage() {
                       </Typography>
 
                       <Typography
-                        sx={{
+                            sx={{
                           color: '#666',
                           fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
                           mb: { xs: 1, sm: 1.5, md: 2 },
@@ -719,38 +736,39 @@ export default function RedeemPage() {
                           sx={{
                             ml: 1,
                             fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
-                            color: '#999',
-                            textDecoration: 'line-through',
-                            fontFamily: 'Arial, sans-serif'
+                            color: '#999', 
+                            textDecoration: 'line-through', 
+                            fontFamily: 'Arial, sans-serif' 
                           }}
                         >
                           {offer.product.actualCoin}
-                        </Typography>
+                          </Typography>
                       </Box>
                     </Box>
 
                     {/* Redeem Button */}
-                    <Button
+                      <Button
                       variant="contained"
                       fullWidth
-                      sx={{
+                      onClick={handleRedeemClick}
+                        sx={{
                         background: '#6E6EFF',
                         color: 'white',
-                        fontWeight: 700,
+                          fontWeight: 700,
                         fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
                         py: { xs: 1, sm: 1.25, md: 1.5 },
                         borderRadius: 2,
-                        textTransform: 'none',
-                        fontFamily: 'Arial, sans-serif',
+                          textTransform: 'none',
+                          fontFamily: 'Arial, sans-serif',
                         boxShadow: '0 4px 12px rgba(110, 110, 255, 0.3)',
-                        '&:hover': {
+                          '&:hover': {
                           background: '#5555DD',
                           boxShadow: '0 6px 16px rgba(110, 110, 255, 0.4)'
-                        }
-                      }}
-                    >
+                          }
+                        }}
+                      >
                       Redeem Now
-                    </Button>
+                      </Button>
                   </Box>
                 </Box>
               </CardContent>
@@ -769,16 +787,16 @@ export default function RedeemPage() {
                   }}
                 >
                   {categoryProducts.map((product) => (
-                    <Card
+            <Card
                       key={product.id}
                       onClick={() => handleProductClick(product.id)}
-                      sx={{
+              sx={{
                         width: { xs: 'calc(50% - 8px)', sm: 'calc(50% - 8px)', md: 'calc(50% - 8px)' },
                         minWidth: { xs: 'calc(50% - 8px)', sm: 'calc(50% - 8px)', md: 'calc(50% - 8px)' },
                         flexShrink: 0,
-                        borderRadius: 3,
+                borderRadius: 3,
                         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-                        overflow: 'hidden',
+                overflow: 'hidden',
                         background: 'white',
                         position: 'relative',
                         cursor: 'pointer',
@@ -791,8 +809,8 @@ export default function RedeemPage() {
                     >
                       {/* Discount Badge (if discount available) */}
                       {product.actualCoin > product.discountCoin && (
-                        <Box
-                          sx={{
+              <Box
+                sx={{
                             position: 'absolute',
                             top: 8,
                             left: 8,
@@ -807,12 +825,12 @@ export default function RedeemPage() {
                           }}
                         >
                           {Math.round(((product.actualCoin - product.discountCoin) / product.actualCoin) * 100)}% OFF
-                        </Box>
+              </Box>
                       )}
 
                       {/* Bookmark Icon */}
-                      <Box
-                        sx={{
+      <Box
+        sx={{
                           position: 'absolute',
                           top: 8,
                           right: 8,
@@ -825,10 +843,10 @@ export default function RedeemPage() {
                       <CardContent sx={{ p: 0 }}>
                         {/* Product Image */}
                         <Box
-                          sx={{
+              sx={{
                             background: '#f8f9fa',
-                            display: 'flex',
-                            alignItems: 'center',
+                display: 'flex',
+                alignItems: 'center',
                             justifyContent: 'center',
                             position: 'relative',
                             minHeight: { xs: '180px', sm: '200px', md: '220px' },
@@ -867,22 +885,22 @@ export default function RedeemPage() {
 
                           {/* Price */}
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                            <Box
-                              sx={{
+              <Box
+                sx={{
                                 width: 20,
                                 height: 20,
                                 background: '#FFD700',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                                 mr: 1
                               }}
                             >
                               <Typography sx={{ fontSize: '0.5rem', fontWeight: 800, color: '#6E6EFF' }}>
                                 ⚡
                               </Typography>
-                            </Box>
+              </Box>
                             <Typography sx={{ color: '#999', textDecoration: 'line-through', fontSize: '0.9rem', mr: 1 }}>
                               {product.actualCoin}
                             </Typography>
@@ -895,9 +913,9 @@ export default function RedeemPage() {
                           {product.tagline && (
                             <Box sx={{ mb: 1 }}>
                               {product.tagline.split(',').slice(0, 3).map((feature, index) => (
-                                <Typography
+              <Typography
                                   key={index}
-                                  sx={{
+                sx={{
                                     fontSize: '0.8rem',
                                     color: '#4A4A4A',
                                     mb: 0.5,
@@ -905,9 +923,9 @@ export default function RedeemPage() {
                                   }}
                                 >
                                   • {feature.trim()}
-                                </Typography>
+              </Typography>
                               ))}
-                            </Box>
+            </Box>
                           )}
 
                           {/* Rating (if available - using a default or can be removed if not needed) */}
@@ -920,6 +938,7 @@ export default function RedeemPage() {
 
                           {/* Redeem Button */}
                           <Button
+                            onClick={handleRedeemClick}
                             sx={{
                               background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
                               color: '#1A1A1A',
@@ -944,14 +963,14 @@ export default function RedeemPage() {
                         </Box>
                       </CardContent>
                     </Card>
-                  ))}
-                </Box>
+          ))}
+        </Box>
               ) : activeCategory !== 'Today' && !isLoadingCategoryProducts && categoryProducts.length === 0 ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
                   <Typography sx={{ color: '#666', fontSize: '1rem' }}>
                     No products found in this category
                   </Typography>
-                </Box>
+      </Box>
               ) : null}
             </>
           )}
@@ -962,6 +981,13 @@ export default function RedeemPage() {
       
       {/* Tab Bar */}
       <TabBar />
+
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onLogin={handleLoginSuccess}
+      />
     </Box>
   );
 }

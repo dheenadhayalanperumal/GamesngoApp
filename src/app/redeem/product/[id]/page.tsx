@@ -23,6 +23,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import TabBar from '@/components/TabBar';
 import HeaderWithBack from '@/components/HeaderWithBack';
+import LoginPopup from '@/components/LoginPopup';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Product {
   id: number;
@@ -42,12 +44,14 @@ interface Product {
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { isLoggedIn } = useAuth();
   const [selectedImage, setSelectedImage] = useState(0);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   // Unwrap params using React.use()
   const resolvedParams = use(params);
@@ -112,7 +116,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
 
   const handleRedeem = () => {
-    // Navigate to saved-address page
+    if (!isLoggedIn) {
+      setIsLoginOpen(true);
+    } else {
+      router.push('/saved-address');
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    setIsLoginOpen(false);
     router.push('/saved-address');
   };
 
@@ -527,6 +539,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
       {/* Tab Bar */}
       <TabBar />
+
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onLogin={handleLoginSuccess}
+      />
     </Box>
   );
 }

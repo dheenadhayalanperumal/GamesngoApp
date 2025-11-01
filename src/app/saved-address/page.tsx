@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, Typography, IconButton, Card, CardContent, Button, Chip } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, IconButton, Card, CardContent, Button, Chip, CircularProgress, Alert } from '@mui/material';
 import { 
   ChevronLeft,
   Add,
@@ -10,18 +10,64 @@ import {
   Remove
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
+import HeaderWithBack from '@/components/HeaderWithBack';
+
+interface Address {
+  id: number;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+  landmark?: string | null;
+  isDefault: boolean;
+}
 
 export default function SavedAddressPage() {
   const router = useRouter();
-  const [addresses] = useState([
-    {
-      id: 1,
-      name: 'Dhanush',
-      address: 'No 6 KVR Villa Wipro Street Old Mahabalipuram Road Sholinganallur Chennai 600100',
-      mobile: '1234567890 , 0987654321',
-      type: 'Home'
-    }
-  ]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch addresses from API
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetch('/api/address', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        const data = await response.json();
+        console.log('Addresses API Response:', data);
+
+        if (response.ok && data.status === 'success') {
+          setAddresses(data.addresses || []);
+        } else {
+          if (response.status === 401) {
+            setError('Please login to view addresses');
+          } else {
+            setError(data.message || 'Failed to fetch addresses');
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching addresses:', err);
+        setError('Failed to fetch addresses. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAddresses();
+  }, []);
 
   const handleBack = () => {
     router.back();
@@ -46,6 +92,18 @@ export default function SavedAddressPage() {
     // Handle remove address logic
   };
 
+  // Format address for display
+  const formatAddress = (address: Address): string => {
+    const parts = [
+      address.addressLine1,
+      address.addressLine2,
+      address.city,
+      address.state,
+      address.pincode
+    ].filter(Boolean);
+    return parts.join(' ');
+  };
+
   return (
     <Box
       sx={{
@@ -61,54 +119,21 @@ export default function SavedAddressPage() {
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 1100,
-          background: '#3F51B5',
-          padding: { xs: '12px 16px', sm: '15px 20px', md: '15px 24px' },
-          display: 'flex',
-          alignItems: 'center',
-          minHeight: { xs: '60px', sm: '70px', md: '80px' }
+          zIndex: 1100
         }}
       >
-        {/* Back Button */}
-        <Box 
-          onClick={handleBack}
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            color: 'white',
-            cursor: 'pointer',
-            transition: 'opacity 0.3s ease',
-            '&:hover': {
-              opacity: 0.8
-            }
-          }}
-        >
-          <IconButton 
-            sx={{ 
-              color: 'white',
-              padding: { xs: 0.5, sm: 1, md: 1 },
-              mr: 1
-            }}
-          >
-            <ChevronLeft sx={{ 
-              fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-            }} />
-          </IconButton>
-          <Typography sx={{ 
-            fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-            fontWeight: 600,
-            fontFamily: 'Arial, sans-serif'
-          }}>
-            Back
-          </Typography>
-        </Box>
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#3F51B5"
+        />
       </Box>
 
       {/* Main Content */}
       <Box sx={{ 
-        pt: { xs: '70px', sm: '80px', md: '90px' }, 
+        pt: { xs: '100px', sm: '100px', md: '100px' }, 
         pb: { xs: '20px', sm: '30px', md: '40px' },
-        px: { xs: 2, sm: 3, md: 4 }
+        px: { xs: 2, sm: 3, md: 4 },
+     
       }}>
         {/* Add Address Section */}
         <Box sx={{ 
@@ -139,9 +164,27 @@ export default function SavedAddressPage() {
           </Typography>
         </Box>
 
-        {/* Saved Addresses */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {addresses.map((address) => (
+        {/* Loading State */}
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+            <CircularProgress size={60} sx={{ color: '#3F51B5' }} />
+          </Box>
+        ) : error ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+            <Alert severity="error">{error}</Alert>
+          </Box>
+        ) : (
+          <>
+            {/* Saved Addresses */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {addresses.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography sx={{ color: '#666', fontSize: '1rem' }}>
+                    No addresses found. Please add an address.
+                  </Typography>
+                </Box>
+              ) : (
+                addresses.map((address) => (
             <Card
               key={address.id}
               onClick={() => handleAddressClick(address.id)}
@@ -160,22 +203,24 @@ export default function SavedAddressPage() {
             >
               <CardContent sx={{ p: 3 }}>
                 {/* Home Tag */}
-                <Box sx={{ mb: 2 }}>
-                  <Chip
-                    label={address.type}
-                    sx={{
-                      background: '#E0E0E0',
-                      color: '#333333',
-                      fontWeight: 600,
-                      fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
-                      fontFamily: 'Arial, sans-serif',
-                      height: { xs: 28, sm: 32, md: 36 },
-                      '& .MuiChip-label': {
-                        px: 2
-                      }
-                    }}
-                  />
-                </Box>
+                {address.isDefault && (
+                  <Box sx={{ mb: 2 }}>
+                    <Chip
+                      label="Home"
+                      sx={{
+                        background: '#E0E0E0',
+                        color: '#333333',
+                        fontWeight: 600,
+                        fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
+                        fontFamily: 'Arial, sans-serif',
+                        height: { xs: 28, sm: 32, md: 36 },
+                        '& .MuiChip-label': {
+                          px: 2
+                        }
+                      }}
+                    />
+                  </Box>
+                )}
 
                 {/* Name */}
                 <Typography sx={{
@@ -196,7 +241,8 @@ export default function SavedAddressPage() {
                   fontFamily: 'Arial, sans-serif',
                   lineHeight: 1.5
                 }}>
-                  {address.address}
+                  {formatAddress(address)}
+                  {address.landmark && `, ${address.landmark}`}
                 </Typography>
 
                 {/* Mobile Number */}
@@ -206,7 +252,7 @@ export default function SavedAddressPage() {
                   mb: 2,
                   fontFamily: 'Arial, sans-serif'
                 }}>
-                  Mobile : {address.mobile}
+                  Mobile : {address.phone}
                 </Typography>
 
                 {/* Divider */}
@@ -263,8 +309,11 @@ export default function SavedAddressPage() {
                 </Box>
               </CardContent>
             </Card>
-          ))}
-        </Box>
+                ))
+              )}
+            </Box>
+          </>
+        )}
       </Box>
     </Box>
   );
