@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Box, Typography, IconButton, Card, CardContent, Button, CircularProgress, Alert } from '@mui/material';
 import { 
   Remove,
@@ -59,7 +59,7 @@ interface ConfirmResponse {
   required?: number;
 }
 
-export default function ItemsViewPage() {
+function ItemsViewContent() {
   const router = useRouter();
   const searchParams = useNextSearchParams();
   const productId = searchParams.get('productId');
@@ -1006,5 +1006,19 @@ export default function ItemsViewPage() {
         </Box>
       )}
     </Box>
+  );
+}
+
+export default function ItemsViewPage() {
+  return (
+    <Suspense
+      fallback={
+        <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#F5F5F5' }}>
+          <CircularProgress size={60} sx={{ color: '#FFC107' }} />
+        </Box>
+      }
+    >
+      <ItemsViewContent />
+    </Suspense>
   );
 }
