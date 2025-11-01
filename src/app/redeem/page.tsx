@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, IconButton, TextField, InputAdornment, Card, CardContent, Chip, Avatar, Badge } from '@mui/material';
+import { Box, Typography, Button, IconButton, TextField, InputAdornment, Card, CardContent, Chip, Avatar, Badge, CircularProgress } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { 
   ShoppingCart, 
@@ -21,27 +21,169 @@ import {
   Bookmark
 } from '@mui/icons-material';
 import Image from 'next/image';
+import Header from '@/components/Header';
+import TabBar from '@/components/TabBar';
+
+// API Types
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+interface Product {
+  id: number;
+  title: string;
+  actualCoin: number;
+  discountCoin: number;
+  coverUrl: string | null;
+  tagline?: string;
+}
+
+interface CategoryProductsResponse {
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+  };
+  products: Product[];
+}
+
+interface TodayOffer {
+  id: number;
+  title: string;
+  discountPercent: number;
+  bannerUrl: string;
+  product: Product;
+}
+
+interface Banner {
+  offerId: number;
+  title: string;
+  url: string;
+}
+
+interface OffersApiResponse {
+  categories: Category[];
+  todayOffers: TodayOffer[];
+  banners: Banner[];
+}
 
 export default function RedeemPage() {
   const router = useRouter();
-  const [activeCategory, setActiveCategory] = useState('Today');
+  const [activeCategory, setActiveCategory] = useState<number | 'Today'>('Today');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentBanner, setCurrentBanner] = useState(0);
+  
+  // API data state
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [todayOffers, setTodayOffers] = useState<TodayOffer[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Category products state
+  const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
+  const [isLoadingCategoryProducts, setIsLoadingCategoryProducts] = useState(false);
 
-  const categories = [
-    { id: 'Today', label: 'Today', icon: <Today />, active: true },
-    { id: 'Gaming', label: 'Gaming', icon: <SportsEsports />, active: false },
-    { id: 'Movies', label: 'Movies', icon: <LocalMovies />, active: false },
-    { id: 'Food', label: 'Food', icon: <Restaurant />, active: false }
-  ];
+  // Fetch offers data from API
+  useEffect(() => {
+    const fetchOffersData = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/public/offers', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          cache: 'no-store', // Disable caching
+        });
+        const data = await response.json();
+        
+        console.log('=== Offers API Response ===');
+        console.log('Response status:', response.status);
+        console.log('Full data:', data);
+        console.log('Categories:', data.categories);
+        console.log('Today Offers:', data.todayOffers);
+        console.log('Banners:', data.banners);
+        
+        if (response.ok) {
+          // API returns data directly without status wrapper
+          const categories = data.categories || [];
+          const todayOffers = data.todayOffers || [];
+          const banners = data.banners || [];
+          
+          setCategories(categories);
+          setTodayOffers(todayOffers);
+          setBanners(banners);
+          
+          console.log('=== State Updated ===');
+          console.log('Categories count:', categories.length);
+          console.log('Offers count:', todayOffers.length);
+          console.log('Banners count:', banners.length);
+          
+          if (categories.length > 0) {
+            console.log('First category:', categories[0]);
+          }
+          if (todayOffers.length > 0) {
+            console.log('First offer:', todayOffers[0]);
+          }
+          if (banners.length > 0) {
+            console.log('First banner:', banners[0]);
+          }
+        } else {
+          console.error('Failed to fetch offers data. Status:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching offers data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleCategoryClick = (categoryId: string) => {
+    fetchOffersData();
+  }, []);
+
+  const handleCategoryClick = async (categoryId: number | 'Today') => {
     setActiveCategory(categoryId);
     console.log('Category changed to:', categoryId);
     
     // Reset banner to first one when switching categories
     setCurrentBanner(0);
+    
+    // Clear category products if switching to "Today"
+    if (categoryId === 'Today') {
+      setCategoryProducts([]);
+      return;
+    }
+    
+    // Fetch products for the selected category
+    try {
+      setIsLoadingCategoryProducts(true);
+      const response = await fetch(`/api/public/products/category/${categoryId}?limit=50`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+        cache: 'no-store',
+      });
+      
+      const data: CategoryProductsResponse = await response.json();
+      console.log('Category Products Response:', data);
+      
+      if (response.ok && data.products) {
+        setCategoryProducts(data.products);
+        console.log('Category products loaded:', data.products.length);
+      } else {
+        console.error('Failed to fetch category products. Status:', response.status);
+        setCategoryProducts([]);
+      }
+    } catch (error) {
+      console.error('Error fetching category products:', error);
+      setCategoryProducts([]);
+    } finally {
+      setIsLoadingCategoryProducts(false);
+    }
   };
 
   const handleMenuClick = () => {
@@ -57,143 +199,10 @@ export default function RedeemPage() {
     router.push(`/redeem/product/${productId}`);
   };
 
-  // Sample data for different categories
-  const getCategoryContent = (category: string) => {
-    switch (category) {
-      case 'Gaming':
-        return {
-          banner: {
-            title: 'GAMING GEAR DEALS',
-            subtitle: 'SHOP GAMING',
-            image: 'Gaming Chair',
-            color: '#4A90E2'
-          },
-          hotOffers: [
-            {
-              id: 1,
-              name: 'Zebronics Mouse Z...',
-              originalPrice: 500,
-              currentPrice: 250,
-              discount: 50,
-              features: ['Wireless', 'Optical Tracking'],
-              rating: 4.9,
-              image: '/images/banner/mouse_product.svg',
-              isNew: true
-            },
-            {
-              id: 2,
-              name: 'Gaming Keyboard RGB',
-              originalPrice: 800,
-              currentPrice: 400,
-              discount: 50,
-              features: ['RGB Backlight', 'Mechanical Switches'],
-              rating: 4.8,
-              image: '/images/banner/mouse_product.svg',
-              isNew: false
-            },
-            {
-              id: 3,
-              name: 'Gaming Keyboard RGB',
-              originalPrice: 600,
-              currentPrice: 300,
-              discount: 50,
-              features: ['7.1 Surround', 'Noise Cancellation'],
-              rating: 4.7,
-              image: '/images/banner/mouse_product.svg',
-              isNew: true
-            }
-          ],
-          gamingMouse: [
-            {
-              id: 4,
-              name: 'Zebronics Mouse Z...',
-              originalPrice: 500,
-              currentPrice: 250,
-              discount: 50,
-              features: ['Wireless', 'Optical Tracking'],
-              rating: 4.9,
-              image: '/images/banner/mouse_product.svg',
-              isNew: true
-            },
-            {
-              id: 5,
-              name: 'Gaming Keyboard RGB',
-              originalPrice: 400,
-              currentPrice: 200,
-              discount: 50,
-              features: ['High DPI', 'RGB Lighting'],
-              rating: 4.6,
-              image: '/images/banner/mouse_product.svg',
-              isNew: false
-            }
-          ]
-        };
-      case 'Movies':
-        return {
-          banner: {
-            title: 'MOVIE TICKETS & MORE',
-            subtitle: 'BOOK NOW',
-            image: 'Movie Tickets',
-            color: '#E74C3C'
-          },
-          products: [
-            {
-              name: 'Movie Ticket Combo',
-              originalPrice: 300,
-              currentPrice: 150,
-              discount: 50,
-              features: ['2 Movie Tickets', 'Popcorn & Drink', 'Premium Seats', 'Online Booking']
-            }
-          ]
-        };
-      case 'Food':
-        return {
-          banner: {
-            title: 'RESTAURANT DEALS',
-            subtitle: 'ORDER NOW',
-            image: 'Food Items',
-            color: '#F39C12'
-          },
-          products: [
-            {
-              name: 'Restaurant Voucher',
-              originalPrice: 200,
-              currentPrice: 100,
-              discount: 50,
-              features: ['Valid for 30 days', 'Multiple restaurants', 'No expiry', 'Instant delivery']
-            }
-          ]
-        };
-      default: // Today
-        return {
-          banner: {
-            title: 'TODAY\'S SPECIAL DEALS',
-            subtitle: 'LIMITED TIME OFFER',
-            image: 'Today Banner',
-            color: '#6E6EFF'
-          },
-          products: [
-            {
-              name: 'Cosmic Byte MH301',
-              originalPrice: 500,
-              currentPrice: 250,
-              discount: 50,
-              features: ['Wireless technology', 'Ai Noise Cancellation', '40 Hours Playback', '20 Mins Charging Time']
-            }
-          ]
-        };
-    }
-  };
-
-  const currentContent = getCategoryContent(activeCategory);
-
-  const banners = [
-    { id: 1, image: 'deals_banner.svg' },
-    { id: 2, image: 'deals_banner.svg' }
-  ];
-
-  // Auto-slider functionality
+  // Auto-slider functionality for banners
   useEffect(() => {
+    if (banners.length === 0) return;
+    
     const interval = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % banners.length);
     }, 3000); // Change banner every 3 seconds
@@ -209,78 +218,33 @@ export default function RedeemPage() {
       }}
     >
       {/* Header */}
-      <Box
+    
+     <Header 
         sx={{
+          backgroundColor: '#4848DB',
+          textAlign: 'center',
+          color: 'white',
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           zIndex: 1100,
-          background: '#3C3CD2',
-          padding: { xs: '12px 16px', sm: '15px 20px', md: '15px 24px' },
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          minHeight: { xs: '60px', sm: '70px', md: '80px' }
-        }}
-      >
-        {/* Cart Icon */}
-        <Box sx={{ position: 'relative' }}>
-          <IconButton sx={{ 
-            color: 'white',
-            padding: { xs: 1, sm: 1.5, md: 2 }
-          }}>
-            <ShoppingCart sx={{ 
-              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }
-            }} />
-          </IconButton>
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              background: '#ff4444',
-              color: 'white',
-              borderRadius: '50%',
-              width: { xs: 18, sm: 20, md: 22 },
-              height: { xs: 18, sm: 20, md: 22 },
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' },
-              fontWeight: 'bold'
-            }}
-          >
-            3
-          </Box>
-        </Box>
-
-        {/* Wallet */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          color: 'white',
-          gap: { xs: 0.5, sm: 1, md: 1 }
-        }}>
-          <Typography sx={{ 
-            mr: { xs: 0.5, sm: 1, md: 1 }, 
-            fontWeight: 600,
-            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' }
-          }}>
-            Wallet
-          </Typography>
-          <KeyboardArrowDown sx={{ 
-            fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-          }} />
-        </Box>
-      </Box>
+        }} 
+      />
 
       {/* Main Content */}
       <Box sx={{ 
         pt: { xs: '70px', sm: '80px', md: '90px' }, 
         pb: { xs: '100px', sm: '120px', md: '140px' },
-        px: { xs: 2, sm: 3, md: 4 }
+        // px: { xs: 2, sm: 3, md: 4 }
       }}>
+        {/* Loading State */}
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+            <CircularProgress size={60} sx={{ color: '#6E6EFF' }} />
+          </Box>
+        ) : (
+          <>
         {/* Category Tabs */}
         <Box
           sx={{
@@ -293,6 +257,66 @@ export default function RedeemPage() {
             msOverflowStyle: 'none'
           }}
         >
+          {/* Today Category - Always first */}
+          <Box
+            onClick={() => handleCategoryClick('Today')}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              cursor: 'pointer',
+              minWidth: { xs: '80px', sm: '80px', md: '90px' },
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'scale(1.05)'
+              }
+            }}
+          >
+            <Box
+              sx={{
+                width: { xs: 80, sm: 80, md: 80 },
+                height: { xs: 80, sm: 80, md: 80 },
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: { xs: 0.5, sm: 1, md: 1 },
+                background: activeCategory === 'Today' ? '#6E6EFF' : 'white',
+                border: '2px solid white',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <Today sx={{ fontSize: 40, color: activeCategory === 'Today' ? 'white' : '#6E6EFF' }} />
+            </Box>
+            <Typography
+              sx={{
+                color: '#21175B',
+                fontSize: { xs: '1rem', sm: '0.75rem', md: '0.8rem' },
+                fontWeight: 600,
+                textAlign: 'center',
+                fontFamily: 'Arial, sans-serif',
+                lineHeight: 1.2
+              }}
+            >
+              Today
+            </Typography>
+            {activeCategory === 'Today' && (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: 6,
+                  background: '#201070',
+                  borderRadius: '2px',
+                  mt: 0.8,
+                  transition: 'all 0.3s ease'
+                }}
+              />
+            )}
+          </Box>
+
+          {/* API Categories */}
+          {categories.length > 0 && console.log('Rendering categories:', categories)}
           {categories.map((category) => (
             <Box
               key={category.id}
@@ -318,24 +342,15 @@ export default function RedeemPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   mb: { xs: 0.5, sm: 1, md: 1 },
-                  background: 'white',
+                  background: activeCategory === category.id ? '#6E6EFF' : 'white',
                   border: '2px solid white',
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
                   transition: 'all 0.3s ease',
-                  overflow: 'hidden'
                 }}
               >
-                <Image
-                  src={`/images/banner/${category.id.toLowerCase()}_category.svg`}
-                  alt={category.label}
-                  width={80}
-                  height={80}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                  }}
-                />
+                <Typography sx={{ fontSize: 24, fontWeight: 600, color: activeCategory === category.id ? 'white' : '#6E6EFF' }}>
+                  {category.name.charAt(0).toUpperCase()}
+                </Typography>
               </Box>
               <Typography
                 sx={{
@@ -347,9 +362,9 @@ export default function RedeemPage() {
                   lineHeight: 1.2
                 }}
               >
-                {category.label}
+                {category.name}
               </Typography>
-              {category.id === activeCategory && (
+              {activeCategory === category.id && (
                 <Box
                   sx={{
                     width: '100%',
@@ -434,527 +449,116 @@ export default function RedeemPage() {
           </Box>
         </Box>
 
-        {/* Conditional Content Based on Category */}
-        {activeCategory === 'Gaming' ? (
-          <>
-            {/* Hot Offers Section for Gaming */}
-            <Box sx={{ py: 2 }} data-testid="hot-offers-section">
-              <Typography
-                sx={{
-                  fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-                  fontWeight: 800,
-                  color: '#21175B',
-                  mb: 2,
-                  fontFamily: 'Arial, sans-serif'
-                }}
-              >
-                Hot Offers
-              </Typography>
-              
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 2,
-                  overflowX: 'auto',
-                  '&::-webkit-scrollbar': { display: 'none' },
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  scrollSnapType: 'x mandatory',
-                  '& > *': {
-                    scrollSnapAlign: 'start'
-                  }
-                }}
-              >
-                {currentContent.hotOffers?.map((product) => (
-                  <Card
-                    key={product.id}
-                    onClick={() => handleProductClick(product.id)}
-                    sx={{
-                      width: { xs: 'calc(50% - 8px)', sm: 'calc(50% - 8px)', md: 'calc(50% - 8px)' },
-                      minWidth: { xs: 'calc(50% - 8px)', sm: 'calc(50% - 8px)', md: 'calc(50% - 8px)' },
-                      flexShrink: 0,
-                      borderRadius: 3,
-                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-                      overflow: 'hidden',
-                      background: 'white',
-                      position: 'relative',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
-                      }
-                    }}
-                  >
-                    {/* New Badge */}
-                    {product.isNew && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 8,
-                          left: 8,
-                          background: '#000',
-                          color: 'white',
-                          px: 1.5,
-                          py: 0.5,
-                          borderRadius: 1,
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          zIndex: 2
-                        }}
-                      >
-                        New
-                      </Box>
-                    )}
-
-                    {/* Bookmark Icon */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        zIndex: 2
-                      }}
-                    >
-                      <BookmarkBorder sx={{ color: '#FFD700', fontSize: '1.5rem' }} />
-                    </Box>
-
-                    <CardContent sx={{ p: 0 }}>
-                      {/* Product Image */}
-                      <Box
-                        sx={{
-                         // height: { xs: '180px', sm: '200px', md: '220px' },
-                          background: '#f8f9fa',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          position: 'relative'
-                        }}
-                      >
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          width={120}
-                          height={120}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain'
-                          }}
-                        />
-                      </Box>
-
-                      {/* Product Details */}
-                      <Box sx={{ p: 2 }}>
-                        <Typography
-                          sx={{
-                            fontSize: '1rem',
-                            fontWeight: 700,
-                            color: '#1A1A1A',
-                            mb: 1,
-                            fontFamily: 'Arial, sans-serif'
-                          }}
-                        >
-                          {product.name}
-                        </Typography>
-
-                        {/* Price */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                          <Box
-                            sx={{
-                              width: 20,
-                              height: 20,
-                              background: '#FFD700',
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              mr: 1
-                            }}
-                          >
-                            <Typography sx={{ fontSize: '0.5rem', fontWeight: 800, color: '#6E6EFF' }}>
-                              ⚡
-                            </Typography>
-                          </Box>
-                          <Typography sx={{ color: '#999', textDecoration: 'line-through', fontSize: '0.9rem', mr: 1 }}>
-                            {product.originalPrice}
-                          </Typography>
-                          <Typography sx={{ fontSize: '1.2rem', fontWeight: 800, color: '#1A1A1A' }}>
-                            {product.currentPrice}
-                          </Typography>
-                        </Box>
-
-                        {/* Features */}
-                        <Box sx={{ mb: 1 }}>
-                          {product.features.map((feature, index) => (
-                            <Typography
-                              key={index}
-                              sx={{
-                                fontSize: '0.8rem',
-                                color: '#4A4A4A',
-                                mb: 0.5,
-                                fontFamily: 'Arial, sans-serif'
-                              }}
-                            >
-                              • {feature}
-                            </Typography>
-                          ))}
-                        </Box>
-
-                        {/* Rating */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                          <Star sx={{ color: '#FFD700', fontSize: '1rem', mr: 0.5 }} />
-                          <Typography sx={{ fontSize: '0.8rem', color: '#4A4A4A' }}>
-                            {product.rating}
-                          </Typography>
-                        </Box>
-
-                        {/* Redeem Button */}
-                        <Button
-                          sx={{
-                            background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                            color: '#1A1A1A',
-                            borderRadius: 2,
-                            py: 1,
-                            px: 2,
-                            fontSize: '0.9rem',
-                            fontWeight: 700,
-                            textTransform: 'none',
-                            width: '100%',
-                            fontFamily: 'Arial, sans-serif',
-                            boxShadow: '0 2px 8px rgba(255, 215, 0, 0.4)',
-                            '&:hover': {
-                              background: 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
-                              transform: 'translateY(-1px)',
-                              boxShadow: '0 4px 12px rgba(255, 215, 0, 0.6)'
-                            }
-                          }}
-                        >
-                          Redeem
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Box>
-            </Box>
-
-            {/* Gaming Mouse Section for Gaming */}
-            <Box sx={{ py: 2 }} data-testid="gaming-mouse-section">
-              <Typography
-                sx={{
-                  fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-                  fontWeight: 800,
-                  color: '#21175B',
-                  mb: 2,
-                  fontFamily: 'Arial, sans-serif'
-                }}
-              >
-                Gaming Mouse
-              </Typography>
-              
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 2,
-                  overflowX: 'auto',
-                  '&::-webkit-scrollbar': { display: 'none' },
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  scrollSnapType: 'x mandatory',
-                  '& > *': {
-                    scrollSnapAlign: 'start'
-                  }
-                }}
-              >
-                {currentContent.gamingMouse?.map((product) => (
-                  <Card
-                    key={product.id}
-                    className="gaming-mouse-card"
-                    onClick={() => handleProductClick(product.id)}
-                    sx={{
-                      width: { xs: 'calc(50% - 8px)', sm: 'calc(50% - 8px)', md: 'calc(50% - 8px)' },
-                      minWidth: { xs: 'calc(50% - 8px)', sm: 'calc(50% - 8px)', md: 'calc(50% - 8px)' },
-                      flexShrink: 0,
-                      borderRadius: 3,
-                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-                      overflow: 'hidden',
-                      background: 'white',
-                      position: 'relative',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
-                      }
-                    }}
-                  >
-                    {/* New Badge */}
-                    {product.isNew && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 8,
-                          left: 8,
-                          background: '#000',
-                          color: 'white',
-                          px: 1.5,
-                          py: 0.5,
-                          borderRadius: 1,
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          zIndex: 2
-                        }}
-                      >
-                        New
-                      </Box>
-                    )}
-
-                    {/* Bookmark Icon */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        zIndex: 2
-                      }}
-                    >
-                      <BookmarkBorder sx={{ color: '#FFD700', fontSize: '1.5rem' }} />
-                    </Box>
-
-                    <CardContent sx={{ p: 0 }}>
-                      {/* Product Image */}
-                      <Box
-                        sx={{
-                         // height: { xs: '180px', sm: '200px', md: '220px' },
-                          background: '#f8f9fa',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          position: 'relative'
-                        }}
-                      >
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          width={120}
-                          height={120}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain'
-                          }}
-                        />
-                      </Box>
-
-                      {/* Product Details */}
-                      <Box sx={{ p: 2 }}>
-                        <Typography
-                          sx={{
-                            fontSize: '1rem',
-                            fontWeight: 700,
-                            color: '#1A1A1A',
-                            mb: 1,
-                            fontFamily: 'Arial, sans-serif'
-                          }}
-                        >
-                          {product.name}
-                        </Typography>
-
-                        {/* Price */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                          <Box
-                            sx={{
-                              width: 20,
-                              height: 20,
-                              background: '#FFD700',
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              mr: 1
-                            }}
-                          >
-                            <Typography sx={{ fontSize: '0.5rem', fontWeight: 800, color: '#6E6EFF' }}>
-                              ⚡
-                            </Typography>
-                          </Box>
-                          <Typography sx={{ color: '#999', textDecoration: 'line-through', fontSize: '0.9rem', mr: 1 }}>
-                            {product.originalPrice}
-                          </Typography>
-                          <Typography sx={{ fontSize: '1.2rem', fontWeight: 800, color: '#1A1A1A' }}>
-                            {product.currentPrice}
-                          </Typography>
-                        </Box>
-
-                        {/* Features */}
-                        <Box sx={{ mb: 1 }}>
-                          {product.features.map((feature, index) => (
-                            <Typography
-                              key={index}
-                              sx={{
-                                fontSize: '0.8rem',
-                                color: '#4A4A4A',
-                                mb: 0.5,
-                                fontFamily: 'Arial, sans-serif'
-                              }}
-                            >
-                              • {feature}
-                            </Typography>
-                          ))}
-                        </Box>
-
-                        {/* Rating */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                          <Star sx={{ color: '#FFD700', fontSize: '1rem', mr: 0.5 }} />
-                          <Typography sx={{ fontSize: '0.8rem', color: '#4A4A4A' }}>
-                            {product.rating}
-                          </Typography>
-                        </Box>
-
-                        {/* Redeem Button */}
-                        <Button
-                          sx={{
-                            background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                            color: '#1A1A1A',
-                            borderRadius: 2,
-                            py: 1,
-                            px: 2,
-                            fontSize: '0.9rem',
-                            fontWeight: 700,
-                            textTransform: 'none',
-                            width: '100%',
-                            fontFamily: 'Arial, sans-serif',
-                            boxShadow: '0 2px 8px rgba(255, 215, 0, 0.4)',
-                            '&:hover': {
-                              background: 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
-                              transform: 'translateY(-1px)',
-                              boxShadow: '0 4px 12px rgba(255, 215, 0, 0.6)'
-                            }
-                          }}
-                        >
-                          Redeem
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Box>
-            </Box>
-          </>
-        ) : (
-          <>
-            {/* Original Banner Design for Today Category */}
-         <Box sx={{ py: 2, position: 'sticky', top: 0, zIndex: 100 }}>
-          <Card
-            sx={{
-              borderRadius: { xs: 2, sm: 3, md: 3, lg: 3 },
-              background: 'linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%)',
-              position: 'relative',
-              overflow: 'hidden',
-              minHeight: { xs: '190px', sm: '220px', md: '300px', lg: '320px', xl: '380px' },
-              boxShadow: { 
-                xs: '0 2px 10px rgba(0, 0, 0, 0.2)', 
-                sm: '0 4px 20px rgba(0, 0, 0, 0.3)',
-                md: '0 4px 20px rgba(0, 0, 0, 0.3)'
-              },
-              mx: { xs: 0.5, sm: 2, md: 0 },
-              '@media (max-width: 480px)': {
-                minHeight: '180px',
-                borderRadius: 2
-              },
-              '@media (min-width: 1920px)': {
-                minHeight: '480px'
-              }
-            }}
-          >
-            <Box
+        {/* Banner - Only show for Today category */}
+        {activeCategory === 'Today' && (
+          <Box sx={{ position: 'sticky', top: 0, zIndex: 100 }}>
+            <Card
               sx={{
-                width: '100%',
-                height: { xs: '180px', sm: '220px', md: '280px', lg: '320px', xl: '380px' },
-                    backgroundImage: `url(/images/banner/${banners[currentBanner].image})`,
-                backgroundSize: { 
-                  xs: 'cover', 
-                  sm: 'cover', 
-                  md: 'cover', 
-                  lg: 'cover',
-                  xl: 'cover'
-                },
-                backgroundPosition: { 
-                  xs: 'center center', 
-                  sm: 'center center', 
-                  md: 'center center',
-                  lg: 'center center',
-                  xl: 'center center'
-                },
-                backgroundRepeat: 'no-repeat',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                borderRadius: { xs: 2, sm: 3, md: 3, lg: 3 },
+                background: 'linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%)',
                 position: 'relative',
-                minHeight: { xs: '180px', sm: '220px', md: '280px', lg: '320px', xl: '380px' },
+                overflow: 'hidden',
+                minHeight: { xs: '190px', sm: '220px', md: '300px', lg: '320px', xl: '380px' },
+                boxShadow: { 
+                  xs: '0 2px 10px rgba(0, 0, 0, 0.2)', 
+                  sm: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                  md: '0 4px 20px rgba(0, 0, 0, 0.3)'
+                },
+                mx: { xs: 0.5, sm: 2, md: 0 },
                 '@media (max-width: 480px)': {
-                  height: '160px',
-                  minHeight: '160px'
+                  minHeight: '160px',
+                  borderRadius: 2
                 },
                 '@media (min-width: 1920px)': {
-                  height: '420px',
-                  minHeight: '420px'
+                  minHeight: '480px'
                 }
               }}
             >
-              {/* Overlay for better text visibility */}
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 100%)'
-                }}
-              />
-              
-              {/* Banner Content */}
-              <Box sx={{ position: 'relative', zIndex: 2, p: 3, width: '100%' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-                      <Box sx={{ flex: 1 }}></Box>
+              {console.log('Banners in render:', banners, 'Current banner index:', currentBanner)}
+              {banners.length > 0 && (
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: { xs: '180px', sm: '220px', md: '280px', lg: '280px', xl: '380px' },
+                    backgroundImage: `url(${banners[currentBanner]?.url || '/images/banner/deals_banner.svg'})`,
+                    backgroundSize: { 
+                      xs: 'cover', 
+                      sm: 'cover', 
+                      md: 'cover', 
+                      lg: 'cover',
+                      xl: 'cover'
+                    },
+                    backgroundPosition: { 
+                      xs: 'center center', 
+                      sm: 'center center', 
+                      md: 'center center',
+                      lg: 'center center',
+                      xl: 'center center'
+                    },
+                    backgroundRepeat: 'no-repeat',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    minHeight: { xs: '180px', sm: '220px', md: '280px', lg: '320px', xl: '380px' },
+                    '@media (max-width: 480px)': {
+                      height: '160px',
+                      minHeight: '160px'
+                    },
+                    '@media (min-width: 1920px)': {
+                      height: '420px',
+                      minHeight: '420px'
+                    }
+                  }}
+                >
                 </Box>
+              )}
+            </Card>
+
+            {/* Carousel Dots */}
+            {banners.length > 1 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>
+                {banners.map((banner, index) => (
+                  <Box
+                    key={banner.offerId}
+                    onClick={() => {
+                      setCurrentBanner(index);
+                      console.log('Switching to banner:', banner.title);
+                    }}
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: index === currentBanner ? '#6E6EFF' : '#ccc',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        background: '#6E6EFF',
+                        transform: 'scale(1.2)'
+                      }
+                    }}
+                  />
+                ))}
               </Box>
-            </Box>
-          </Card>
-
-          {/* Carousel Dots */}
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>
-            {banners.map((banner, index) => (
-              <Box
-                key={banner.id}
-                onClick={() => {
-                  setCurrentBanner(index);
-                  console.log('Switching to banner:', banner.image);
-                }}
-                sx={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: index === currentBanner ? '#6E6EFF' : '#ccc',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: '#6E6EFF',
-                    transform: 'scale(1.2)'
-                  }
-                }}
-              />
-            ))}
+            )}
           </Box>
-        </Box>
+        )}
 
-            {/* Original Product Card Design for Today Category */}
-            <Box sx={{ pt: 1, pb: 2 }}>
-             {(currentContent.products || []).map((product, index) => (
+        {/* Products Display - Today's Offers or Category Products */}
+        <Box sx={{ pt: 2 }}>
+          {/* Loading state for category products */}
+          {isLoadingCategoryProducts ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+              <CircularProgress size={40} sx={{ color: '#6E6EFF' }} />
+            </Box>
+          ) : (
+            <>
+              {/* Today's Offers */}
+              {activeCategory === 'Today' && todayOffers.length > 0 ? (
+                todayOffers.map((offer) => (
              <Card
-               key={index}
+               key={offer.id}
+               onClick={() => handleProductClick(offer.product.id)}
                sx={{
                  borderRadius: 3,
                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
@@ -964,7 +568,14 @@ export default function RedeemPage() {
                  maxWidth: '100%',
                  minHeight: { xs: '200px', sm: '220px', md: '240px' },
                  mx: 'auto',
-                 margin: 0
+                 margin: 0,
+                 mb: 2,
+                 cursor: 'pointer',
+                 transition: 'all 0.3s ease',
+                 '&:hover': {
+                   transform: 'translateY(-4px)',
+                   boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
+                 }
                }}
              >
                {/* Discount Badge - Ribbon Design */}
@@ -986,7 +597,7 @@ export default function RedeemPage() {
                    boxShadow: '0 2px 6px rgba(231, 76, 60, 0.3)'
                  }}
                >
-                 {product.discount}% OFF
+                 {offer.discountPercent}% OFF
                </Box>
 
               <CardContent sx={{ p: 0, height: '100%' }}>
@@ -1008,7 +619,6 @@ export default function RedeemPage() {
                       borderRadius: { xs: '12px 0 0 12px', sm: '16px 0 0 16px', md: '20px 0 0 20px' }
                     }}
                   >
-                    {/* Headphones Image */}
                     <Box
                       sx={{
                         width: { xs: '120px', sm: '140px', md: '160px' },
@@ -1022,8 +632,8 @@ export default function RedeemPage() {
                       }}
                     >
                       <Image
-                        src={`/images/banner/${activeCategory.toLowerCase()}_product.svg`}
-                        alt={product.name}
+                        src={offer.product.coverUrl}
+                        alt={offer.product.title}
                         width={140}
                         height={140}
                         style={{
@@ -1061,238 +671,297 @@ export default function RedeemPage() {
                           lineHeight: 1.2
                         }}
                       >
-                        {product.name}
+                        {offer.product.title}
                       </Typography>
 
-                      <Box sx={{ mb: { xs: 1, sm: 1.5, md: 2 } }}>
-                        {product.features.map((feature, featureIndex) => (
-                          <Box
-                            key={featureIndex}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              mb: { xs: 0.25, sm: 0.5, md: 0.5 },
-                              color: '#000',
-                              fontSize: '12px',
-                              fontStyle: 'normal',
-                              fontWeight: 500,
-                              lineHeight: '20px'
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: { xs: 2, sm: 3, md: 3 },
-                                height: { xs: 2, sm: 3, md: 3 },
-                                borderRadius: '50%',
-                                background: '#4A4A4A',
-                                mr: { xs: 0.75, sm: 1, md: 1 },
-                                flexShrink: 0
-                              }}
-                            />
-                            {feature}
-                          </Box>
-                        ))}
-                      </Box>
+                      <Typography
+                        sx={{
+                          color: '#666',
+                          fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
+                          mb: { xs: 1, sm: 1.5, md: 2 },
+                          fontFamily: 'Arial, sans-serif'
+                        }}
+                      >
+                        {offer.title}
+                      </Typography>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1, sm: 1.5, md: 2 } }}>
                         <Box
                           sx={{
-                            width: { xs: 16, sm: 18, md: 20 },
-                            height: { xs: 16, sm: 18, md: 20 },
-                            background: '#FFD700',
-                            borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            mr: { xs: 0.75, sm: 1, md: 1.25 }
+                            gap: 1,
+                            px: { xs: 1, sm: 1.5 },
+                            py: { xs: 0.5, sm: 0.75 },
+                            borderRadius: 2,
+                            background: 'rgba(255, 255, 255, 0.5)'
                           }}
                         >
-                          <Typography sx={{ 
-                            fontSize: { xs: '0.4rem', sm: '0.5rem', md: '0.6rem' }, 
-                            fontWeight: 800, 
-                            color: '#6E6EFF' 
-                          }}>
-                            ⚡
+                          <Typography
+                            sx={{
+                              fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+                              fontWeight: 700,
+                              color: '#21175B',
+                              fontFamily: 'Arial, sans-serif'
+                            }}
+                          >
+                            {offer.product.discountCoin}
                           </Typography>
+                          <Image
+                            src="/coin.png"
+                            alt="Coin"
+                            width={20}
+                            height={20}
+                            style={{ width: '20px', height: '20px' }}
+                          />
                         </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 0.75, md: 1 } }}>
-                          <Typography sx={{ 
-                            color: '#999', 
-                            textDecoration: 'line-through', 
-                            fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.85rem' } 
-                          }}>
-                            {product.originalPrice}
-                          </Typography>
-                          <Typography sx={{ 
-                            fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' }, 
-                            fontWeight: 800, 
-                            color: '#1A1A1A', 
-                            fontFamily: 'Arial, sans-serif' 
-                          }}>
-                            {product.currentPrice}
-                          </Typography>
-                        </Box>
+                        <Typography
+                          sx={{
+                            ml: 1,
+                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
+                            color: '#999',
+                            textDecoration: 'line-through',
+                            fontFamily: 'Arial, sans-serif'
+                          }}
+                        >
+                          {offer.product.actualCoin}
+                        </Typography>
                       </Box>
                     </Box>
 
-                    {/* Button Container */}
-                    <Box sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      width: '100%',
-                      mt: 'auto',
-                      pt: 1
-                    }}>
-                      <Button
-                        sx={{
-                          background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                          color: '#1A1A1A',
-                          borderRadius: 3,
-                          py: 1.25,
-                          px: 2.5,
-                          fontSize: { xs: '0.8rem', sm: '0.85rem', md: '0.9rem' },
-                          fontWeight: 700,
-                          textTransform: 'none',
-                          width: '100%',
-                          fontFamily: 'Arial, sans-serif',
-                          minHeight: { xs: '36px', sm: '40px', md: '44px' },
-                          boxShadow: '0 2px 6px rgba(255, 215, 0, 0.3)',
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            background: 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
-                            transform: 'translateY(-1px)',
-                            boxShadow: '0 4px 10px rgba(255, 215, 0, 0.5)'
-                          }
-                        }}
-                      >
-                        Redeem
-                      </Button>
-                    </Box>
+                    {/* Redeem Button */}
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      sx={{
+                        background: '#6E6EFF',
+                        color: 'white',
+                        fontWeight: 700,
+                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
+                        py: { xs: 1, sm: 1.25, md: 1.5 },
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontFamily: 'Arial, sans-serif',
+                        boxShadow: '0 4px 12px rgba(110, 110, 255, 0.3)',
+                        '&:hover': {
+                          background: '#5555DD',
+                          boxShadow: '0 6px 16px rgba(110, 110, 255, 0.4)'
+                        }
+                      }}
+                    >
+                      Redeem Now
+                    </Button>
                   </Box>
                 </Box>
               </CardContent>
             </Card>
-            ))}
-          </Box>
+               ))
+             ) : null}
+              
+              {/* Category Products - Grid Layout */}
+              {activeCategory !== 'Today' && categoryProducts.length > 0 ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    flexWrap: 'wrap',
+                    justifyContent: { xs: 'space-between', sm: 'flex-start' }
+                  }}
+                >
+                  {categoryProducts.map((product) => (
+                    <Card
+                      key={product.id}
+                      onClick={() => handleProductClick(product.id)}
+                      sx={{
+                        width: { xs: 'calc(50% - 8px)', sm: 'calc(50% - 8px)', md: 'calc(50% - 8px)' },
+                        minWidth: { xs: 'calc(50% - 8px)', sm: 'calc(50% - 8px)', md: 'calc(50% - 8px)' },
+                        flexShrink: 0,
+                        borderRadius: 3,
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+                        overflow: 'hidden',
+                        background: 'white',
+                        position: 'relative',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
+                        }
+                      }}
+                    >
+                      {/* Discount Badge (if discount available) */}
+                      {product.actualCoin > product.discountCoin && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 8,
+                            left: 8,
+                            background: '#000',
+                            color: 'white',
+                            px: 1.5,
+                            py: 0.5,
+                            borderRadius: 1,
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            zIndex: 2
+                          }}
+                        >
+                          {Math.round(((product.actualCoin - product.discountCoin) / product.actualCoin) * 100)}% OFF
+                        </Box>
+                      )}
 
-          {/* Movie Banner Below Product Card */}
-          <Box sx={{ py: 2 }}>
-            <Card
-              sx={{
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%)',
-                position: 'relative',
-                overflow: 'hidden',
-                minHeight: '248px'
-              }}
-            >
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '248px',
-                  backgroundImage: 'url(/images/banner/movie_banner.svg)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                {/* Overlay content if needed */}
-              </Box>
-            </Card>
-          </Box>
-          </>
-        )}
+                      {/* Bookmark Icon */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          zIndex: 2
+                        }}
+                      >
+                        <BookmarkBorder sx={{ color: '#FFD700', fontSize: '1.5rem' }} />
+                      </Box>
 
-      </Box>
+                      <CardContent sx={{ p: 0 }}>
+                        {/* Product Image */}
+                        <Box
+                          sx={{
+                            background: '#f8f9fa',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            position: 'relative',
+                            minHeight: { xs: '180px', sm: '200px', md: '220px' },
+                            p: 2
+                          }}
+                        >
+                          <Image
+                            src={product.coverUrl || '/images/banner/headphone.svg'}
+                            alt={product.title}
+                            width={120}
+                            height={120}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain'
+                            }}
+                            onError={(e) => {
+                              e.currentTarget.src = "/images/banner/headphone.svg";
+                            }}
+                          />
+                        </Box>
 
+                        {/* Product Details */}
+                        <Box sx={{ p: 2 }}>
+                          <Typography
+                            sx={{
+                              fontSize: '1rem',
+                              fontWeight: 700,
+                              color: '#1A1A1A',
+                              mb: 1,
+                              fontFamily: 'Arial, sans-serif'
+                            }}
+                          >
+                            {product.title}
+                          </Typography>
 
+                          {/* Price */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                            <Box
+                              sx={{
+                                width: 20,
+                                height: 20,
+                                background: '#FFD700',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mr: 1
+                              }}
+                            >
+                              <Typography sx={{ fontSize: '0.5rem', fontWeight: 800, color: '#6E6EFF' }}>
+                                ⚡
+                              </Typography>
+                            </Box>
+                            <Typography sx={{ color: '#999', textDecoration: 'line-through', fontSize: '0.9rem', mr: 1 }}>
+                              {product.actualCoin}
+                            </Typography>
+                            <Typography sx={{ fontSize: '1.2rem', fontWeight: 800, color: '#1A1A1A' }}>
+                              {product.discountCoin}
+                            </Typography>
+                          </Box>
 
-      {/* Custom Bottom Navigation */}
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          background: 'white',
-          borderRadius: { xs: '16px 16px 0 0', sm: '20px 20px 0 0', md: '24px 24px 0 0' },
-          boxShadow: { 
-            xs: '0 -2px 16px rgba(0, 0, 0, 0.1)', 
-            sm: '0 -4px 20px rgba(0, 0, 0, 0.1)', 
-            md: '0 -6px 24px rgba(0, 0, 0, 0.1)' 
-          },
-          padding: { xs: '8px 0', sm: '10px 0', md: '12px 0' }
-        }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-          {[
-            { label: 'Games', icon: <SportsEsports />, active: false },
-            { label: 'Leader', icon: <Leaderboard />, active: false },
-            { label: 'Home', icon: <Home />, active: false },
-            { label: 'Redeem', icon: <ShoppingCart />, active: true },
-            { label: 'Events', icon: <Event />, active: false }
-          ].map((item) => (
-            <Box
-              key={item.label}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                cursor: 'pointer',
-                py: { xs: 0.5, sm: 1, md: 1.25 },
-                px: { xs: 0.5, sm: 1, md: 1.5 },
-                borderRadius: { xs: 1, sm: 1.5, md: 2 },
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  backgroundColor: 'rgba(110, 110, 255, 0.1)',
-                  transform: 'translateY(-2px)'
-                }
-              }}
-            >
-              <Box
-                sx={{
-                  width: { xs: 40, sm: 44, md: 48 },
-                  height: { xs: 40, sm: 44, md: 48 },
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: item.active ? '#6E6EFF' : 'transparent',
-                  color: item.active ? 'white' : '#8E8E93',
-                  mb: { xs: 0.25, sm: 0.5, md: 0.5 },
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: item.active ? '#5A5AFF' : 'rgba(110, 110, 255, 0.1)',
-                    color: item.active ? 'white' : '#6E6EFF'
-                  }
-                }}
-              >
-                {React.cloneElement(item.icon, {
-                  sx: { 
-                    fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-                  }
-                })}
-              </Box>
-              <Typography
-                sx={{
-                  fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
-                  color: item.active ? '#6E6EFF' : '#8E8E93',
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  transition: 'color 0.3s ease'
-                }}
-              >
-                {item.label}
-              </Typography>
-            </Box>
-          ))}
+                          {/* Features from tagline (if available) */}
+                          {product.tagline && (
+                            <Box sx={{ mb: 1 }}>
+                              {product.tagline.split(',').slice(0, 3).map((feature, index) => (
+                                <Typography
+                                  key={index}
+                                  sx={{
+                                    fontSize: '0.8rem',
+                                    color: '#4A4A4A',
+                                    mb: 0.5,
+                                    fontFamily: 'Arial, sans-serif'
+                                  }}
+                                >
+                                  • {feature.trim()}
+                                </Typography>
+                              ))}
+                            </Box>
+                          )}
+
+                          {/* Rating (if available - using a default or can be removed if not needed) */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                            <Star sx={{ color: '#FFD700', fontSize: '1rem', mr: 0.5 }} />
+                            <Typography sx={{ fontSize: '0.8rem', color: '#4A4A4A' }}>
+                              4.5
+                            </Typography>
+                          </Box>
+
+                          {/* Redeem Button */}
+                          <Button
+                            sx={{
+                              background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                              color: '#1A1A1A',
+                              borderRadius: 2,
+                              py: 1,
+                              px: 2,
+                              fontSize: '0.9rem',
+                              fontWeight: 700,
+                              textTransform: 'none',
+                              width: '100%',
+                              fontFamily: 'Arial, sans-serif',
+                              boxShadow: '0 2px 8px rgba(255, 215, 0, 0.4)',
+                              '&:hover': {
+                                background: 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
+                                transform: 'translateY(-1px)',
+                                boxShadow: '0 4px 12px rgba(255, 215, 0, 0.6)'
+                              }
+                            }}
+                          >
+                            Redeem
+                          </Button>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Box>
+              ) : activeCategory !== 'Today' && !isLoadingCategoryProducts && categoryProducts.length === 0 ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                  <Typography sx={{ color: '#666', fontSize: '1rem' }}>
+                    No products found in this category
+                  </Typography>
+                </Box>
+              ) : null}
+            </>
+          )}
         </Box>
+        </>
+      )}
       </Box>
+      
+      {/* Tab Bar */}
+      <TabBar />
     </Box>
   );
 }
