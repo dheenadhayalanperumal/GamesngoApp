@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://api.gamesngo.com';
 
 // Helper to forward cookies
-const getCookiesHeader = (request: NextRequest) => {
+const getCookiesHeader = (request: NextRequest): Record<string, string> => {
   const cookies = request.headers.get('cookie');
   return cookies ? { 'Cookie': cookies } : {};
 };
@@ -21,11 +21,12 @@ export async function GET(
     const url = `${API_BASE_URL}/api/orders/${idOrOrderNo}`;
     console.log('Orders Details API (GET) - Calling:', url);
 
+    const cookieHeaders = getCookiesHeader(request);
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
-        ...getCookiesHeader(request),
+        ...cookieHeaders,
       },
       credentials: 'include',
       cache: 'no-store',
