@@ -87,7 +87,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
         console.log('Order Details API Response:', data);
 
         if (response.ok && data.status === 'success') {
-          setOrderDetails(data.order);
+          setOrderDetails(data.order || null);
         } else {
           if (response.status === 401) {
             setError('Please login to view order details');
