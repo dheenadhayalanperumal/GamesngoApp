@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import EventCard from '@/components/EventCard';
 import Header from '@/components/Header';
+import HeaderWithBack from '@/components/HeaderWithBack';
 import TabBar from '@/components/TabBar';
 import PlayersList from '@/components/leaderboard/PlayersList';
 import EventTabs from '@/components/events/EventTabs';
@@ -117,6 +118,7 @@ interface EventDetailsApiResponse {
     };
     prizeCoins: number | null;
   };
+  detailsHtml: string;
   mission: string[];
   status: string;
   state: {
@@ -669,24 +671,46 @@ const EventsPage = () => {
         bgcolor: '#f5f5f5',
         pb: 12,
         mx: '-15px', 
-        marginTop: '70px',// Negative margin to counteract parent padding
+        marginTop: selectedYourEventId !== null ? '64px' : '70px',// Adjust margin based on header type
       }}
     >
-      <Header sx={{
-        backgroundColor: '#4848DB',
-        textAlign: 'center',
-        color: 'white',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1100,
-      }}/>
-      <EventTabs
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        tabs={['Live Events', 'Your Events']}
-      />
+      {selectedYourEventId !== null ? (
+        // Show HeaderWithBack when event is selected
+        <Box sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+        }}>
+          <HeaderWithBack 
+            title="Back" 
+            backgroundColor="#4848DB"
+            onBackClick={handleBackToList}
+          />
+        </Box>
+      ) : (
+        // Show normal Header when no event is selected
+        <Header sx={{
+          backgroundColor: '#4848DB',
+          textAlign: 'center',
+          color: 'white',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+        }}/>
+      )}
+      
+      {/* Only show tabs when no event is selected */}
+      {selectedYourEventId === null && (
+        <EventTabs
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          tabs={['Live Events', 'Your Events']}
+        />
+      )}
 
       {/* Tab Content */}
       <Box sx={{ px: 2 }}>
@@ -753,18 +777,35 @@ const EventsPage = () => {
                       gap: 3,
                     }}
                   >
-                    {yourEvents
-                      .filter((event) => event.id === selectedYourEventId)
-                      .map((event) => (
-                        <Box key={event.id}>
-                          <EventCard
-                            {...event}
-                            onBuyTickets={handleBuyTickets}
-                            hideBuyButton={true}
-                          />
-                          <EventDetailsSection details={eventDetails} />
-                        </Box>
-                      ))}
+                    {isLoadingEventDetails ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+                        <CircularProgress />
+                      </Box>
+                    ) : (
+                      yourEvents
+                        .filter((event) => event.id === selectedYourEventId)
+                        .map((event) => (
+                          <Box key={event.id}>
+                            <EventCard
+                              {...event}
+                              onBuyTickets={handleBuyTickets}
+                              hideBuyButton={true}
+                            />
+                            {selectedEventDetails && selectedEventDetails.detailsHtml ? (
+                              <EventDetailsSection 
+                                details={[]} 
+                                htmlContent={selectedEventDetails.detailsHtml}
+                              />
+                            ) : (
+                              <Box sx={{ textAlign: 'center', py: 8 }}>
+                                <Typography sx={{ color: '#888', fontSize: 16 }}>
+                                  No event details available
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        ))
+                    )}
                   </Box>
                 </TabPanel>
 
