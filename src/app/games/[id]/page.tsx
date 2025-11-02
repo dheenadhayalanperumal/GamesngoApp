@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Box, Typography, Button, CircularProgress, Alert, Chip, Divider } from '@mui/material';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowBack, PlayArrow, Star } from '@mui/icons-material';
 import HeaderWithBack from '@/components/HeaderWithBack';
 import TabBar from '@/components/TabBar';
@@ -26,11 +26,16 @@ interface GameDetails {
   };
 }
 
-const GameDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
+function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [game, setGame] = useState<GameDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Check if user came from outlet selection (has offerId)
+  const offerId = searchParams.get('offerId');
+  const isFromOutletSelection = !!offerId;
 
   useEffect(() => {
     const fetchGameDetails = async () => {
@@ -297,8 +302,38 @@ const GameDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
             size="large"
             startIcon={<PlayArrow />}
             onClick={handlePlay}
-            disabled={game.modes?.quickMatch?.status === 'comingSoon'}
-            sx={{
+            disabled={!isFromOutletSelection && game.modes?.quickMatch?.status === 'comingSoon'}
+            sx={isFromOutletSelection ? {
+              // ClaimButton style for outlet games
+              background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+              color: '#2c3e50',
+              fontWeight: 'bold',
+              fontSize: {
+                xs: '14px',
+                sm: '16px',
+                md: '18px'
+              },
+              padding: {
+                xs: '12px 24px',
+                sm: '14px 28px',
+                md: '16px 32px'
+              },
+              borderRadius: '50px',
+              textTransform: 'none',
+              boxShadow: '0 4px 16px rgba(255, 215, 0, 0.3)',
+              transition: 'all 0.2s ease-out',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)',
+                boxShadow: '0 6px 20px rgba(255, 215, 0, 0.4)',
+                transform: 'translateY(-2px)',
+              },
+              '&:disabled': {
+                background: '#e0e0e0',
+                color: '#9e9e9e',
+                boxShadow: 'none',
+              }
+            } : {
+              // Regular style for non-outlet games
               backgroundColor: '#4848DB',
               '&:hover': {
                 backgroundColor: '#3a3ac7',
@@ -309,7 +344,7 @@ const GameDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
               fontWeight: 600,
             }}
           >
-            {game.modes?.quickMatch?.status === 'comingSoon' 
+            {(!isFromOutletSelection && game.modes?.quickMatch?.status === 'comingSoon')
               ? 'Coming Soon' 
               : 'Play Now'
             }
@@ -319,6 +354,38 @@ const GameDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
       <TabBar />
     </Box>
+  );
+}
+
+const GameDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
+  return (
+    <Suspense fallback={
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+          backgroundColor: '#f5f5f5',
+          margin: '0 -15px',
+        }}
+      >
+        <HeaderWithBack />
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flex: 1,
+            padding: 4,
+          }}
+        >
+          <CircularProgress size={60} />
+        </Box>
+        <TabBar />
+      </Box>
+    }>
+      <GameDetailsContent params={params} />
+    </Suspense>
   );
 };
 

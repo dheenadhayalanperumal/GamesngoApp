@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Box, Typography, Button, IconButton } from '@mui/material';
+import { Box, Typography, Button, IconButton, CircularProgress, Alert } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import StarIcon from '@mui/icons-material/Star';
@@ -15,6 +15,16 @@ interface Outlet {
   id: number;
   name: string;
   address: string;
+  location?: {
+    city: string;
+    state: string;
+  };
+}
+
+interface OutletsResponse {
+  status: string;
+  outlets: Outlet[];
+  message?: string;
 }
 
 const restaurantGameData = {
@@ -60,46 +70,18 @@ const restaurantGameData = {
   }
 };
 
-const outletData = [
-  {
-    id: 1,
-    name: 'Kandhanchavadi, OMR',
-    address: 'No 116 OMR Kottivakam Chennai -072'
-  },
-  {
-    id: 2,
-    name: 'Palavakkam, Ecr',
-    address: 'No 213 1st FloorECR Palavakkam Chennai-112'
-  },
-  {
-    id: 3,
-    name: 'Velachery',
-    address: '111 1st Floor 100 ft Road Palavakkam Chennai -042'
-  },
-  {
-    id: 4,
-    name: 'Adyar',
-    address: '111, LB road Thiruvanmiyur Road Adyar Ch -094'
-  },
-  {
-    id: 5,
-    name: 'Chrompet',
-    address: '12 GST Outer Ring Road Chrompet Ch -110'
-  },
-  {
-    id: 6,
-    name: 'Tambaram',
-    address: '12 GST Outer Ring Road Thambaram Ch - 92'
-  }
-];
-
 const RestaurantGameDetailPage = () => {
   const params = useParams();
   const router = useRouter();
   const gameId = parseInt(params.id as string);
+  // gameId is actually the shopId (vendor ID) for restaurant games
+  const shopId = gameId;
 
   const game = restaurantGameData[gameId as keyof typeof restaurantGameData];
   const [showOutletSheet, setShowOutletSheet] = useState(false);
+  const [outlets, setOutlets] = useState<Outlet[]>([]);
+  const [isLoadingOutlets, setIsLoadingOutlets] = useState(false);
+  const [outletsError, setOutletsError] = useState<string | null>(null);
 
   if (!game) {
     return (
@@ -119,6 +101,42 @@ const RestaurantGameDetailPage = () => {
 
   const handleBack = () => {
     router.back();
+  };
+
+  // Fetch outlets when outlet sheet is opened
+  useEffect(() => {
+    if (showOutletSheet && shopId) {
+      fetchOutlets();
+    }
+  }, [showOutletSheet, shopId]);
+
+  const fetchOutlets = async () => {
+    try {
+      setIsLoadingOutlets(true);
+      setOutletsError(null);
+
+      const response = await fetch(`/api/public/vendors/${shopId}/outlets`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      const data: OutletsResponse = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        setOutlets(data.outlets || []);
+      } else {
+        setOutletsError(data.message || 'Failed to fetch outlets');
+        setOutlets([]);
+      }
+    } catch (err) {
+      console.error('Error fetching outlets:', err);
+      setOutletsError('Failed to fetch outlets. Please try again.');
+      setOutlets([]);
+    } finally {
+      setIsLoadingOutlets(false);
+    }
   };
 
   const handleShowOutletSheet = () => {
@@ -453,44 +471,60 @@ const RestaurantGameDetailPage = () => {
                 },
               }}
             >
-              {outletData.map((outlet) => (
-                <Box
-                  key={outlet.id}
-                  onClick={() => handleSelectOutlet(outlet)}
-                  sx={{
-                    p: 3,
-                    borderBottom: '1px solid #f0f0f0',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s ease',
-                    '&:hover': {
-                      backgroundColor: '#f8f9fa'
-                    },
-                    '&:last-child': {
-                      borderBottom: 'none'
-                    }
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: '16px',
-                      fontWeight: 700,
-                      color: '#2d2350',
-                      mb: 0.5
-                    }}
-                  >
-                    {outlet.name}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      color: '#666',
-                      lineHeight: 1.4
-                    }}
-                  >
-                    {outlet.address}
+              {isLoadingOutlets ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                  <CircularProgress size={40} sx={{ color: '#FAC200' }} />
+                </Box>
+              ) : outletsError ? (
+                <Box sx={{ p: 3 }}>
+                  <Alert severity="error">{outletsError}</Alert>
+                </Box>
+              ) : outlets.length === 0 ? (
+                <Box sx={{ p: 3, textAlign: 'center' }}>
+                  <Typography sx={{ color: '#666', fontSize: '14px' }}>
+                    No outlets available for this vendor.
                   </Typography>
                 </Box>
-              ))}
+              ) : (
+                outlets.map((outlet) => (
+                  <Box
+                    key={outlet.id}
+                    onClick={() => handleSelectOutlet(outlet)}
+                    sx={{
+                      p: 3,
+                      borderBottom: '1px solid #f0f0f0',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: '#f8f9fa'
+                      },
+                      '&:last-child': {
+                        borderBottom: 'none'
+                      }
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: '16px',
+                        fontWeight: 700,
+                        color: '#2d2350',
+                        mb: 0.5
+                      }}
+                    >
+                      {outlet.name}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        color: '#666',
+                        lineHeight: 1.4
+                      }}
+                    >
+                      {outlet.address}
+                    </Typography>
+                  </Box>
+                ))
+              )}
             </Box>
           </Box>
         </Box>

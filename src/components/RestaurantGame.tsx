@@ -1,8 +1,9 @@
 'use client';
 
 import { Box, Typography, Button } from '@mui/material';
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import OutletSelectionPopup from './OutletSelectionPopup';
 const defaultRestaurants = [
   {
     id: 1,
@@ -81,13 +82,24 @@ const RestaurantGame: React.FC<RestaurantGameProps> = ({ restaurants: propRestau
       }))
     : defaultRestaurants;
   const router = useRouter();
+  const [selectedShopId, setSelectedShopId] = useState<number | null>(null);
+  const [selectedRestaurantName, setSelectedRestaurantName] = useState<string>('');
+  const [isOutletPopupOpen, setIsOutletPopupOpen] = useState(false);
 
   const handleViewAll1 = () => {
     router.push('/games?tab=restaurant');
   };
 
-  const handleGameClick = (gameId: number) => {
-    router.push(`/restaurant-games/${gameId}`);
+  const handleGameClick = (gameId: number, restaurantName: string) => {
+    setSelectedShopId(gameId);
+    setSelectedRestaurantName(restaurantName);
+    setIsOutletPopupOpen(true);
+  };
+
+  const handleCloseOutletPopup = () => {
+    setIsOutletPopupOpen(false);
+    setSelectedShopId(null);
+    setSelectedRestaurantName('');
   };
 
   return (
@@ -144,7 +156,7 @@ const RestaurantGame: React.FC<RestaurantGameProps> = ({ restaurants: propRestau
         {popularGames.map((game) => (
           <Box
             key={game.id}
-            onClick={() => handleGameClick(game.id)}
+            onClick={() => handleGameClick(game.id, game.name)}
             sx={{
               minWidth: { xs: 152, sm: 180, md: 200, lg: 220 },
               maxWidth: { xs: 152, sm: 220, md: 240, lg: 260 },
@@ -269,9 +281,15 @@ const RestaurantGame: React.FC<RestaurantGameProps> = ({ restaurants: propRestau
          Play branded games from your favorite restaurants and win Coupons + coins!
         </Typography>
 
-
-
-
+      {/* Outlet Selection Popup */}
+      {selectedShopId && (
+        <OutletSelectionPopup
+          isOpen={isOutletPopupOpen}
+          onClose={handleCloseOutletPopup}
+          shopId={selectedShopId}
+          restaurantName={selectedRestaurantName}
+        />
+      )}
     </Box>
   );
 };
