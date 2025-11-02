@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Box, Typography, Button, IconButton, CircularProgress, Alert } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -83,34 +83,8 @@ const RestaurantGameDetailPage = () => {
   const [isLoadingOutlets, setIsLoadingOutlets] = useState(false);
   const [outletsError, setOutletsError] = useState<string | null>(null);
 
-  if (!game) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '50vh',
-        flexDirection: 'column',
-        gap: '16px'
-      }}>
-        <h2 style={{ color: '#2d2350' }}>Game Not Found</h2>
-        <p style={{ color: '#666' }}>The requested game could not be found.</p>
-      </div>
-    );
-  }
-
-  const handleBack = () => {
-    router.back();
-  };
-
-  // Fetch outlets when outlet sheet is opened
-  useEffect(() => {
-    if (showOutletSheet && shopId) {
-      fetchOutlets();
-    }
-  }, [showOutletSheet, shopId]);
-
-  const fetchOutlets = async () => {
+  // Fetch outlets function - must be defined before useEffect
+  const fetchOutlets = useCallback(async () => {
     try {
       setIsLoadingOutlets(true);
       setOutletsError(null);
@@ -137,6 +111,17 @@ const RestaurantGameDetailPage = () => {
     } finally {
       setIsLoadingOutlets(false);
     }
+  }, [shopId]);
+
+  // Fetch outlets when outlet sheet is opened
+  useEffect(() => {
+    if (showOutletSheet && shopId) {
+      fetchOutlets();
+    }
+  }, [showOutletSheet, shopId, fetchOutlets]);
+
+  const handleBack = () => {
+    router.back();
   };
 
   const handleShowOutletSheet = () => {
@@ -151,6 +136,23 @@ const RestaurantGameDetailPage = () => {
     console.log(`Selected outlet: ${outlet.name}`);
     setShowOutletSheet(false);
   };
+
+  // Early return after all hooks - React Hooks must be called unconditionally
+  if (!game) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '50vh',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        <h2 style={{ color: '#2d2350' }}>Game Not Found</h2>
+        <p style={{ color: '#666' }}>The requested game could not be found.</p>
+      </div>
+    );
+  }
 
   return (
     <Box sx={{ 
