@@ -7,6 +7,8 @@ import { ArrowBack, PlayArrow, Star } from '@mui/icons-material';
 import HeaderWithBack from '@/components/HeaderWithBack';
 import TabBar from '@/components/TabBar';
 import OutletGameLoader from '@/components/OutletGameLoader';
+import LoginPopup from '@/components/LoginPopup';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface GameDetails {
   id: number;
@@ -30,10 +32,12 @@ interface GameDetails {
 function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isLoggedIn, isLoading: authLoading } = useAuth();
   const [game, setGame] = useState<GameDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showGame, setShowGame] = useState(false);
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   
   // Check if user came from outlet selection (has offerId)
   const offerIdParam = searchParams.get('offerId');
@@ -80,14 +84,29 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
 
   const handlePlay = () => {
     if (isFromOutletSelection && offerId) {
-      // Show the game loader for outlet games
-      setShowGame(true);
+      // For outlet games, check if user is logged in
+      if (!authLoading) {
+        if (isLoggedIn) {
+          // User is logged in, show the game
+          setShowGame(true);
+        } else {
+          // User is not logged in, show login popup
+          setIsLoginPopupOpen(true);
+        }
+      }
     } else if (game?.modes?.quickMatch?.status === 'comingSoon') {
       alert('This game is coming soon!');
     } else {
       // Handle play action for regular games
       console.log('Playing game:', game?.name);
       // Add your play logic here
+    }
+  };
+
+  const handleLogin = () => {
+    // After successful login, show the game if it's an outlet game
+    if (isFromOutletSelection && offerId) {
+      setShowGame(true);
     }
   };
 
@@ -368,6 +387,13 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
       </Box>
 
       <TabBar />
+
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={isLoginPopupOpen}
+        onClose={() => setIsLoginPopupOpen(false)}
+        onLogin={handleLogin}
+      />
     </Box>
   );
 }
