@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowBack, PlayArrow, Star } from '@mui/icons-material';
 import HeaderWithBack from '@/components/HeaderWithBack';
 import TabBar from '@/components/TabBar';
+import OutletGameLoader from '@/components/OutletGameLoader';
 
 interface GameDetails {
   id: number;
@@ -32,9 +33,11 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
   const [game, setGame] = useState<GameDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showGame, setShowGame] = useState(false);
   
   // Check if user came from outlet selection (has offerId)
-  const offerId = searchParams.get('offerId');
+  const offerIdParam = searchParams.get('offerId');
+  const offerId = offerIdParam ? parseInt(offerIdParam) : null;
   const isFromOutletSelection = !!offerId;
 
   useEffect(() => {
@@ -76,14 +79,26 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
   };
 
   const handlePlay = () => {
-    if (game?.modes?.quickMatch?.status === 'comingSoon') {
+    if (isFromOutletSelection && offerId) {
+      // Show the game loader for outlet games
+      setShowGame(true);
+    } else if (game?.modes?.quickMatch?.status === 'comingSoon') {
       alert('This game is coming soon!');
     } else {
-      // Handle play action
+      // Handle play action for regular games
       console.log('Playing game:', game?.name);
       // Add your play logic here
     }
   };
+
+  const handleCloseGame = () => {
+    setShowGame(false);
+  };
+
+  // Show game loader if playing outlet game
+  if (showGame && offerId) {
+    return <OutletGameLoader offerId={offerId} onClose={handleCloseGame} />;
+  }
 
   if (isLoading) {
     return (
