@@ -51,9 +51,13 @@ const OutletGameLoader: React.FC<OutletGameLoaderProps> = ({ offerId, onClose })
 
         if (data.status === 'success' && data.game) {
           setGameData(data);
-          setApiBaseUrl(data.apiBaseUrl);
+          // Ensure apiBaseUrl uses HTTPS
+          const normalizedApiBaseUrl = data.apiBaseUrl?.replace(/^http:/, 'https:') || data.apiBaseUrl;
+          setApiBaseUrl(normalizedApiBaseUrl);
+          // Ensure baseUrl uses HTTPS for mixed content security
+          const normalizedBaseUrl = data.game.baseUrl?.replace(/^http:/, 'https:') || data.game.baseUrl;
           // Build the game index URL
-          setGameUrl(`${data.game.baseUrl}${data.game.indexFile}`);
+          setGameUrl(`${normalizedBaseUrl}${data.game.indexFile}`);
         } else {
           // Handle different error reasons
           let errorMessage = 'Failed to load game';
