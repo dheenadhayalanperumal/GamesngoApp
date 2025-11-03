@@ -115,6 +115,21 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Listen for scratch redemption events to refresh wallet/voucher data
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const handleScratchRedeemed = () => {
+      console.log('Header: Scratch redeemed event received, refreshing user data...');
+      if (isLoggedIn) {
+        fetchUserData();
+      }
+    };
+    
+    window.addEventListener('scratchRedeemed', handleScratchRedeemed);
+    return () => window.removeEventListener('scratchRedeemed', handleScratchRedeemed);
+  }, [isLoggedIn]);
+
   // Fetch user data when login status changes
   useEffect(() => {
     if (isLoggedIn) {

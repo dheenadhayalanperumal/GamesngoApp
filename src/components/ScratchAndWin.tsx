@@ -108,15 +108,19 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   const fetchScratchQuote = async () => {
     try {
       console.log('Fetching scratch quote for ID:', scratchId);
+      console.log('Scratch data:', scratchData);
       
       // Validate scratch ID before making request
-      if (!scratchId || scratchId === 0) {
-        console.error('Invalid scratch ID:', scratchId);
+      const validScratchId = scratchId && scratchId > 0 ? scratchId : (scratchData?.id || null);
+      
+      if (!validScratchId || validScratchId === 0) {
+        console.error('Invalid scratch ID:', scratchId, 'scratchData:', scratchData);
         alert('No scratch card available. Please refresh the page.');
         return null;
       }
       
-      const response = await fetch(`/api/scratch/quote?scratch_id=${scratchId}`, {
+      console.log('Using scratch_id:', validScratchId);
+      const response = await fetch(`/api/scratch/quote?scratch_id=${validScratchId}`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -169,16 +173,28 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
   const redeemScratch = async () => {
     setIsLoading(true);
     try {
-      console.log('Redeeming scratch card, ID:', scratchId);
-      console.log('Request body:', JSON.stringify({ scratch_id: scratchId }));
+      // Ensure we have a valid scratch ID
+      const validScratchId = scratchId && scratchId > 0 ? scratchId : (scratchData?.id || null);
+      
+      if (!validScratchId || validScratchId === 0) {
+        console.error('Invalid scratch ID for redemption:', scratchId, 'scratchData:', scratchData);
+        alert('No scratch card available. Please refresh the page.');
+        setIsLoading(false);
+        return null;
+      }
+      
+      console.log('Redeeming scratch card, ID:', validScratchId);
+      
+      // Create FormData instead of JSON
+      const formData = new FormData();
+      formData.append('scratch_id', validScratchId.toString());
+      
+      console.log('Request FormData - scratch_id:', validScratchId);
       
       const response = await fetch('/api/scratch/redeem', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         credentials: 'include',
-        body: JSON.stringify({ scratch_id: scratchId }),
+        body: formData,
       });
 
       console.log('Response status:', response.status);
@@ -196,10 +212,45 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
       try {
         const text = await response.text();
         console.log('Response text:', text);
-        data = text ? JSON.parse(text) : {};
+        
+        // Handle empty or whitespace-only responses
+        const trimmedText = text ? text.trim() : '';
+        if (!trimmedText) {
+          // Create default error object based on status code
+          if (response.status === 422) {
+            data = { status: 'error', message: 'Invalid scratch card or validation failed' };
+          } else if (response.status === 402) {
+            data = { status: 'error', message: 'Not enough coins for extra scratch' };
+          } else if (response.status === 404) {
+            data = { status: 'error', message: 'Scratch card not found' };
+          } else {
+            data = { status: 'error', message: 'Empty response from server' };
+          }
+        } else {
+          // Try to parse as JSON
+          try {
+            data = JSON.parse(trimmedText);
+          } catch (jsonError) {
+            console.error('Failed to parse JSON:', jsonError);
+            // If it's not JSON, create an error object
+            data = { 
+              status: 'error', 
+              message: trimmedText.length > 200 ? 'Invalid response format' : trimmedText 
+            };
+          }
+        }
       } catch (parseError) {
         console.error('Failed to parse response:', parseError);
-        data = {};
+        // Create default error object based on status code
+        if (response.status === 422) {
+          data = { status: 'error', message: 'Invalid scratch card or validation failed' };
+        } else if (response.status === 402) {
+          data = { status: 'error', message: 'Not enough coins for extra scratch' };
+        } else if (response.status === 404) {
+          data = { status: 'error', message: 'Scratch card not found' };
+        } else {
+          data = { status: 'error', message: 'Failed to process response' };
+        }
       }
       
       console.log('Scratch redeem response:', data);
@@ -222,15 +273,15 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
         return data.reward;
       } else {
         console.error('Redeem failed:', response.status, data);
-        if (response.status === 402) {
-          alert('Not enough coins for extra scratch');
-        } else if (response.status === 404) {
-          alert('Scratch card not available');
-        } else if (response.status === 422) {
-          alert(data.message || 'Invalid scratch card');
-        } else {
-          alert(data.message || 'Failed to redeem scratch. Please try again.');
-        }
+        
+        // Get error message
+        const errorMessage = data?.message || 
+          (response.status === 402 ? 'Not enough coins for extra scratch' :
+           response.status === 404 ? 'Scratch card not available' :
+           response.status === 422 ? 'Invalid scratch card or validation failed' :
+           'Failed to redeem scratch. Please try again.');
+        
+        alert(errorMessage);
         return null;
       }
     } catch (error) {
@@ -246,20 +297,45 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
     console.log('Scratch button clicked, scratchId:', scratchId);
     console.log('Scratch data:', scratchData);
     
-    // Check if we have a valid scratch ID
-    if (!scratchId || scratchId === 0) {
-      alert('No scratch card available at the moment. Please try again later.');
+    // Check if scratch data is available
+    if (!scratchData) {
+      alert('Scratch card data is still loading. Please wait a moment and try again.');
       return;
     }
     
-    // Fetch quote first
+    // Use scratchData.id as the primary source, with fallback to scratchId
+    const idToUse = scratchData.id || scratchId;
+    
+    // Check if we have a valid scratch ID
+    if (!idToUse || idToUse === 0) {
+      alert('No scratch card available at the moment. Please refresh the page.');
+      return;
+    }
+    
+    // Fetch quote first to check if user can proceed
     const quote = await fetchScratchQuote();
     console.log('Quote result:', quote);
-    if (quote && quote.pricing && quote.pricing.canProceed) {
+    
+    if (!quote) {
+      // fetchScratchQuote already handled the error and showed an alert
+      return;
+    }
+    
+    if (quote.pricing && quote.pricing.canProceed) {
       console.log('Opening scratch popup');
       setIsPopupOpen(true);
     } else {
       console.log('Cannot proceed with scratch:', quote);
+      // Check if user has enough coins but canProceed is still false
+      if (quote.pricing) {
+        if (!quote.pricing.isFree && quote.pricing.walletCoins < quote.pricing.costCoins) {
+          alert(`Not enough coins. You need ${quote.pricing.costCoins} coins but only have ${quote.pricing.walletCoins} coins.`);
+        } else {
+          alert('Cannot proceed with scratch at this time. Please try again later.');
+        }
+      } else {
+        alert('Cannot proceed with scratch. Please try again.');
+      }
     }
   };
 
@@ -277,6 +353,22 @@ const ScratchAndWin: React.FC<ScratchAndWinProps> = ({
       console.log('Redemption successful, showing coupon popup');
       setIsPopupOpen(false);
       setIsCouponOpen(true);
+      
+      // Refresh scratch quote to get updated attempt number and pricing
+      setTimeout(() => {
+        fetchScratchQuote();
+      }, 500);
+      
+      // Dispatch custom event to notify other components (like Header) to refresh
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('scratchRedeemed', { 
+          detail: { 
+            rewardType: reward.type,
+            amount: reward.amount,
+            voucherId: reward.voucherId 
+          } 
+        }));
+      }
       
       if (onScratch) {
         onScratch();
