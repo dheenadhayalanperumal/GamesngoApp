@@ -99,15 +99,36 @@ const OutletGameLoader: React.FC<OutletGameLoaderProps> = ({ offerId, onClose })
     if (!iframe) return;
 
     const handleLoad = () => {
-      // Send config to the game via postMessage
+      // Send all config data to the game via postMessage
       // IMPORTANT: Replace "*" with your game origin for security in production
       iframe.contentWindow?.postMessage(
         {
           type: 'INIT_CONFIG',
           payload: {
-            apiBaseUrl, // Available inside the game
-            gameId: gameData.game.id,
+            // Offer information
+            offerId,
+            
+            // API configuration
+            apiBaseUrl,
+            
+            // User information
             userId: gameData.userId,
+            
+            // Complete game data object
+            game: {
+              ...gameData.game,
+            },
+            
+            // Response metadata
+            status: gameData.status,
+            message: gameData.message,
+            reason: gameData.reason,
+            
+            // Individual game properties (for backwards compatibility)
+            gameId: gameData.game.id,
+            gameTitle: gameData.game.title,
+            gameBaseUrl: gameData.game.baseUrl,
+            gameIndexFile: gameData.game.indexFile,
             discountMinPercent: gameData.game.discountMinPercent,
             discountMaxPercent: gameData.game.discountMaxPercent,
           },
@@ -118,7 +139,7 @@ const OutletGameLoader: React.FC<OutletGameLoaderProps> = ({ offerId, onClose })
 
     iframe.addEventListener('load', handleLoad);
     return () => iframe.removeEventListener('load', handleLoad);
-  }, [gameUrl, apiBaseUrl, gameData]);
+  }, [gameUrl, apiBaseUrl, gameData, offerId]);
 
   const handleBack = () => {
     if (onClose) {
