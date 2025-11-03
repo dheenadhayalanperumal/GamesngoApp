@@ -126,38 +126,10 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      disableScrollLock={false}
-      sx={{
-        position: 'fixed',
-        zIndex: 1300,
-        '& .MuiBackdrop-root': {
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        },
-        '& .MuiDialog-container': {
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'auto',
-        },
-      }}
       BackdropProps={{
         sx: {
           backdropFilter: "blur(10px)",
           backgroundColor: "rgba(0, 0, 0, 0.3)",
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
         },
       }}
       PaperProps={{
@@ -167,11 +139,6 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
           background:
             "linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(248,249,250,0.7) 100%)",
           boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
-          margin: 'auto',
-          position: 'relative',
-          maxHeight: '90vh',
-          display: 'flex',
-          flexDirection: 'column',
         },
       }}
     >

@@ -4,7 +4,6 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/theme/theme';
 import { AuthProvider } from '@/contexts/AuthContext';
-import DeviceRedirect from '@/components/DeviceRedirect';
 import "./globals.css";
 
 const inter = Inter({
@@ -60,44 +59,17 @@ export default function RootLayout({
                   console.log('Wallet prevention script:', e);
                 }
               })();
-              
-              // Lock screen orientation to portrait on mobile devices
-              (function() {
-                if (typeof window !== 'undefined' && window.screen && window.screen.orientation) {
-                  // Try to lock orientation to portrait
-                  if (window.screen.orientation && window.screen.orientation.lock) {
-                    window.screen.orientation.lock('portrait').catch(function(err) {
-                      console.log('Orientation lock failed:', err);
-                    });
-                  }
-                }
-                
-                // Listen for orientation changes and try to force portrait
-                window.addEventListener('orientationchange', function() {
-                  setTimeout(function() {
-                    if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
-                      window.screen.orientation.lock('portrait').catch(function(err) {
-                        // Orientation lock may not work in all browsers
-                        console.log('Orientation lock on change failed:', err);
-                      });
-                    }
-                  }, 100);
-                });
-              })();
             `,
           }}
         />
         <meta name="theme-color" content="#4848DB" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="screen-orientation" content="portrait" />
-        <meta name="orientation" content="portrait" />
       </head>
       <body className={`${inter.variable} gradient-body`}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <AuthProvider>
-            <DeviceRedirect />
             <div className="content-container">
               {children}
             </div>

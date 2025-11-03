@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Box, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import Image from 'next/image';
@@ -22,31 +21,11 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
   const [showGiftAnimation, setShowGiftAnimation] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
-
-  useEffect(() => {
-    if (isOpen && typeof window !== 'undefined') {
+    if (isOpen) {
       setIsScratched(false);
       setScratchProgress(0);
-      
-      // Store current scroll position
-      const scrollY = window.scrollY;
-      
-      // Prevent body scroll when popup is open
-      const originalOverflow = document.body.style.overflow;
-      const originalPosition = document.body.style.position;
-      const originalTop = document.body.style.top;
-      const originalWidth = document.body.style.width;
-      
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
       
       // Initialize scratch layer
       const canvas = canvasRef.current;
@@ -74,15 +53,6 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
           }
         }
       }
-      
-      // Cleanup: restore body scroll when popup closes
-      return () => {
-        document.body.style.overflow = originalOverflow;
-        document.body.style.position = originalPosition;
-        document.body.style.top = originalTop;
-        document.body.style.width = originalWidth;
-        window.scrollTo(0, scrollY);
-      };
     }
   }, [isOpen]);
 
@@ -157,7 +127,7 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
     handleMouseUp();
   };
 
-  if (!isOpen || !mounted || typeof window === 'undefined') return null;
+  if (!isOpen) return null;
 
   const GiftBoxIcon = () => (
     <Image
@@ -208,13 +178,7 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
     />
   );
 
-  // Render the popup using Portal to document.body to ensure it's always viewport-centered
-  // This makes it independent of parent container positioning
-  if (typeof document === 'undefined' || !document.body) {
-    return null;
-  }
-
-  return createPortal(
+  return (
     <Box
       sx={{
         position: 'fixed',
@@ -222,33 +186,12 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
         left: 0,
         right: 0,
         bottom: 0,
-        width: '100vw',
-        height: '100vh',
-        maxWidth: '100vw',
-        maxHeight: '100vh',
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 9999,
-        padding: '20px',
-        overflow: 'auto',
-        margin: 0,
-        // Force it to be relative to viewport
-        transform: 'none',
-        // Ensure it's not affected by parent transforms
-        isolation: 'isolate',
-        // Additional viewport positioning
-        inset: 0,
-      }}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        margin: 0,
-        padding: '20px',
+        padding: '20px'
       }}
     >
       {/* Close Button */}
@@ -454,6 +397,8 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
             </Box>
           )}
         </Box>
+
+
       </Box>
 
       {/* CSS Animations */}
@@ -490,8 +435,7 @@ const ScratchPopup: React.FC<ScratchPopupProps> = ({
           }
         }
       `}</style>
-    </Box>,
-    document.body
+    </Box>
   );
 };
 
