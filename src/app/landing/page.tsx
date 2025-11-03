@@ -272,7 +272,7 @@ export default function LandingPage() {
             <div className="contact-content">
               <h3 className="contact-title">Lets Talk!</h3>
               <p className="contact-subtitle">
-                Let's connect and grow together! Reach out for exciting partnership opportunities, collaboration ideas, or dedicated support anytime you need.
+                Let&apos;s connect and grow together! Reach out for exciting partnership opportunities, collaboration ideas, or dedicated support anytime you need.
               </p>
               <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
                 <div className="form-row">
