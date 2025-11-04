@@ -170,7 +170,7 @@ const CouponPopup: React.FC<CouponPopupProps> = ({
         </Typography>
 
         {/* Show attempt info if available */}
-        {rewardData && (
+        {/* {rewardData && (
           <Typography
             variant="body2"
             sx={{
@@ -182,7 +182,7 @@ const CouponPopup: React.FC<CouponPopupProps> = ({
           >
             Attempt #{rewardData.attemptNo} • {rewardData.spent > 0 ? `Cost: ${rewardData.spent} coins` : 'Free'}
           </Typography>
-        )}
+        )} */}
 
         {/* Divider Line */}
         <Box

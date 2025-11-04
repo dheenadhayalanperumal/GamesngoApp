@@ -731,7 +731,7 @@ export default function EditProfile() {
                 Saving...
               </Box>
             ) : (
-              `Save Changes${profileEdit?.costCoins ? ` (${profileEdit.costCoins} Coins)` : ''}`
+              `Save Changes`
             )}
           </Button>
         </Box>
