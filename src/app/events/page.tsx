@@ -708,7 +708,7 @@ const EventsPage = () => {
         <EventTabs
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          tabs={['Live Events', 'Your Events']}
+          tabs={['Live Events', 'My Events']}
         />
       )}
 
