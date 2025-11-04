@@ -17,6 +17,7 @@ import { Close, Person, Phone, Lock } from '@mui/icons-material';
 import Image from 'next/image';
 import SetPinPopup from './SetPinPopup';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface SignupPopupProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
   onClose,
   onSignup
 }) => {
+  const router = useRouter();
   const { login } = useAuth();
   const [userID, setUserID] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -546,11 +548,21 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
                 >
                   By clicking next you are agree our{' '}
                   <Link
-                    href="#"
+                    component="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onClose();
+                      router.push('/terms-conditions');
+                    }}
                     sx={{
                       color: '#4285F4',
                       textDecoration: 'none',
                       fontSize: '12px',
+                      cursor: 'pointer',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      font: 'inherit',
                       '&:hover': {
                         textDecoration: 'underline',
                       },
@@ -560,11 +572,21 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
                   </Link>
                   {' '}and{' '}
                   <Link
-                    href="#"
+                    component="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onClose();
+                      router.push('/privacy-policy');
+                    }}
                     sx={{
                       color: '#4285F4',
                       textDecoration: 'none',
                       fontSize: '12px',
+                      cursor: 'pointer',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      font: 'inherit',
                       '&:hover': {
                         textDecoration: 'underline',
                       },
