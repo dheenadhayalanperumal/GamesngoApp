@@ -15,8 +15,9 @@ const QuickAction = () => {
   const handleCardClick = (cardId: number) => {
     if (cardId === 1) {
       router.push('/daily-games');
+    } else if (cardId === 2) {
+      router.push('/redeem');
     }
-    // Add other navigation logic for other cards if needed
   };
 
   return (
