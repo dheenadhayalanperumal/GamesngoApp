@@ -36,6 +36,16 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     checkAuthAndFetchDetails();
   }, [checkAuthAndFetchDetails]);
 
+  // Fetch unread count when login status changes
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchUnreadCount();
+    } else {
+      setNotificationCount(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn]);
+
   // checkAuthentication removed - AuthContext handles authentication
 
   const fetchUserDetails = async () => {
@@ -51,15 +61,45 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       if (response.ok && data.status === 'success') {
         setUserName(data.details.user.name || "User");
         setUserImage(data.details.user.imageUrl || "");
-        setNotificationCount(data.details.notifications.unreadCount || 0);
+        // Fetch unread count separately from notifications API
+        fetchUnreadCount();
       } else {
         // API returned an error, use default values
         console.warn('Failed to fetch user details:', data.message || 'Unknown error');
         // Keep default values: "User", no image, 0 notifications
+        setNotificationCount(0);
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
       // Keep default values on error
+      setNotificationCount(0);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    if (!isLoggedIn) {
+      setNotificationCount(0);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/notifications/unread-count', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('Unread count response:', data);
+
+      if (response.ok && data.status === 'success') {
+        setNotificationCount(data.unread || 0);
+      } else {
+        console.warn('Failed to fetch unread count:', data.message || 'Unknown error');
+        setNotificationCount(0);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+      setNotificationCount(0);
     }
   };
 
@@ -83,6 +123,14 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
 
   const handleLoginPopupClose = () => {
     setIsLoginPopupOpen(false);
+  };
+
+  const handleNotificationClick = () => {
+    if (isLoggedIn) {
+      router.push('/notifications');
+    } else {
+      setIsLoginPopupOpen(true);
+    }
   };
 
   return (
@@ -130,9 +178,9 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       
 
       {/* Right side (Notification icon with badge) */}
-      <IconButton>
+      <IconButton onClick={handleNotificationClick} sx={{ cursor: 'pointer' }}>
         <Badge 
-          badgeContent={notificationCount} 
+          badgeContent={notificationCount > 0 ? notificationCount : undefined} 
           color="error"
           sx={{
             '& .MuiBadge-badge': {
