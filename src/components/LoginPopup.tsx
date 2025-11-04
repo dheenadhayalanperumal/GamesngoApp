@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
-  // Typography,
+  Typography,
   TextField,
   Button,
   Dialog,
@@ -38,18 +38,25 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isForgotPinOpen, setIsForgotPinOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   // Ensure Forgot PIN popup does not persist across LoginPopup open/close cycles
   useEffect(() => {
     if (!isOpen) {
       setIsForgotPinOpen(false);
+      setErrorMessage(""); // Clear error when popup closes
+      setMobileNumber(""); // Clear form fields
+      setPin("");
     }
   }, [isOpen]);
 
   const handleLogin = async () => {
+    // Clear any previous error
+    setErrorMessage("");
+
     // Validate input
     if (!mobileNumber || !pin) {
-      alert('Please enter mobile number and PIN');
+      setErrorMessage('Please enter mobile number and PIN');
       return;
     }
 
@@ -73,27 +80,33 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
 
       if (response.ok && data.status === 'success') {
         console.log('Login successful:', data.message);
+        setErrorMessage(""); // Clear error on success
         login(); // Update global auth state
         onLogin();
         onClose();
       } else {
-        // Handle API errors
-        if (response.status === 400) {
-          alert('Mobile and PIN are required');
-        } else if (response.status === 401) {
-          alert('Invalid credentials');
-        } else if (response.status === 403) {
-          alert('Account disabled');
+        // Handle API errors - show message from API response if status is error
+        if (data.status === 'error' && data.message) {
+          setErrorMessage(data.message);
         } else {
-          alert('Failed to login. Please try again.');
+          // Fallback error messages
+          if (response.status === 400) {
+            setErrorMessage('Mobile and PIN are required');
+          } else if (response.status === 401) {
+            setErrorMessage(data.message || 'Invalid credentials');
+          } else if (response.status === 403) {
+            setErrorMessage('Account disabled');
+          } else {
+            setErrorMessage(data.message || 'Failed to login. Please try again.');
+          }
         }
       }
     } catch (error) {
       console.error('Error logging in:', error);
       if (error instanceof Error) {
-        alert('Network error. Please check your connection and try again.');
+        setErrorMessage('Network error. Please check your connection and try again.');
       } else {
-        alert('An error occurred. Please try again.');
+        setErrorMessage('An error occurred. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -184,7 +197,10 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
               fullWidth
               placeholder="Enter Mobile Number"
               value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value)}
+              onChange={(e) => {
+                setMobileNumber(e.target.value);
+                setErrorMessage(""); // Clear error when user starts typing
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -220,7 +236,10 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
               type="password"
               placeholder="Enter PIN"
               value={pin}
-              onChange={(e) => setPin(e.target.value)}
+              onChange={(e) => {
+                setPin(e.target.value);
+                setErrorMessage(""); // Clear error when user starts typing
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -249,6 +268,25 @@ const LoginPopup: React.FC<LoginPopupProps> = ({
                }}
             />
           </Box>
+
+          {/* Error Message */}
+          {errorMessage && (
+            <Box sx={{ marginBottom: "16px", marginTop: "-8px" }}>
+              <Typography
+                sx={{
+                  color: "#d32f2f",
+                  fontSize: "14px",
+                  textAlign: "center",
+                  padding: "8px 12px",
+                  backgroundColor: "#ffebee",
+                  borderRadius: "8px",
+                  border: "1px solid #ffcdd2"
+                }}
+              >
+                {errorMessage}
+              </Typography>
+            </Box>
+          )}
         
         {/* Forgot PIN Link */}
         <Box sx={{ textAlign: "right", marginBottom: "20px" }}>
