@@ -34,25 +34,12 @@ interface VoucherClaimedPopupProps {
 }
 
 export default function VoucherClaimedPopup({ open, onClose, couponData }: VoucherClaimedPopupProps) {
-  // Default coupon data if none provided
-  const defaultCouponData = {
-    id: 0,
-    offerId: 0,
-    voucherCode: "XDF21G",
-    title: "Sample Offer",
-    discountPercent: 10,
-    shop: {
-      name: "Nandhana Palace",
-      logoUrl: "/images/banner/nadana.svg"
-    },
-    status: "Active",
-    isRedeemed: false,
-    isExpired: false,
-    issuedAt: "2024-01-01 00:00:00",
-    expiresAt: "2024-12-31 23:59:59"
-  };
+  // Don't render if no coupon data provided
+  if (!couponData) {
+    return null;
+  }
 
-  const voucher = couponData || defaultCouponData;
+  const voucher = couponData;
 
   // Format date helper
   const formatDate = (dateString?: string) => {

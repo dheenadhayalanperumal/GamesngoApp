@@ -4,52 +4,6 @@ import { Box, Typography, Button } from '@mui/material';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import OutletSelectionPopup from './OutletSelectionPopup';
-const defaultRestaurants = [
-  {
-    id: 1,
-    name: 'Dindigul Thalapakatti',
-    image: '/images/banner/restaurant1.svg',
-    rating: 4.8,
-    genre: 'Arcade',
-    duration: '5 min',
-    logoUrl: '/images/banner/restaurant1.svg',
-    location: { city: 'Chennai', state: 'TN' },
-    activeOffers: 3,
-  },
-  {
-    id: 2,
-    name: 'Nandana Palace',
-    image: '/images/banner/nadana.svg',
-    rating: 4.6,
-    genre: 'Cooking',
-    duration: '7 min',
-    logoUrl: '/images/banner/nadana.svg',
-    location: { city: 'Chennai', state: 'TN' },
-    activeOffers: 2,
-  },
-  {
-    id: 3,
-    name: 'Dindigul Thalapakatti',
-    image: '/images/banner/restaurant1.svg',
-    rating: 4.7,
-    genre: 'Simulation',
-    duration: '6 min',
-    logoUrl: '/images/banner/restaurant1.svg',
-    location: { city: 'Chennai', state: 'TN' },
-    activeOffers: 1,
-  },
-  {
-    id: 4,
-    name: 'Dindigul Thalapakatti',
-    image: '/images/banner/restaurant1.svg',
-    rating: 4.7,
-    genre: 'Simulation',
-    duration: '6 min',
-    logoUrl: '/images/banner/restaurant1.svg',
-    location: { city: 'Chennai', state: 'TN' },
-    activeOffers: 5,
-  },
-];
 
 interface Restaurant {
   id: number;

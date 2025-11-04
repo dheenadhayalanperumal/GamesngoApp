@@ -145,44 +145,17 @@ export default function Home() {
           // Handle public home data structure (from /api/public/home)
           const home = data.home || {};
           
-          // Check if user is logged in but got public home data
-          // This means the detailed API might not be available or user needs to login
-          const isLoggedInButPublicData = isLoggedIn && !data.details;
-          
           setHomeData({
             popularGames: home.popularGames || [],
             dailyScratch: home.dailyScratch,
             restaurants: home.restaurants || [],
             banners: home.banners || [],
-            // For logged-in users getting public data, create a basic streak object
-            // For non-logged-in users, create a mock streak object
-            streak: isLoggedInButPublicData ? {
-              current: 1,
-              max: 7,
-              lastLoginDate: new Date().toISOString().split('T')[0],
-              totalLogins: 1,
-              progress: {
-                current: 1,
-                of: 7
-              },
-              hasRedeemedToday: false // Assume not redeemed since we don't have detailed data
-            } : {
-              current: 1,
-              max: 7,
-              lastLoginDate: new Date().toISOString().split('T')[0],
-              totalLogins: 0,
-              progress: {
-                current: 0,
-                of: 7
-              },
-              hasRedeemedToday: false
-            },
-            todayReward: home.loginStreakRewards?.[0] || { day: 1, type: 'coin', amount: 10 },
+            streak: home.streak,
+            todayReward: home.loginStreakRewards?.[0],
             loginStreakRewards: home.loginStreakRewards || []
           });
           console.log('Home data loaded:', home);
           console.log('Login streak rewards:', home.loginStreakRewards);
-          console.log('Is logged in but got public data:', isLoggedInButPublicData);
           
           // If no daily scratch in home, try fetching it separately
           if (!home.dailyScratch) {

@@ -4,57 +4,6 @@ import { Box, Typography, Button } from '@mui/material';
 import React from 'react';
 import { useRouter } from 'next/navigation';
 
-const defaultGames = [
-  {
-    id: 1,
-    name: 'Bubble Shooter',
-    image: '/images/banner/bubble_shooter.svg',
-    rating: 4.8,
-    genre: 'Arcade',
-    duration: '5 min',
-    bannerUrl: '/images/banner/bubble_shooter.svg',
-    type: 'Normal Game',
-    assetUrl: '',
-    plays: 0,
-  },
-  {
-    id: 2,
-    name: 'Burger Maker',
-    image: '/images/banner/burger_maker.svg',
-    rating: 4.6,
-    genre: 'Cooking',
-    duration: '7 min',
-    bannerUrl: '/images/banner/burger_maker.svg',
-    type: 'Normal Game',
-    assetUrl: '',
-    plays: 0,
-  },
-  {
-    id: 3,
-    name: 'Chef Master',
-    image: '/images/banner/burger_maker.svg',
-    rating: 4.7,
-    genre: 'Simulation',
-    duration: '6 min',
-    bannerUrl: '/images/banner/burger_maker.svg',
-    type: 'Normal Game',
-    assetUrl: '',
-    plays: 0,
-  },
-  {
-    id: 4,
-    name: 'Chef Master',
-    image: '/images/banner/burger_maker.svg',
-    rating: 4.7,
-    genre: 'Simulation',
-    duration: '6 min',
-    bannerUrl: '/images/banner/burger_maker.svg',
-    type: 'Normal Game',
-    assetUrl: '',
-    plays: 0,
-  },
-];
-
 interface Game {
   id: number;
   name: string;
