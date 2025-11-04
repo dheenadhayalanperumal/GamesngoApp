@@ -297,7 +297,9 @@ function ItemsViewContent() {
       sx={{
         minHeight: '100vh',
         background: '#F5F5F5',
-        position: 'relative'
+        position: 'relative',
+        margin:'0 -15px',
+        width:"calc(100% + 30px)",
       }}
     >
       {/* Header */}
@@ -305,7 +307,7 @@ function ItemsViewContent() {
 
       {/* Main Content */}
       <Box sx={{ 
-        pt: { xs: '70px', sm: '80px', md: '90px' }, 
+        pt: { xs: '20px', sm: '20px', md: '30px' }, 
         pb: { xs: '100px', sm: '120px', md: '140px' },
         px: { xs: 2, sm: 3, md: 4 }
       }}>
@@ -643,9 +645,13 @@ function ItemsViewContent() {
                         justifyContent: 'center'
                       }}
                     >
-                      <Typography sx={{ fontSize: '0.5rem', fontWeight: 800, color: '#4A148C' }}>
-                        ⚡
-                      </Typography>
+                     <Image
+                            src="/coin.png"
+                            alt="Coin"
+                            width={20}
+                            height={20}
+                            style={{ width: '20px', height: '20px' }}
+                          />
                     </Box>
                     <Typography sx={{ 
                       fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
@@ -678,9 +684,13 @@ function ItemsViewContent() {
                         justifyContent: 'center'
                       }}
                     >
-                      <Typography sx={{ fontSize: '0.4rem', fontWeight: 800, color: '#4A148C' }}>
-                        ⚡
-                      </Typography>
+                    <Image
+                            src="/coin.png"
+                            alt="Coin"
+                            width={20}
+                            height={20}
+                            style={{ width: '20px', height: '20px' }}
+                          />
                     </Box>
                     <Typography sx={{ 
                       fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },

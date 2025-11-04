@@ -82,7 +82,9 @@ export default function FAQPage() {
       sx={{
         minHeight: '100vh',
         background: '#F5F5F5',
-        position: 'relative'
+        position: 'relative',
+        margin:"0 -15px",
+        width:"calc(100% + 30px)",
       }}
     >
       {/* Header */}

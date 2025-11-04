@@ -211,9 +211,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
       {/* Main Content */}
       <Box sx={{ 
-        pt: { xs: '64px', sm: '64px', md: '64px' }, 
+        pt: { xs: '70px', sm: '80px', md: '90px' }, 
         pb: { xs: '100px', sm: '120px', md: '140px' },
-        backgroundColor: 'transparent'
+        backgroundColor: 'white',
+        margin:"0 -15px",
+        width:"calc(100% + 30px)",
       }}>
         {/* Search Bar */}
         <Box sx={{ py: 2, px: { xs: 2, sm: 3, md: 4 } }}>
@@ -223,7 +225,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               sx={{
                 flex: 1,
                 position: 'relative',
-                background: 'transparent',
+                background: 'white',
                 borderRadius: '10px',
                 border: '1px solid rgba(0, 0, 0, 0.20)',
                 display: 'flex',
@@ -254,8 +256,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 backgroundColor: 'transparent',
                 border: '1px solid rgba(0, 0, 0, 0.20)',
                 borderRadius: 2,
-                width: 45,
-                height: 45,
+                width: 40,
+                height: 40,
                 minWidth: 45,
                 fontSize: '2rem',
                 '&:hover': {
@@ -263,18 +265,21 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 }
               }}
             >
-              <Menu sx={{ color: '#504070', fontSize: '3rem' }} />
+              <Menu sx={{ color: '#504070', fontSize: '2rem' }} />
             </IconButton>
           </Box>
         </Box>
 
         {/* Product Image Section */}
-        <Box sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+        <Box sx={{ px: { xs: 0, sm: 0, md: 0 } }}>
           <Card
             sx={{
              // borderRadius: 3,
-              background: 'transparent',
+             display: 'flex',
+              background: 'white',
               boxShadow: 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
               overflow: 'hidden',
               position: 'relative'
             }}
@@ -300,11 +305,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             {/* Main Product Image */}
             <Box
               sx={{
-                background: 'transparent',
+                // background: 'transparent',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                position: 'relative'
+                position: 'relative',
+                background: 'white',
+                height: '360px',
               }}
             >
               <Image
@@ -411,26 +418,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
               {/* Price */}
               <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 2.5, md: 3 } }}>
-                <Box
-                  sx={{
-                    width: { xs: 24, sm: 26, md: 28 },
-                    height: { xs: 24, sm: 26, md: 28 },
-                    background: '#FFD700',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mr: { xs: 1.25, sm: 1.5, md: 1.75 }
-                  }}
-                >
-                  <Typography sx={{ 
-                    fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.8rem' }, 
-                    fontWeight: 800, 
-                    color: '#6E6EFF' 
-                  }}>
-                    ⚡
-                  </Typography>
-                </Box>
+              <Image src="/coin.png" alt="Coin" width={20} height={20} />
                 <Typography sx={{ 
                   color: '#999', 
                   textDecoration: 'line-through', 
@@ -513,7 +501,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 onClick={handleRedeem}
                 sx={{
                   background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                  color: '#21175B',
+                  color: 'white',
                   borderRadius: { xs: 2.5, sm: 3, md: 3.5 },
                   py: { xs: 1.5, sm: 1.75, md: 2 },
                   px: { xs: 2.5, sm: 3, md: 3.5 },

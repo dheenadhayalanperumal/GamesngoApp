@@ -579,7 +579,7 @@ export default function RedeemPage() {
         )}
 
         {/* Products Display - Today's Offers or Category Products */}
-        <Box sx={{ pt: 2 }}>
+        <Box sx={{ pt: 1 }}>
           {/* Loading state for category products */}
           {isLoadingCategoryProducts ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
@@ -634,7 +634,14 @@ export default function RedeemPage() {
                  {offer.discountPercent}% OFF
                </Box>
 
-              <CardContent sx={{ p: 0, height: '100%' }}>
+               <CardContent sx={{ 
+                p: 0, 
+                height: '100%',
+                '&:last-child': {
+                  paddingBottom: 0,
+                  pb: 0
+                }
+              }}>
                 <Box sx={{ 
                   display: 'flex', 
                   flexDirection: 'row',
@@ -772,12 +779,13 @@ export default function RedeemPage() {
                         handleRedeemClick(offer.product.id);
                       }}
                         sx={{
-                        background: '#6E6EFF',
+                          borderRadius: 2,
+                          background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
                         color: 'white',
                           fontWeight: 700,
                         fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
                         py: { xs: 1, sm: 1.25, md: 1.5 },
-                        borderRadius: 2,
+                      
                           textTransform: 'none',
                           fontFamily: 'Arial, sans-serif',
                         boxShadow: '0 4px 12px rgba(110, 110, 255, 0.3)',
@@ -787,7 +795,7 @@ export default function RedeemPage() {
                           }
                         }}
                       >
-                      Redeem Now
+                      Redeem
                       </Button>
                   </Box>
                 </Box>
@@ -860,7 +868,14 @@ export default function RedeemPage() {
                         <BookmarkBorder sx={{ color: '#FFD700', fontSize: '1.5rem' }} />
                       </Box>
 
-                      <CardContent sx={{ p: 0 }}>
+                      <CardContent sx={{ 
+                p: 0, 
+                height: '100%',
+                '&:last-child': {
+                  paddingBottom: 0,
+                  pb: 0
+                }
+              }}>
                         {/* Product Image */}
                         <Box
               sx={{
@@ -870,7 +885,7 @@ export default function RedeemPage() {
                             justifyContent: 'center',
                             position: 'relative',
                             minHeight: { xs: '180px', sm: '200px', md: '220px' },
-                            p: 2
+                            p: 0
                           }}
                         >
                           <Image
@@ -905,22 +920,7 @@ export default function RedeemPage() {
 
                           {/* Price */}
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-              <Box
-                sx={{
-                                width: 20,
-                                height: 20,
-                                background: '#FFD700',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                                mr: 1
-                              }}
-                            >
-                              <Typography sx={{ fontSize: '0.5rem', fontWeight: 800, color: '#6E6EFF' }}>
-                                ⚡
-                              </Typography>
-              </Box>
+                          <Image src="/coin.png" alt="Coin" width={20} height={20} />
                             <Typography sx={{ color: '#999', textDecoration: 'line-through', fontSize: '0.9rem', mr: 1 }}>
                               {product.actualCoin}
                             </Typography>
@@ -951,7 +951,7 @@ export default function RedeemPage() {
                           {/* Rating (if available - using a default or can be removed if not needed) */}
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
                             <Star sx={{ color: '#FFD700', fontSize: '1rem', mr: 0.5 }} />
-                            <Typography sx={{ fontSize: '0.8rem', color: '#4A4A4A' }}>
+                            <Typography sx={{ fontSize: '0.8rem', color: '#4A4A4A',fontWeight: 700 }}>
                               4.5
                             </Typography>
                           </Box>
@@ -964,7 +964,7 @@ export default function RedeemPage() {
                             }}
                             sx={{
                               background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                              color: '#1A1A1A',
+                              color: 'white',
                               borderRadius: 2,
                               py: 1,
                               px: 2,

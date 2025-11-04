@@ -138,7 +138,9 @@ export default function YourOrdersPage() {
       sx={{
         minHeight: '100vh',
         background: '#f5f5f5',
-        position: 'relative'
+        position: 'relative',
+        margin:"0 -15px",
+        width:"calc(100% + 30px)",
       }}
     >
       {/* Header */}

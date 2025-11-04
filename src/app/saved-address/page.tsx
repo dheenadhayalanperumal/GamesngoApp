@@ -139,10 +139,8 @@ export default function SavedAddressPage() {
         minHeight: '100vh',
         background: '#F5F5F5',
         position: 'relative',
-        marginLeft: '-15px',
-        marginRight: '-15px',
-        width: 'calc(100% + 30px)',
-        overflow: 'hidden'
+        margin:"0 -15px",
+        width:"calc(100% + 30px)",
       }}
     >
       {/* Header */}
