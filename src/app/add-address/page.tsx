@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Box, Typography, Card, CardContent, Button, TextField, CircularProgress, Alert } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import HeaderWithBack from '@/components/HeaderWithBack';
+import './page.css';
 
 export default function AddAddressPage() {
   const router = useRouter();
@@ -121,7 +122,11 @@ export default function AddAddressPage() {
       sx={{
         minHeight: '100vh',
         background: '#F5F5F5',
-        position: 'relative'
+        position: 'relative',
+        marginLeft: '-15px',
+        marginRight: '-15px',
+        width: 'calc(100% + 30px)',
+        overflow: 'hidden'
       }}
     >
       {/* Header */}
@@ -129,8 +134,9 @@ export default function AddAddressPage() {
         sx={{
           position: 'fixed',
           top: 0,
-          left: 0,
-          right: 0,
+          left: '-15px',
+          right: '-15px',
+          width: 'calc(100% + 30px)',
           zIndex: 1100
         }}
       >

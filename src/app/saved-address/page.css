@@ -1,0 +1,5 @@
+/* Override global wrapper padding only on saved-address page */
+.content-container {
+  padding: 0 !important;
+}
+

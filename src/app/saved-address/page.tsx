@@ -7,6 +7,7 @@ import {
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import HeaderWithBack from '@/components/HeaderWithBack';
+import './page.css';
 
 interface Address {
   id: number;
@@ -111,7 +112,11 @@ export default function SavedAddressPage() {
       sx={{
         minHeight: '100vh',
         background: '#F5F5F5',
-        position: 'relative'
+        position: 'relative',
+        marginLeft: '-15px',
+        marginRight: '-15px',
+        width: 'calc(100% + 30px)',
+        overflow: 'hidden'
       }}
     >
       {/* Header */}
@@ -119,8 +124,9 @@ export default function SavedAddressPage() {
         sx={{
           position: 'fixed',
           top: 0,
-          left: 0,
-          right: 0,
+          left: '-15px',
+          right: '-15px',
+          width: 'calc(100% + 30px)',
           zIndex: 1100
         }}
       >
