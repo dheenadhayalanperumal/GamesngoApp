@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Box, Typography, Card, CardContent, Button, TextField, CircularProgress, Alert } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import HeaderWithBack from '@/components/HeaderWithBack';
@@ -19,7 +19,7 @@ interface Address {
   isDefault: boolean;
 }
 
-export default function AddAddressPage() {
+function AddAddressContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const addressId = searchParams.get('id');
@@ -798,5 +798,30 @@ export default function AddAddressPage() {
         )}
       </Box>
     </Box>
+  );
+}
+
+export default function AddAddressPage() {
+  return (
+    <Suspense fallback={
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: '#F5F5F5',
+          position: 'relative',
+          marginLeft: '-15px',
+          marginRight: '-15px',
+          width: 'calc(100% + 30px)',
+          overflow: 'hidden',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      >
+        <CircularProgress size={60} sx={{ color: '#3F51B5' }} />
+      </Box>
+    }>
+      <AddAddressContent />
+    </Suspense>
   );
 }
