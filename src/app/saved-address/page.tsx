@@ -70,9 +70,11 @@ export default function SavedAddressPage() {
     router.push('/add-address');
   };
 
-  const handleEditAddress = (addressId: number) => {
-    console.log('Edit address clicked:', addressId);
-    // Handle edit address logic
+  const handleEditAddress = (addressId: number, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation(); // Prevent card click
+    }
+    router.push(`/add-address?id=${addressId}`);
   };
 
   const handleAddressClick = (addressId: number) => {
@@ -90,9 +92,33 @@ export default function SavedAddressPage() {
     }
   };
 
-  const handleRemoveAddress = (addressId: number) => {
-    console.log('Remove address clicked:', addressId);
-    // Handle remove address logic
+  const handleRemoveAddress = async (addressId: number, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation(); // Prevent card click
+    }
+    
+    if (!confirm('Are you sure you want to remove this address?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/address/${addressId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        // Remove address from state
+        setAddresses(addresses.filter(addr => addr.id !== addressId));
+      } else {
+        alert(data.message || 'Failed to remove address');
+      }
+    } catch (err) {
+      console.error('Error removing address:', err);
+      alert('Failed to remove address. Please try again.');
+    }
   };
 
   // Format address for display
@@ -279,7 +305,7 @@ export default function SavedAddressPage() {
                 }}>
                   {/* Edit Button */}
                   <Button
-                    onClick={() => handleEditAddress(address.id)}
+                    onClick={(e) => handleEditAddress(address.id, e)}
                    
                     sx={{
                       color: '#3F51B5',
@@ -299,7 +325,7 @@ export default function SavedAddressPage() {
                  
                   {/* Remove Button */}
                   <Button
-                    onClick={() => handleRemoveAddress(address.id)}
+                    onClick={(e) => handleRemoveAddress(address.id, e)}
                    
                     sx={{
                       color: '#3F51B5',

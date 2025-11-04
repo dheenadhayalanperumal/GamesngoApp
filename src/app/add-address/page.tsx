@@ -1,15 +1,33 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, Card, CardContent, Button, TextField, CircularProgress, Alert } from '@mui/material';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import HeaderWithBack from '@/components/HeaderWithBack';
 import './page.css';
 
+interface Address {
+  id: number;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+  landmark?: string | null;
+  isDefault: boolean;
+}
+
 export default function AddAddressPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const addressId = searchParams.get('id');
+  const isEditMode = !!addressId;
+  
   const [addressType, setAddressType] = useState('Home');
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingAddress, setIsFetchingAddress] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
@@ -23,6 +41,64 @@ export default function AddAddressPage() {
     pinCode: '',
     landmark: ''
   });
+
+  // Fetch address data when in edit mode
+  useEffect(() => {
+    const fetchAddressData = async () => {
+      if (!isEditMode || !addressId) return;
+
+      try {
+        setIsFetchingAddress(true);
+        setError(null);
+        
+        const response = await fetch('/api/address', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        const data = await response.json();
+        console.log('Addresses API Response:', data);
+
+        if (response.ok && data.status === 'success') {
+          const addresses: Address[] = data.addresses || [];
+          const address = addresses.find((addr) => addr.id === parseInt(addressId));
+          
+          if (address) {
+            // Populate form with existing address data
+            setFormData({
+              fullName: address.name || '',
+              mobile: address.phone || '',
+              alternateMobile: '',
+              addressLine1: address.addressLine1 || '',
+              addressLine2: address.addressLine2 || '',
+              state: address.state || '',
+              city: address.city || '',
+              pinCode: address.pincode || '',
+              landmark: address.landmark || ''
+            });
+            
+            // Set address type based on isDefault
+            setAddressType(address.isDefault ? 'Home' : 'Work');
+          } else {
+            setError('Address not found');
+          }
+        } else {
+          setError('Failed to fetch address data');
+        }
+      } catch (err) {
+        console.error('Error fetching address:', err);
+        setError('Failed to fetch address data. Please try again.');
+      } finally {
+        setIsFetchingAddress(false);
+      }
+    };
+
+    fetchAddressData();
+  }, [isEditMode, addressId]);
 
 
   const handleInputChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,8 +161,11 @@ export default function AddAddressPage() {
         is_default: addressType === 'Home'
       });
 
-      const response = await fetch('/api/address', {
-        method: 'POST',
+      const url = isEditMode ? `/api/address/${addressId}` : '/api/address';
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         credentials: 'include',
         body: formDataToSend
       });
@@ -95,23 +174,25 @@ export default function AddAddressPage() {
       console.log('Address API Response:', data);
 
       if (response.ok && data.status === 'success') {
-        console.log('Address created successfully:', data.address);
+        console.log(isEditMode ? 'Address updated successfully' : 'Address created successfully:', data.address);
         // Navigate back to saved addresses page
         router.push('/saved-address');
       } else {
         if (response.status === 401) {
-          setError('Please login to add an address');
+          setError(`Please login to ${isEditMode ? 'update' : 'add'} an address`);
+        } else if (response.status === 404) {
+          setError('Address not found');
         } else if (response.status === 422 && data.errors) {
           // Handle validation errors
           setValidationErrors(data.errors);
           setError(data.message || 'Validation failed');
         } else {
-          setError(data.message || 'Failed to add address. Please try again.');
+          setError(data.message || `Failed to ${isEditMode ? 'update' : 'add'} address. Please try again.`);
         }
       }
     } catch (err) {
-      console.error('Error adding address:', err);
-      setError('Failed to add address. Please try again.');
+      console.error(`Error ${isEditMode ? 'updating' : 'adding'} address:`, err);
+      setError(`Failed to ${isEditMode ? 'update' : 'add'} address. Please try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -161,11 +242,23 @@ export default function AddAddressPage() {
           fontWeight: 500,
           lineHeight: '25px',
           textAlign: 'center',
-          mb: 3
+          // mb: 1,  
+          mt: 3
         }}>
-          New Address
+          {isEditMode ? 'Edit Address' : 'New Address'}
         </Typography>
-        {/* Address Form Card */}
+        
+        {/* Loading state while fetching address data */}
+        {isFetchingAddress && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+            <CircularProgress size={40} sx={{ color: '#3F51B5' }} />
+          </Box>
+        )}
+        
+        {/* Only show form when not fetching or not in edit mode */}
+        {(!isFetchingAddress || !isEditMode) && (
+          <>
+            {/* Address Form Card */}
         <Card
           sx={{
             borderRadius: 4,
@@ -692,15 +785,17 @@ export default function AddAddressPage() {
                 {isLoading ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <CircularProgress size={20} sx={{ color: 'white' }} />
-                    Adding Address...
+                    {isEditMode ? 'Updating Address...' : 'Adding Address...'}
                   </Box>
                 ) : (
-                  'Add Address'
+                  isEditMode ? 'Update Address' : 'Add Address'
                 )}
               </Button>
             </Box>
           </CardContent>
         </Card>
+          </>
+        )}
       </Box>
     </Box>
   );
