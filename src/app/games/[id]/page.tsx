@@ -7,6 +7,7 @@ import { ArrowBack, PlayArrow, Star } from '@mui/icons-material';
 import HeaderWithBack from '@/components/HeaderWithBack';
 import TabBar from '@/components/TabBar';
 import OutletGameLoader from '@/components/OutletGameLoader';
+import GameLoader from '@/components/GameLoader';
 import LoginPopup from '@/components/LoginPopup';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -37,6 +38,7 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showGame, setShowGame] = useState(false);
+  const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   
   // Check if user came from outlet selection (has offerId)
@@ -94,29 +96,49 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
           setIsLoginPopupOpen(true);
         }
       }
-    } else if (game?.modes?.quickMatch?.status === 'comingSoon') {
-      alert('This game is coming soon!');
     } else {
-      // Handle play action for regular games
-      console.log('Playing game:', game?.name);
-      // Add your play logic here
+      // For regular games (non-outlet), check if user is logged in
+      if (!authLoading) {
+        if (isLoggedIn) {
+          // User is logged in, show the game in iframe
+          if (game?.id) {
+            setSelectedGameId(game.id);
+            setShowGame(true);
+          }
+        } else {
+          // User is not logged in, show login popup
+          if (game?.id) {
+            setSelectedGameId(game.id);
+          }
+          setIsLoginPopupOpen(true);
+        }
+      }
     }
   };
 
   const handleLogin = () => {
-    // After successful login, show the game if it's an outlet game
+    // After successful login, show the game
     if (isFromOutletSelection && offerId) {
+      setShowGame(true);
+    } else if (selectedGameId) {
+      // For regular games, show the game after login
       setShowGame(true);
     }
   };
 
   const handleCloseGame = () => {
     setShowGame(false);
+    setSelectedGameId(null);
   };
 
   // Show game loader if playing outlet game
   if (showGame && offerId) {
     return <OutletGameLoader offerId={offerId} onClose={handleCloseGame} />;
+  }
+
+  // Show game loader if playing regular game
+  if (showGame && selectedGameId) {
+    return <GameLoader gameId={selectedGameId} onClose={handleCloseGame} />;
   }
 
   if (isLoading) {
@@ -336,52 +358,11 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
             size="large"
             startIcon={<PlayArrow />}
             onClick={handlePlay}
-            disabled={!isFromOutletSelection && game.modes?.quickMatch?.status === 'comingSoon'}
-            sx={isFromOutletSelection ? {
-              // ClaimButton style for outlet games
-              background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-              color: '#2c3e50',
-              fontWeight: 'bold',
-              fontSize: {
-                xs: '14px',
-                sm: '16px',
-                md: '18px'
-              },
-              padding: {
-                xs: '12px 24px',
-                sm: '14px 28px',
-                md: '16px 32px'
-              },
-              borderRadius: '50px',
-              textTransform: 'none',
-              boxShadow: '0 4px 16px rgba(255, 215, 0, 0.3)',
-              transition: 'all 0.2s ease-out',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)',
-                boxShadow: '0 6px 20px rgba(255, 215, 0, 0.4)',
-                transform: 'translateY(-2px)',
-              },
-              '&:disabled': {
-                background: '#e0e0e0',
-                color: '#9e9e9e',
-                boxShadow: 'none',
-              }
-            } : {
-              // Regular style for non-outlet games
-              backgroundColor: '#4848DB',
-              '&:hover': {
-                backgroundColor: '#3a3ac7',
-              },
-              px: 4,
-              py: 1.5,
-              fontSize: '1.1rem',
-              fontWeight: 600,
-            }}
+           
           >
-            {(!isFromOutletSelection && game.modes?.quickMatch?.status === 'comingSoon')
-              ? 'Coming Soon' 
-              : 'Play Now'
-            }
+         
+             Play Now
+            
           </Button>
         </Box>
       </Box>
