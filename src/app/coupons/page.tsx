@@ -419,23 +419,39 @@ export default function Coupons() {
           </Box>
         )}
 
-        {/* Vouchers List */}
+        {/* Empty State - Single Message */}
         {!isLoading && !error && vouchers.length === 0 && (
           <Box sx={{ 
             textAlign: 'center', 
-            padding: '40px 20px',
+            padding: '60px 20px',
             backgroundColor: 'white',
             borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            margin: '20px'
           }}>
             <LocalOffer sx={{ fontSize: 48, color: '#ccc', marginBottom: 2 }} />
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              No vouchers found
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                color: '#666666',
+                fontSize: '18px',
+                fontWeight: 500,
+                marginBottom: 1
+              }}
+            >
+              {activeTab === 'all' ? 'No vouchers found' : `No ${activeTab} coupons`}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: '#999999',
+                fontSize: '14px',
+                fontWeight: 400
+              }}
+            >
               {activeTab === 'all' 
                 ? "You don't have any vouchers yet." 
-                : `No ${activeTab} vouchers found.`
+                : `Your ${activeTab} coupons will appear here`
               }
             </Typography>
           </Box>
@@ -646,40 +662,6 @@ export default function Coupons() {
                 }
               }}
             />
-          </Box>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && !error && vouchers.length === 0 && (
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            padding: '60px 20px',
-            textAlign: 'center'
-          }}>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                color: '#666666',
-                fontSize: '18px',
-                fontWeight: 500,
-                marginBottom: 1
-              }}
-            >
-              No {activeTab.toLowerCase()} coupons
-            </Typography>
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: '#999999',
-                fontSize: '14px',
-                fontWeight: 400
-              }}
-            >
-              Your {activeTab.toLowerCase()} coupons will appear here
-            </Typography>
           </Box>
         )}
       </Box>

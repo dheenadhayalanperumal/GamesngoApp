@@ -11,7 +11,6 @@ import {
   CardContent,
 } from '@mui/material';
 import { Close } from '@mui/icons-material';
-import QRCode from 'qrcode';
 
 interface QRCodePopupProps {
   open: boolean;
@@ -42,20 +41,29 @@ export default function QRCodePopup({ open, onClose, onClaimVoucher, couponData 
   // Generate QR code when coupon data changes
   useEffect(() => {
     if (couponData?.voucherCode) {
-      QRCode.toDataURL(couponData.voucherCode, {
-        width: 200,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
-        }
-      })
-      .then((url) => {
-        setQrCodeDataUrl(url);
-      })
-      .catch((err) => {
-        console.error('Error generating QR code:', err);
+      // Dynamically import QRCode to avoid SSR issues
+      import('qrcode').then((QRCodeModule) => {
+        const QRCode = QRCodeModule.default || QRCodeModule;
+        QRCode.toDataURL(couponData.voucherCode, {
+          width: 200,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        })
+        .then((url) => {
+          setQrCodeDataUrl(url);
+        })
+        .catch((err) => {
+          console.error('Error generating QR code:', err);
+        });
+      }).catch((err) => {
+        console.error('Error loading QRCode library:', err);
       });
+    } else {
+      // Clear QR code if no voucher code
+      setQrCodeDataUrl('');
     }
   }, [couponData]);
 
