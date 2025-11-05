@@ -42,6 +42,7 @@ export default function Profile() {
   const { isLoggedIn, logout, isLoading: authLoading } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isUpdatingNotification, setIsUpdatingNotification] = useState(false);
   const [accountData, setAccountData] = useState({
     user: { name: 'User', imageUrl: '', joinedAt: '' },
     counts: { coins: 0, coupons: { total: 0, unredeemed: 0 } },
@@ -54,6 +55,7 @@ export default function Profile() {
     // Only fetch data if user is logged in
     if (isLoggedIn) {
       fetchAccountOverview();
+      fetchNotificationPreference();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn]);
@@ -74,7 +76,7 @@ export default function Profile() {
 
       if (response.ok && data.status === 'success') {
         setAccountData(data.account);
-        setNotificationsEnabled(data.account.preferences.notifications.enabled);
+        // Don't set notification preference here, fetch it from dedicated endpoint
       } else {
         console.warn('Failed to fetch account overview:', data.message || 'Unknown error');
         // If account overview fails, user might not be authenticated
@@ -83,6 +85,75 @@ export default function Profile() {
     } catch (error) {
       console.error('Error fetching account overview:', error);
       router.push('/');
+    }
+  };
+
+  const fetchNotificationPreference = async () => {
+    try {
+      const response = await fetch('/api/account/notifications', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('Notification preference response:', data);
+
+      if (response.ok && data.status === 'success') {
+        setNotificationsEnabled(data.preferences.notifications.enabled);
+      } else {
+        console.warn('Failed to fetch notification preference:', data.message || 'Unknown error');
+        // Fallback to account overview data if available
+        if (accountData.preferences?.notifications?.enabled !== undefined) {
+          setNotificationsEnabled(accountData.preferences.notifications.enabled);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching notification preference:', error);
+      // Fallback to account overview data if available
+      if (accountData.preferences?.notifications?.enabled !== undefined) {
+        setNotificationsEnabled(accountData.preferences.notifications.enabled);
+      }
+    }
+  };
+
+  const handleNotificationToggle = async (enabled: boolean) => {
+    if (isUpdatingNotification) return; // Prevent double clicks
+    
+    setIsUpdatingNotification(true);
+    const previousValue = notificationsEnabled;
+    
+    // Optimistically update UI
+    setNotificationsEnabled(enabled);
+    
+    try {
+      const response = await fetch('/api/account/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ enabled }),
+      });
+
+      const data = await response.json();
+      console.log('Update notification preference response:', data);
+
+      if (response.ok && data.status === 'success') {
+        // Update successful, keep the new value
+        setNotificationsEnabled(enabled);
+      } else {
+        // Revert on error
+        setNotificationsEnabled(previousValue);
+        console.error('Failed to update notification preference:', data.message || 'Unknown error');
+        alert('Failed to update notification preference. Please try again.');
+      }
+    } catch (error) {
+      // Revert on error
+      setNotificationsEnabled(previousValue);
+      console.error('Error updating notification preference:', error);
+      alert('Failed to update notification preference. Please try again.');
+    } finally {
+      setIsUpdatingNotification(false);
     }
   };
 
@@ -477,6 +548,11 @@ export default function Profile() {
                       }
                     }}
                     onClick={() => {
+                      // Don't navigate if item has a toggle (like Notifications)
+                      if (item.hasToggle) {
+                        return;
+                      }
+                      
                       if (item.title === 'Contact Us') {
                         router.push('/contact-us');
                       } else if (item.title === 'Privacy Policy') {
@@ -518,18 +594,27 @@ export default function Profile() {
                       }
                     />
                     {item.hasToggle ? (
-                      <Switch
-                        checked={notificationsEnabled}
-                        onChange={(e) => setNotificationsEnabled(e.target.checked)}
-                        sx={{
-                          '& .MuiSwitch-switchBase.Mui-checked': {
-                            color: '#4caf50',
-                          },
-                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                            backgroundColor: '#4caf50',
-                          },
-                        }}
-                      />
+                      <Box
+                        onClick={(e) => e.stopPropagation()}
+                        sx={{ display: 'flex', alignItems: 'center' }}
+                      >
+                        <Switch
+                          checked={notificationsEnabled}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleNotificationToggle(e.target.checked);
+                          }}
+                          disabled={isUpdatingNotification}
+                          sx={{
+                            '& .MuiSwitch-switchBase.Mui-checked': {
+                              color: '#4caf50',
+                            },
+                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                              backgroundColor: '#4caf50',
+                            },
+                          }}
+                        />
+                      </Box>
                     ) : (
                       <Typography variant="h6" sx={{ color: '#ccc' }}>
                         ›
