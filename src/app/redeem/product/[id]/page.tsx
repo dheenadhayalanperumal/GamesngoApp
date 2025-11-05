@@ -219,7 +219,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       }}>
         {/* Search Bar */}
         <Box sx={{ py: 2, px: { xs: 2, sm: 3, md: 4 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex',
+           alignItems: 'center', gap: 2 }}>
             {/* Search Bar */}
             <Box
               sx={{
@@ -230,6 +231,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 border: '1px solid rgba(0, 0, 0, 0.20)',
                 display: 'flex',
                 alignItems: 'center',
+                
                 px: 2,
                 py: 1
               }}
@@ -281,7 +283,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               alignItems: 'center',
               justifyContent: 'center',
               overflow: 'hidden',
-              position: 'relative'
+              position: 'relative',
+              flexDirection: 'column',
             }}
           >
             {/* Bookmark Icon */}
