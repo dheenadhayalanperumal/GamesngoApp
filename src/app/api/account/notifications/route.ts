@@ -83,13 +83,19 @@ export async function POST(request: NextRequest) {
     } else if (contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded')) {
       try {
         const formData = await request.formData();
-        body = Object.fromEntries(formData.entries());
+        const formDataEntries = Object.fromEntries(formData.entries());
         // Convert form data values to proper types
-        if (body.enabled === 'true' || body.enabled === '1') {
-          body.enabled = true;
-        } else if (body.enabled === 'false' || body.enabled === '0') {
-          body.enabled = false;
+        const enabledValue = formDataEntries.enabled;
+        let enabled: boolean;
+        if (enabledValue === 'true' || enabledValue === '1') {
+          enabled = true;
+        } else if (enabledValue === 'false' || enabledValue === '0') {
+          enabled = false;
+        } else {
+          enabled = Boolean(enabledValue);
         }
+        // Create properly typed body object
+        body = { enabled };
         // Send as JSON (API accepts both formats, JSON is simpler for forwarding)
         requestHeaders['Content-Type'] = 'application/json';
         requestBody = JSON.stringify(body);
