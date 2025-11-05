@@ -175,8 +175,13 @@ function AddAddressContent() {
 
       if (response.ok && data.status === 'success') {
         console.log(isEditMode ? 'Address updated successfully' : 'Address created successfully:', data.address);
-        // Navigate back to saved addresses page
-        router.push('/saved-address');
+        // Navigate back to saved addresses page, preserving productId if present
+        const currentProductId = searchParams.get('productId');
+        if (currentProductId) {
+          router.push(`/saved-address?productId=${currentProductId}`);
+        } else {
+          router.push('/saved-address');
+        }
       } else {
         if (response.status === 401) {
           setError(`Please login to ${isEditMode ? 'update' : 'add'} an address`);
@@ -224,6 +229,15 @@ function AddAddressContent() {
         <HeaderWithBack 
           title="Back" 
           backgroundColor="#3F51B5"
+          onBackClick={() => {
+            // Preserve productId when going back
+            const currentProductId = searchParams.get('productId');
+            if (currentProductId) {
+              router.push(`/saved-address?productId=${currentProductId}`);
+            } else {
+              router.push('/saved-address');
+            }
+          }}
         />
       </Box>
 

@@ -67,14 +67,30 @@ export default function SavedAddressPage() {
   }, []);
 
   const handleAddAddress = () => {
-    router.push('/add-address');
+    // Get productId from URL params to preserve it
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('productId');
+    
+    if (productId) {
+      router.push(`/add-address?productId=${productId}`);
+    } else {
+      router.push('/add-address');
+    }
   };
 
   const handleEditAddress = (addressId: number, event?: React.MouseEvent) => {
     if (event) {
       event.stopPropagation(); // Prevent card click
     }
-    router.push(`/add-address?id=${addressId}`);
+    // Get productId from URL params to preserve it
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('productId');
+    
+    if (productId) {
+      router.push(`/add-address?id=${addressId}&productId=${productId}`);
+    } else {
+      router.push(`/add-address?id=${addressId}`);
+    }
   };
 
   const handleAddressClick = (addressId: number) => {
