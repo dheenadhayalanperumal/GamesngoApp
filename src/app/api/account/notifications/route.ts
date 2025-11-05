@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     
     let body;
     let requestBody;
-    let requestHeaders: HeadersInit = {
+    const requestHeaders: HeadersInit = {
       'Accept': 'application/json',
       ...(cookies ? { 'Cookie': cookies } : {}),
     };
