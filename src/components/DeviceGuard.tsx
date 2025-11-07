@@ -18,7 +18,8 @@ const DeviceGuard: React.FC<DeviceGuardProps> = ({ children }) => {
     const checkMobile = () => {
       if (typeof window === 'undefined') return false;
       
-      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      // Get user agent string (opera is rarely needed, so we'll skip it to avoid type issues)
+      const userAgent = navigator.userAgent || navigator.vendor || '';
       
       // Check for mobile devices
       const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
