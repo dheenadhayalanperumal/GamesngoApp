@@ -13,7 +13,7 @@ import {
   Divider,
   Link
 } from '@mui/material';
-import { Close, Person, Phone, Lock } from '@mui/icons-material';
+import { Close, Person, Phone, Lock, CardGiftcard } from '@mui/icons-material';
 import Image from 'next/image';
 import SetPinPopup from './SetPinPopup';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +34,7 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
   const { login } = useAuth();
   const [userID, setUserID] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [otp, setOtp] = useState('');
   const [isVerified, setIsVerified] = useState(false);
   const [isSetPinOpen, setIsSetPinOpen] = useState(false);
@@ -63,6 +64,10 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
         const formData = new FormData();
         formData.append('name', userID);
         formData.append('mobile', mobileNumber);
+        // Add referral code if provided
+        if (referralCode.trim()) {
+          formData.append('referral', referralCode.trim());
+        }
         
         // Call the Next.js API proxy to register and send OTP (to avoid CORS issues)
         const response = await fetch('/api/auth/register', {
@@ -340,6 +345,41 @@ const SignupPopup: React.FC<SignupPopupProps> = ({
                 startAdornment: (
                   <InputAdornment position="start">
                     <Phone sx={{ color: '#FAC200' }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                marginBottom: '20px',
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '20px',
+                  backgroundColor: '#FFF',
+                  border: '1px solid rgba(0, 0, 0, 0.20)',
+                  '& fieldset': {
+                    border: 'none',
+                  },
+                  '&:hover fieldset': {
+                    border: 'none',
+                  },
+                  '&.Mui-focused': {
+                    border: '1px solid #FAC200',
+                    '& fieldset': {
+                      border: 'none',
+                    },
+                  },
+                },
+              }}
+            />
+
+            {/* Referral Code Field */}
+            <TextField
+              fullWidth
+              placeholder="Enter Referral Code (Optional)"
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CardGiftcard sx={{ color: '#FAC200' }} />
                   </InputAdornment>
                 ),
               }}
