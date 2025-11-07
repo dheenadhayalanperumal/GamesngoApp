@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/theme/theme';
 import { AuthProvider } from '@/contexts/AuthContext';
+import DeviceGuard from '@/components/DeviceGuard';
 import "./globals.css";
 
 const inter = Inter({
@@ -70,9 +71,11 @@ export default function RootLayout({
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <AuthProvider>
-            <div className="content-container">
-              {children}
-            </div>
+            <DeviceGuard>
+              <div className="content-container">
+                {children}
+              </div>
+            </DeviceGuard>
           </AuthProvider>
         </ThemeProvider>
       </body>
