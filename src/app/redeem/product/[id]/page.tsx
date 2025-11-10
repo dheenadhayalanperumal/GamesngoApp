@@ -129,8 +129,51 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     router.push(`/saved-address?productId=${resolvedParams.id}`);
   };
 
-  const toggleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
+  const toggleBookmark = async () => {
+    // Check if user is logged in
+    if (!isLoggedIn) {
+      setIsLoginOpen(true);
+      return;
+    }
+
+    // Store previous state to revert on error
+    const previousState = isBookmarked;
+
+    // Don't toggle state immediately - wait for API response
+    try {
+      // Create FormData with productId
+      const formData = new FormData();
+      formData.append('productId', resolvedParams.id);
+
+      const response = await fetch('/api/products/saved', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        // Update bookmark state based on API response
+        // API is idempotent, so if already saved, it returns saved: true
+        setIsBookmarked(data.saved || true);
+      } else {
+        // Handle errors
+        if (response.status === 401) {
+          setIsLoginOpen(true);
+          // Revert to previous state on auth error
+          setIsBookmarked(previousState);
+        } else {
+          console.error('Failed to save product:', data.message || 'Unknown error');
+          // Revert to previous state on error
+          setIsBookmarked(previousState);
+        }
+      }
+    } catch (err) {
+      console.error('Error saving product:', err);
+      // Revert to previous state on error
+      setIsBookmarked(previousState);
+    }
   };
 
   const toggleFeatures = () => {

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, Typography, IconButton, Card, CardContent, Button } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, IconButton, Card, CardContent, Button, CircularProgress, Alert } from '@mui/material';
 import { 
   ShoppingCart, 
   KeyboardArrowDown, 
@@ -18,54 +18,149 @@ import {
 } from '@mui/icons-material';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import LoginPopup from '@/components/LoginPopup';
+import HeaderWithBack from '@/components/HeaderWithBack';
+
+interface SavedProduct {
+  id: number;
+  title: string;
+  actualCoin: number;
+  discountCoin: number;
+  coverUrl: string | null;
+  savedAt: string;
+}
 
 export default function SavedItemsPage() {
   const router = useRouter();
-  const [savedItems, setSavedItems] = useState([
-    {
-      id: 1,
-      name: 'SanDisk SDCZ48-064G 6...',
-      storage: '64 GB RAM',
-      specs: ['USB 3.0 | 64 GB', 'Plastic Body...'],
-      originalPrice: 500,
-      currentPrice: 250,
-      discount: '50% Off',
-      image: '/images/banner/usb_drive.svg'
-    },
-    {
-      id: 2,
-      name: 'SanDisk SDCZ48-064G 6...',
-      storage: '64 GB RAM',
-      specs: ['USB 3.0 | 64 GB', 'Plastic Body...'],
-      originalPrice: 500,
-      currentPrice: 250,
-      discount: '50% Off',
-      image: '/images/banner/usb_drive.svg'
-    },
-    {
-      id: 3,
-      name: 'SanDisk SDCZ48-064G 6...',
-      storage: '64 GB RAM',
-      specs: ['USB 3.0 | 64 GB', 'Plastic Body...'],
-      originalPrice: 500,
-      currentPrice: 250,
-      discount: '50% Off',
-      image: '/images/banner/usb_drive.svg'
-    }
-  ]);
+  const { isLoggedIn } = useAuth();
+  const [savedItems, setSavedItems] = useState<SavedProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [removingIds, setRemovingIds] = useState<Set<number>>(new Set());
+
+  // Fetch saved products from API
+  useEffect(() => {
+    const fetchSavedProducts = async () => {
+      if (!isLoggedIn) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetch('/api/products/saved', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+          },
+          cache: 'no-store',
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            setIsLoginOpen(true);
+            setError('Please login to view saved items');
+          } else {
+            setError(data.message || 'Failed to fetch saved items');
+          }
+          setIsLoading(false);
+          return;
+        }
+
+        if (data.status === 'success' && data.saved) {
+          setSavedItems(data.saved);
+        } else {
+          setSavedItems([]);
+        }
+      } catch (err) {
+        console.error('Error fetching saved products:', err);
+        setError('Failed to fetch saved items. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSavedProducts();
+  }, [isLoggedIn]);
+
+  // Calculate discount percentage
+  const calculateDiscount = (actualCoin: number, discountCoin: number): string => {
+    if (actualCoin === 0) return '0% Off';
+    const discount = ((actualCoin - discountCoin) / actualCoin) * 100;
+    return `${Math.round(discount)}% Off`;
+  };
 
   const handleBack = () => {
     router.back();
   };
 
-  const handleRemoveItem = (itemId: number) => {
-    setSavedItems(savedItems.filter(item => item.id !== itemId));
+  const handleRemoveItem = async (itemId: number) => {
+    // Check if user is logged in
+    if (!isLoggedIn) {
+      setIsLoginOpen(true);
+      return;
+    }
+
+    // Add to removing set to show loading state
+    setRemovingIds(prev => new Set(prev).add(itemId));
+
+    try {
+      // Create FormData with productId
+      const formData = new FormData();
+      formData.append('productId', itemId.toString());
+
+      const response = await fetch('/api/products/saved', {
+        method: 'DELETE',
+        credentials: 'include',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        // Remove item from list on success
+        setSavedItems(savedItems.filter(item => item.id !== itemId));
+      } else {
+        // Handle errors
+        if (response.status === 401) {
+          setIsLoginOpen(true);
+        } else {
+          console.error('Failed to remove product:', data.message || 'Unknown error');
+          setError(data.message || 'Failed to remove product');
+          // Clear error after 3 seconds
+          setTimeout(() => setError(null), 3000);
+        }
+      }
+    } catch (err) {
+      console.error('Error removing product:', err);
+      setError('Failed to remove product. Please try again.');
+      // Clear error after 3 seconds
+      setTimeout(() => setError(null), 3000);
+    } finally {
+      // Remove from removing set
+      setRemovingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(itemId);
+        return newSet;
+      });
+    }
   };
 
   const handleBuyNow = (itemId: number) => {
-    console.log('Buy now clicked for item:', itemId);
-    // Navigate to saved-address page
-    router.push('/saved-address');
+    // Navigate to product detail page
+    router.push(`/redeem/product/${itemId}`);
+  };
+
+  const handleLoginSuccess = () => {
+    setIsLoginOpen(false);
+    // Refetch saved items after login
+    window.location.reload();
   };
 
   const handleBottomNavClick = (item: string) => {
@@ -84,75 +179,7 @@ export default function SavedItemsPage() {
       }}
     >
       {/* Header */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1100,
-          background: '#4A47E0',
-          padding: { xs: '12px 16px', sm: '15px 20px', md: '15px 24px' },
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          minHeight: { xs: '60px', sm: '70px', md: '80px' }
-        }}
-      >
-        {/* Back Button */}
-        <Box 
-          onClick={handleBack}
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            color: 'white',
-            cursor: 'pointer',
-            transition: 'opacity 0.3s ease',
-            '&:hover': {
-              opacity: 0.8
-            }
-          }}
-        >
-          <IconButton 
-            sx={{ 
-              color: 'white',
-              padding: { xs: 0.5, sm: 1, md: 1 },
-              mr: 1
-            }}
-          >
-            <ChevronLeft sx={{ 
-              fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-            }} />
-          </IconButton>
-          <Typography sx={{ 
-            fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-            fontWeight: 600,
-            fontFamily: 'Arial, sans-serif'
-          }}>
-            Back
-          </Typography>
-        </Box>
-
-        {/* Wallet */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          color: 'white',
-          gap: { xs: 0.5, sm: 1, md: 1 }
-        }}>
-          <Typography sx={{ 
-            mr: { xs: 0.5, sm: 1, md: 1 }, 
-            fontWeight: 600,
-            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-            fontFamily: 'Arial, sans-serif'
-          }}>
-            Wallet
-          </Typography>
-          <KeyboardArrowDown sx={{ 
-            fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' }
-          }} />
-        </Box>
-      </Box>
+      <HeaderWithBack />
 
       {/* Main Content */}
       <Box sx={{ 
@@ -177,16 +204,60 @@ export default function SavedItemsPage() {
           Saved Items
         </Typography>
 
+        {/* Loading State */}
+        {isLoading && (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            minHeight: '400px' 
+          }}>
+            <CircularProgress size={60} sx={{ color: '#6E6EFF' }} />
+          </Box>
+        )}
+
+        {/* Error State */}
+        {error && !isLoading && (
+          <Box sx={{ mb: 2 }}>
+            <Alert severity="error">{error}</Alert>
+          </Box>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && savedItems.length === 0 && (
+          <Box sx={{ 
+            textAlign: 'center', 
+            py: 8,
+            color: 'rgba(33, 23, 91, 0.50)'
+          }}>
+            <Typography sx={{ 
+              fontSize: '1.2rem', 
+              fontWeight: 600,
+              mb: 1,
+              fontFamily: 'Arial, sans-serif'
+            }}>
+              No saved items yet
+            </Typography>
+            <Typography sx={{ 
+              fontSize: '1rem',
+              fontFamily: 'Arial, sans-serif'
+            }}>
+              Start saving products you like!
+            </Typography>
+          </Box>
+        )}
+
         {/* Saved Items List */}
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '6px',
-          padding: '12px',
-          borderRadius: '10px',
-          background: '#EEE'
-        }}>
-          {savedItems.map((item) => (
+        {!isLoading && savedItems.length > 0 && (
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '6px',
+            padding: '12px',
+            borderRadius: '10px',
+            background: '#EEE'
+          }}>
+            {savedItems.map((item) => (
             <Card
               key={item.id}
               sx={{
@@ -219,14 +290,17 @@ export default function SavedItemsPage() {
                     }}
                   >
                     <Image
-                      src={item.image}
-                      alt={item.name}
+                      src={item.coverUrl || '/images/banner/headphone.svg'}
+                      alt={item.title}
                       width={60}
                       height={60}
                       style={{
                         width: '100%',
                         height: '100%',
                         objectFit: 'contain'
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.src = '/images/banner/headphone.svg';
                       }}
                     />
                   </Box>
@@ -238,75 +312,17 @@ export default function SavedItemsPage() {
                       fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
                       fontWeight: 700,
                       color: '#333333',
-                      mb: 0.5,
+                      mb: 1,
                       fontFamily: 'Arial, sans-serif',
                       lineHeight: 1.2
                     }}>
-                      {item.name}
+                      {item.title}
                     </Typography>
-
-                    {/* Storage */}
-                    <Typography sx={{
-                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                      color: '#666666',
-                      mb: 1,
-                      fontFamily: 'Arial, sans-serif'
-                    }}>
-                      {item.storage}
-                    </Typography>
-
-                    {/* Specifications */}
-                    <Box sx={{ mb: 2 }}>
-                      {item.specs.map((spec, index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            mb: 0.5,
-                            fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
-                            color: '#AAAAAA',
-                            fontFamily: 'Arial, sans-serif'
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: 4,
-                              height: 4,
-                              borderRadius: '50%',
-                              background: '#AAAAAA',
-                              mr: 1,
-                              flexShrink: 0
-                            }}
-                          />
-                          {spec}
-                        </Box>
-                      ))}
-                    </Box>
 
                     {/* Pricing */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {/* Gold Coin Icon */}
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          background: '#FFD700',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0
-                        }}
-                      >
-                        <Typography sx={{ 
-                          fontSize: '0.6rem', 
-                          fontWeight: 800, 
-                          color: '#800080' 
-                        }}>
-                          ⚡
-                        </Typography>
-                      </Box>
+                      {/* Coin Icon */}
+                      <Image src="/coin.png" alt="Coin" width={20} height={20} />
 
                       {/* Original Price */}
                       <Typography sx={{ 
@@ -315,7 +331,7 @@ export default function SavedItemsPage() {
                         fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
                         fontFamily: 'Arial, sans-serif'
                       }}>
-                        {item.originalPrice}
+                        {item.actualCoin}
                       </Typography>
 
                       {/* Current Price */}
@@ -325,7 +341,7 @@ export default function SavedItemsPage() {
                         color: '#333333',
                         fontFamily: 'Arial, sans-serif'
                       }}>
-                        {item.currentPrice}
+                        {item.discountCoin}
                       </Typography>
 
                       {/* Discount */}
@@ -335,7 +351,7 @@ export default function SavedItemsPage() {
                         fontWeight: 600,
                         fontFamily: 'Arial, sans-serif'
                       }}>
-                        {item.discount}
+                        {calculateDiscount(item.actualCoin, item.discountCoin)}
                       </Typography>
                     </Box>
                   </Box>
@@ -357,7 +373,14 @@ export default function SavedItemsPage() {
                   {/* Remove Button */}
                   <Button
                     onClick={() => handleRemoveItem(item.id)}
-                    startIcon={<Delete sx={{ fontSize: '1.2rem' }} />}
+                    disabled={removingIds.has(item.id)}
+                    startIcon={
+                      removingIds.has(item.id) ? (
+                        <CircularProgress size={16} sx={{ color: '#4A47E0' }} />
+                      ) : (
+                        <Delete sx={{ fontSize: '1.2rem' }} />
+                      )
+                    }
                     sx={{
                       color: '#4A47E0',
                       fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
@@ -366,10 +389,14 @@ export default function SavedItemsPage() {
                       fontFamily: 'Arial, sans-serif',
                       '&:hover': {
                         backgroundColor: 'rgba(74, 71, 224, 0.1)'
+                      },
+                      '&:disabled': {
+                        color: '#4A47E0',
+                        opacity: 0.6
                       }
                     }}
                   >
-                    Remove
+                    {removingIds.has(item.id) ? 'Removing...' : 'Remove'}
                   </Button>
 
                   {/* Buy Now Button */}
@@ -392,8 +419,9 @@ export default function SavedItemsPage() {
                 </Box>
               </CardContent>
             </Card>
-          ))}
-        </Box>
+            ))}
+          </Box>
+        )}
       </Box>
 
       {/* Custom Bottom Navigation */}
@@ -480,6 +508,13 @@ export default function SavedItemsPage() {
           ))}
         </Box>
       </Box>
+
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onLogin={handleLoginSuccess}
+      />
     </Box>
   );
 }
