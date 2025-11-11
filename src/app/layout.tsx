@@ -71,11 +71,11 @@ export default function RootLayout({
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <AuthProvider>
-            <DeviceGuard>
+            {/* <DeviceGuard> */}
               <div className="content-container">
                 {children}
               </div>
-            </DeviceGuard>
+            {/* </DeviceGuard> */}
           </AuthProvider>
         </ThemeProvider>
       </body>
