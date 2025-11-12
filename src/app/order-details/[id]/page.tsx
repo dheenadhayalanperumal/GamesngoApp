@@ -209,7 +209,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
       >
         <HeaderWithBack 
           title="Back" 
-          backgroundColor="#3C3CD2"
+          backgroundColor="#3F51B5"
         />
       </Box>
 

@@ -138,7 +138,10 @@ export default function CoinsHistory() {
   if (authLoading) {
     return (
       <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
-        <HeaderWithBack />
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#3F51B5"
+        />
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'center', 
@@ -156,7 +159,10 @@ export default function CoinsHistory() {
   if (!isLoggedIn) {
     return (
       <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
-        <HeaderWithBack />
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#3F51B5"
+        />
         <Box sx={{ 
           display: 'flex', 
           flexDirection: 'column',

@@ -303,7 +303,10 @@ function ItemsViewContent() {
       }}
     >
       {/* Header */}
-    <HeaderWithBack/>
+    <HeaderWithBack 
+      title="Back" 
+      backgroundColor="#3F51B5"
+    />
 
       {/* Main Content */}
       <Box sx={{ 

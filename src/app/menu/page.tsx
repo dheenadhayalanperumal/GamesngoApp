@@ -77,7 +77,10 @@ export default function MenuPage() {
       {/* ========================================
           HEADER SECTION
           ======================================== */}
-     <HeaderWithBack/>
+     <HeaderWithBack 
+       title="Back" 
+       backgroundColor="#3F51B5"
+     />
 
       {/* ========================================
           MAIN CONTENT SECTION

@@ -172,7 +172,10 @@ export default function OldPinPage() {
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
       {/* Header */}
-      <HeaderWithBack/>
+      <HeaderWithBack 
+        title="Back" 
+        backgroundColor="#3F51B5"
+      />
 
       {/* Main Content */}
       <Box sx={{ 

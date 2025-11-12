@@ -248,7 +248,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       >
         <HeaderWithBack 
           title="Back" 
-          backgroundColor="#4848DB"
+          backgroundColor="#3F51B5"
         />
       </Box>
 

@@ -155,7 +155,7 @@ export default function YourOrdersPage() {
       >
         <HeaderWithBack 
           title="Back" 
-          backgroundColor="#3C3CD2"
+          backgroundColor="#3F51B5"
         />
       </Box>
 

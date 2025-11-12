@@ -518,7 +518,7 @@ const EventsPage = () => {
         }}>
           <HeaderWithBack 
             title="Back" 
-            backgroundColor="#4848DB"
+            backgroundColor="#3F51B5"
             onBackClick={handleBackToList}
           />
         </Box>

@@ -152,7 +152,10 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
           margin: '0 -15px', // Counteract global padding
         }}
       >
-        <HeaderWithBack />
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#3F51B5"
+        />
         <Box
           sx={{
             display: 'flex',
@@ -180,7 +183,10 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
           margin: '0 -15px', // Counteract global padding
         }}
       >
-        <HeaderWithBack />
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#3F51B5"
+        />
         <Box sx={{ padding: 4 }}>
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
@@ -209,7 +215,10 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
           margin: '0 -15px', // Counteract global padding
         }}
       >
-        <HeaderWithBack />
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#3F51B5"
+        />
         <Box sx={{ padding: 4 }}>
           <Typography variant="h6">Game not found</Typography>
           <Button
@@ -391,7 +400,10 @@ const GameDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
           margin: '0 -15px',
         }}
       >
-        <HeaderWithBack />
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#3F51B5"
+        />
         <Box
           sx={{
             display: 'flex',

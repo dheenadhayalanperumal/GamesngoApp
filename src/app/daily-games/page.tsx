@@ -205,7 +205,10 @@ const DailyGames = () => {
         margin: '0 -15px',
         width: 'calc(100% + 30px)',
       }}>
-        <HeaderWithBack />
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#3F51B5"
+        />
         <Box sx={{ padding: 2, paddingTop: '15px' }}>
           <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
         </Box>
@@ -222,7 +225,10 @@ const DailyGames = () => {
         margin: '0 -15px',
         width: 'calc(100% + 30px)',
       }}>
-        <HeaderWithBack />
+        <HeaderWithBack 
+          title="Back" 
+          backgroundColor="#3F51B5"
+        />
         <Box sx={{ padding: 2, paddingTop: '15px' }}>
           <Alert severity="info">No daily games available.</Alert>
         </Box>

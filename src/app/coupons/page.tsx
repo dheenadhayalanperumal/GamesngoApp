@@ -244,7 +244,10 @@ export default function Coupons() {
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', margin: '0 -15px' }}>
       {/* Header */}
-      <HeaderWithBack/>
+      <HeaderWithBack 
+        title="Back" 
+        backgroundColor="#3F51B5"
+      />
 
       {/* Blue Header Section with Title */}
       <Box sx={{ 
