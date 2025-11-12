@@ -315,7 +315,7 @@ function ItemsViewContent() {
         px: { xs: 2, sm: 3, md: 4 }
       }}>
         {/* Title */}
-        <Typography
+        {/* <Typography
           sx={{
             fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' },
             fontWeight: 600,
@@ -326,7 +326,7 @@ function ItemsViewContent() {
           }}
         >
           Items View
-        </Typography>
+        </Typography> */}
 
         {/* Product Card */}
         {product ? (
@@ -353,7 +353,7 @@ function ItemsViewContent() {
                     justifyContent: 'center',
                     border: '1px solid #E0E0E0',
                     flexShrink: 0,
-                    overflow: 'hidden'
+                    overflow: 'visible'
                   }}
                 >
                   <Image
@@ -373,15 +373,27 @@ function ItemsViewContent() {
                 </Box>
 
                 {/* Product Details */}
-                <Box sx={{ flex: 1 }}>
+                <Box
+                  sx={{
+                    flex: 1,
+                    minWidth: 0, // For text ellipsis to work
+                    overflow: 'hidden'
+                  }}
+                >
                   <Typography
                     sx={{
                       fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
                       fontWeight: 700,
                       color: '#212121',
                       mb: 1,
-                      fontFamily: 'Arial, sans-serif'
+                      fontFamily: 'Arial, sans-serif',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      width: '100%',
+                      display: 'block'
                     }}
+                    title={product.title}
                   >
                     {product.title}
                   </Typography>
@@ -392,37 +404,26 @@ function ItemsViewContent() {
                         fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
                         color: '#616161',
                         mb: 2,
-                        fontFamily: 'Arial, sans-serif'
+                        fontFamily: 'Arial, sans-serif',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        width: '100%',
+                        display: 'block'
                       }}
+                      title={product.category.name}
                     >
                       {product.category.name}
                     </Typography>
                   )}
 
                   {/* Specifications/Features */}
-                  {features.length > 0 && (
-                    <Box sx={{ mb: 2 }}>
-                      {features.slice(0, 4).map((feature, index) => (
-                        <Typography
-                          key={index}
-                          component="div"
-                          sx={{
-                            fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
-                            color: '#616161',
-                            mb: 0.5,
-                            fontFamily: 'Arial, sans-serif'
-                          }}
-                        >
-                          • {feature.trim()}
-                        </Typography>
-                      ))}
-                    </Box>
-                  )}
+             
 
                 {/* Quantity and Price */}
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   {/* Quantity Selector */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '15px ' }}>
                     <IconButton
                       onClick={() => handleQuantityChange(-1)}
                       disabled={isLoadingQuote || quantity <= 1}
@@ -478,7 +479,7 @@ function ItemsViewContent() {
                   </Box>
 
                   {/* Price */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Box
                       sx={{
                         width: 24,
