@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Box, Typography, Card, CardContent, Button, Chip, CircularProgress, Alert } from '@mui/material';
 import { 
   Home
 } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import HeaderWithBack from '@/components/HeaderWithBack';
 import './page.css';
 
@@ -22,8 +22,11 @@ interface Address {
   isDefault: boolean;
 }
 
-export default function SavedAddressPage() {
+function SavedAddressContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const productId = searchParams.get('productId');
+  const isFromRedeem = !!productId; // Check if coming from redeem page
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +75,7 @@ export default function SavedAddressPage() {
     const productId = urlParams.get('productId');
     
     if (productId) {
+      // Use push (not replace) so user can go back from add-address to saved-address
       router.push(`/add-address?productId=${productId}`);
     } else {
       router.push('/add-address');
@@ -173,44 +177,75 @@ export default function SavedAddressPage() {
         <HeaderWithBack 
           title="Back" 
           backgroundColor="#3F51B5"
+          onBackClick={() => {
+            // If coming from redeem flow, go back to product page
+            if (isFromRedeem && productId) {
+              router.push(`/redeem/product/${productId}`);
+            } else {
+              router.back();
+            }
+          }}
         />
+        {/* Page Title - Show when coming from redeem */}
+        {isFromRedeem && (
+          <Box
+            sx={{
+              backgroundColor: '#3F51B5',
+              padding: '16px 24px',
+              textAlign: 'center'
+            }}
+          >
+            <Typography
+              sx={{
+                color: 'white',
+                fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' },
+                fontWeight: 700,
+                fontFamily: 'Arial, sans-serif'
+              }}
+            >
+              Select Delivery Address
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       {/* Main Content */}
       <Box sx={{ 
-        pt: { xs: '100px', sm: '100px', md: '100px' }, 
+        pt: { xs: isFromRedeem ? '140px' : '100px', sm: isFromRedeem ? '140px' : '100px', md: isFromRedeem ? '140px' : '100px' }, 
         pb: { xs: '20px', sm: '30px', md: '40px' },
         px: { xs: 2, sm: 3, md: 4 },
      
       }}>
-        {/* Add Address Section */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          mb: 4,
-          cursor: 'pointer',
-          transition: 'opacity 0.3s ease',
-          '&:hover': {
-            opacity: 0.8
-          }
-        }}
-        onClick={handleAddAddress}
-        >
-          <Home sx={{ 
-            fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-            color: '#3F51B5',
-            mr: 2
-          }} />
-          <Typography sx={{
-            fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' },
-            fontWeight: 700,
-            color: '#3F51B5',
-            fontFamily: 'Arial, sans-serif'
-          }}>
-            Add Address
-          </Typography>
-        </Box>
+        {/* Add Address Section - Show at top only when NOT from redeem */}
+        {!isFromRedeem && (
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            mb: 4,
+            cursor: 'pointer',
+            transition: 'opacity 0.3s ease',
+            '&:hover': {
+              opacity: 0.8
+            }
+          }}
+          onClick={handleAddAddress}
+          >
+            <Home sx={{ 
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              color: '#3F51B5',
+              mr: 2
+            }} />
+            <Typography sx={{
+              fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' },
+              fontWeight: 700,
+              color: '#3F51B5',
+              fontFamily: 'Arial, sans-serif'
+            }}>
+              Add Address
+            </Typography>
+          </Box>
+        )}
 
         {/* Loading State */}
         {isLoading ? (
@@ -303,66 +338,123 @@ export default function SavedAddressPage() {
                   Mobile : {address.phone}
                 </Typography>
 
-                {/* Divider */}
-                <Box sx={{ 
-                  height: 1, 
-                  background: 'repeating-linear-gradient(to right, #E0E0E0 0px, #E0E0E0 4px, transparent 4px, transparent 8px)',
-                  mb: 2 
-                }} />
-                
+                {/* Divider - Only show when NOT from redeem */}
+                {!isFromRedeem && (
+                  <Box sx={{ 
+                    height: 1, 
+                    background: 'repeating-linear-gradient(to right, #E0E0E0 0px, #E0E0E0 4px, transparent 4px, transparent 8px)',
+                    mb: 2 
+                  }} />
+                )}
 
-                {/* Action Buttons */}
-                <Box sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center'
-                }}>
-                  {/* Edit Button */}
-                  <Button
-                    onClick={(e) => handleEditAddress(address.id, e)}
-                   
-                    sx={{
-                      color: '#3F51B5',
-                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                      fontWeight: 700,
-                      textTransform: 'none',
-                      fontFamily: 'Arial, sans-serif',
-                      '&:hover': {
-                        backgroundColor: 'rgba(63, 81, 181, 0.1)'
-                      }
-                    }}
-                  >
-                    + Edit
-                  </Button>
+                {/* Action Buttons - Only show when NOT from redeem */}
+                {!isFromRedeem && (
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center'
+                  }}>
+                    {/* Edit Button */}
+                    <Button
+                      onClick={(e) => handleEditAddress(address.id, e)}
+                     
+                      sx={{
+                        color: '#3F51B5',
+                        fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                        fontWeight: 700,
+                        textTransform: 'none',
+                        fontFamily: 'Arial, sans-serif',
+                        '&:hover': {
+                          backgroundColor: 'rgba(63, 81, 181, 0.1)'
+                        }
+                      }}
+                    >
+                      + Edit
+                    </Button>
 
-                  {/* Vertical Divider */}
-                 
-                  {/* Remove Button */}
-                  <Button
-                    onClick={(e) => handleRemoveAddress(address.id, e)}
+                    {/* Vertical Divider */}
                    
-                    sx={{
-                      color: '#3F51B5',
-                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                      fontWeight: 700,
-                      textTransform: 'none',
-                      fontFamily: 'Arial, sans-serif',
-                      '&:hover': {
-                        backgroundColor: 'rgba(63, 81, 181, 0.1)'
-                      }
-                    }}
-                  >
-                    - Remove
-                  </Button>
-                </Box>
+                    {/* Remove Button */}
+                    <Button
+                      onClick={(e) => handleRemoveAddress(address.id, e)}
+                     
+                      sx={{
+                        color: '#3F51B5',
+                        fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                        fontWeight: 700,
+                        textTransform: 'none',
+                        fontFamily: 'Arial, sans-serif',
+                        '&:hover': {
+                          backgroundColor: 'rgba(63, 81, 181, 0.1)'
+                        }
+                      }}
+                    >
+                      - Remove
+                    </Button>
+                  </Box>
+                )}
               </CardContent>
             </Card>
                 ))
               )}
             </Box>
+
+            {/* Add Address Section - Show at bottom when from redeem */}
+            {isFromRedeem && (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                mt: 4,
+                cursor: 'pointer',
+                transition: 'opacity 0.3s ease',
+                '&:hover': {
+                  opacity: 0.8
+                }
+              }}
+              onClick={handleAddAddress}
+              >
+                <Home sx={{ 
+                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                  color: '#3F51B5',
+                  mr: 2
+                }} />
+                <Typography sx={{
+                  fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.6rem' },
+                  fontWeight: 700,
+                  color: '#3F51B5',
+                  fontFamily: 'Arial, sans-serif'
+                }}>
+                  Add Address
+                </Typography>
+              </Box>
+            )}
           </>
         )}
       </Box>
     </Box>
+  );
+}
+
+export default function SavedAddressPage() {
+  return (
+    <Suspense fallback={
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: '#F5F5F5',
+          position: 'relative',
+          margin:"0 -15px",
+          width:"calc(100% + 30px)",
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      >
+        <CircularProgress size={60} sx={{ color: '#3F51B5' }} />
+      </Box>
+    }>
+      <SavedAddressContent />
+    </Suspense>
   );
 }

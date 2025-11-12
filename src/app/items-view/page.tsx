@@ -490,9 +490,31 @@ function ItemsViewContent() {
                         justifyContent: 'center'
                       }}
                     >
-                      <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#4A148C' }}>
+                      {/* <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#4A148C' }}>
                         ⚡
-                      </Typography>
+                      </Typography> */}
+                      <Box
+                      sx={{
+                        width: 18,
+                        height: 18,
+                        background: '#FFC107',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                    <Image
+                            src="/coin.png"
+                            alt="Coin"
+                            width={20}
+                            height={20}
+                            style={{ width: '20px', height: '20px' }}
+                          />
+                    </Box>
+
+
+
                     </Box>
                     {quote && (
                       <>

@@ -178,7 +178,8 @@ function AddAddressContent() {
         // Navigate back to saved addresses page, preserving productId if present
         const currentProductId = searchParams.get('productId');
         if (currentProductId) {
-          router.push(`/saved-address?productId=${currentProductId}`);
+          // Use replace to avoid adding to history stack and prevent navigation loop
+          router.replace(`/saved-address?productId=${currentProductId}`);
         } else {
           router.push('/saved-address');
         }

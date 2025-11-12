@@ -22,7 +22,7 @@ interface GameDetails {
   durationMinutes: number;
   scoreType: string;
   plays: number;
-  howToPlay: string[];
+  howToPlay: string; // HTML format
   modes: {
     quickMatch: {
       status: string;
@@ -276,7 +276,7 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
               backgroundColor: 'rgba(0, 0, 0, 0.4)',
             }}
           />
-          <Typography
+          {/* <Typography
             variant="h4"
             sx={{
               color: 'white',
@@ -287,7 +287,7 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
             }}
           >
             {game.name}
-          </Typography>
+          </Typography> */}
         </Box>
 
         {/* Game Info */}
@@ -338,40 +338,85 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
         <Divider sx={{ mb: 3 }} />
 
         {/* How to Play */}
-        {game.howToPlay && game.howToPlay.length > 0 && (
+        {game.howToPlay && (
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
               How to Play
             </Typography>
-            <Box component="ol" sx={{ pl: 2 }}>
-              {game.howToPlay.map((instruction, index) => (
-                <Typography
-                  key={index}
-                  component="li"
-                  variant="body2"
-                  sx={{ mb: 1 }}
-                >
-                  {instruction}
-                </Typography>
-              ))}
-            </Box>
+            <Box
+              sx={{
+                '& p': {
+                  mb: 1.5,
+                  fontSize: '0.875rem',
+                  lineHeight: 1.6,
+                  color: 'text.secondary',
+                },
+                '& ul, & ol': {
+                  pl: 2,
+                  mb: 1.5,
+                },
+                '& li': {
+                  mb: 0.5,
+                  fontSize: '0.875rem',
+                  lineHeight: 1.6,
+                  color: 'text.secondary',
+                },
+                '& h1, & h2, & h3, & h4, & h5, & h6': {
+                  fontWeight: 600,
+                  mb: 1,
+                  mt: 2,
+                },
+                '& strong, & b': {
+                  fontWeight: 600,
+                },
+                '& em, & i': {
+                  fontStyle: 'italic',
+                },
+              }}
+              dangerouslySetInnerHTML={{ __html: game.howToPlay }}
+            />
           </Box>
         )}
 
         <Divider sx={{ mb: 3 }} />
 
         {/* Play Button */}
-        <Box sx={{ textAlign: 'center' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            justifyContent: 'center',
+            textAlign: 'center',
+            my: 2
+          }}
+        >
           <Button
             variant="contained"
-            size="large"
+            // size="large"
             startIcon={<PlayArrow />}
             onClick={handlePlay}
-           
+            sx={{
+              background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+              color: 'white',
+              width: '100%',
+              boxShadow: '0 2px 8px rgba(60,65,223,0.20)',
+              fontWeight: 600,
+              textTransform: 'none',
+              borderRadius: '12px',
+              px: 4,
+              py: 1.5,
+              fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              '&:hover': {
+                background: 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 16px rgba(255, 215, 0, 0.6)'
+              },
+              minWidth: 170,
+            }}
           >
-         
-             Play Now
-            
+            Play Now
           </Button>
         </Box>
       </Box>

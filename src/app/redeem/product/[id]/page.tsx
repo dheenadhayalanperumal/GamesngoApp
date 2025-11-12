@@ -259,6 +259,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         backgroundColor: 'white',
         margin:"0 -15px",
         width:"calc(100% + 30px)",
+        // px: '15px',
       }}>
         {/* Search Bar */}
         <Box sx={{ py: 2, px: { xs: 2, sm: 3, md: 4 } }}>
