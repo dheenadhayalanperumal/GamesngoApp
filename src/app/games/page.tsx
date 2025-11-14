@@ -32,6 +32,10 @@ interface RestaurantGame {
   action: string;
   duration: string;
   category: string;
+  gameType?: string;
+  location?: string;
+  outlets?: string;
+  discount?: string;
 }
 
 // Union type for games that can be displayed
@@ -195,7 +199,11 @@ const GamesPage = () => {
           rating: 4.5, // Default rating
           action: 'Restaurant',
           duration: `${restaurant.activeOffers} offers`,
-          category: 'Restaurants'
+          category: 'Restaurants',
+          gameType: 'Restaurant',
+          location: `${restaurant.location.city}, ${restaurant.location.state}`,
+          outlets: `${restaurant.outletsCount} outlets`,
+          discount: restaurant.activeOffers > 0 ? `${restaurant.activeOffers} offers` : undefined
         }));
         
         setCurrentGames(restaurantGames);
@@ -461,44 +469,148 @@ const GamesPage = () => {
                 </Box>
               )}
 
-              {/* Games Grid */}
+              {/* Games Grid or Restaurant List */}
               {currentGames.length > 0 ? (
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: {
-                      xs: 'repeat(2, 1fr)',
-                      sm: 'repeat(3, 1fr)',
-                      md: 'repeat(4, 1fr)',
-                      lg: 'repeat(5, 1fr)',
-                    },
-                    gap: 2,
-                  }}
-                >
-                  {currentGames.map((game) => {
-                    // Type guard to check if it's a RestaurantGame
-                    const isRestaurantGame = (g: DisplayableGame): g is RestaurantGame => {
-                      return 'image' in g && 'action' in g && 'duration' in g;
-                    };
-                    
-                    const image = isRestaurantGame(game) ? game.image : game.bannerUrl;
-                    const action = isRestaurantGame(game) ? game.action : game.type;
-                    const duration = isRestaurantGame(game) ? game.duration : `${game.durationMinutes} min`;
-                    
-                    return (
-                      <AllGamesCard
-                        key={game.id}
-                        id={game.id}
-                        name={game.name}
-                        image={image}
-                        rating={game.rating}
-                        action={action}
-                        duration={duration}
-                        onClick={() => handleGameClick(game.id)}
-                      />
-                    );
-                  })}
-                </Box>
+                // Check if current category is Restaurants
+                currentCategory?.id === -1 ? (
+                  // Restaurant List Layout
+                  <Box sx={{ px: 2 }}>
+                    {currentGames.map((game) => {
+                      const restaurantGame = game as RestaurantGame;
+                      return (
+                        <Box
+                          key={game.id}
+                          onClick={() => handleGameClick(game.id)}
+                          sx={{
+                            backgroundColor: 'white',
+                            borderRadius: '12px',
+                            p: 2,
+                            mb: 2,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                            },
+                          }}
+                        >
+                          {/* Restaurant Logo */}
+                          <Box
+                            sx={{
+                              width: '100%',
+                              height: '200px',
+                              backgroundColor: '#f0f0f0',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              mb: 2,
+                              overflow: 'hidden',
+                              borderRadius: '8px',
+                            }}
+                          >
+                            <img
+                              src={restaurantGame.image}
+                              alt={restaurantGame.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          </Box>
+
+                          {/* Restaurant Title */}
+                          <Typography
+                            sx={{
+                              fontSize: '18px',
+                              fontWeight: 700,
+                              color: '#333',
+                              mb: 0.5
+                            }}
+                          >
+                            {restaurantGame.name}
+                          </Typography>
+
+                          {/* Restaurant Type */}
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: 400,
+                              color: '#666',
+                              mb: 2
+                            }}
+                          >
+                            {restaurantGame.gameType || restaurantGame.action}
+                          </Typography>
+
+                          {/* Details Row */}
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+                            {restaurantGame.location && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography sx={{ fontSize: '12px', color: '#888' }}>📍</Typography>
+                                <Typography sx={{ fontSize: '12px', color: '#666' }}>{restaurantGame.location}</Typography>
+                              </Box>
+                            )}
+                            
+                            {restaurantGame.outlets && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography sx={{ fontSize: '12px', color: '#888' }}>🍽️</Typography>
+                                <Typography sx={{ fontSize: '12px', color: '#666' }}>{restaurantGame.outlets}</Typography>
+                              </Box>
+                            )}
+                            
+                            {restaurantGame.discount && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography sx={{ fontSize: '12px', color: '#888' }}>%</Typography>
+                                <Typography sx={{ fontSize: '12px', color: '#666' }}>{restaurantGame.discount}</Typography>
+                              </Box>
+                            )}
+                            
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Typography sx={{ fontSize: '12px', color: '#FFD700' }}>⭐</Typography>
+                              <Typography sx={{ fontSize: '12px', color: '#666', fontWeight: 600 }}>{restaurantGame.rating}</Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                ) : (
+                  // Regular Games Grid Layout
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: {
+                        xs: 'repeat(2, 1fr)',
+                        sm: 'repeat(3, 1fr)',
+                        md: 'repeat(4, 1fr)',
+                        lg: 'repeat(5, 1fr)',
+                      },
+                      gap: 2,
+                    }}
+                  >
+                    {currentGames.map((game) => {
+                      // Type guard to check if it's a RestaurantGame
+                      const isRestaurantGame = (g: DisplayableGame): g is RestaurantGame => {
+                        return 'image' in g && 'action' in g && 'duration' in g;
+                      };
+                      
+                      const image = isRestaurantGame(game) ? game.image : game.bannerUrl;
+                      const action = isRestaurantGame(game) ? game.action : game.type;
+                      const duration = isRestaurantGame(game) ? game.duration : `${game.durationMinutes} min`;
+                      
+                      return (
+                        <AllGamesCard
+                          key={game.id}
+                          id={game.id}
+                          name={game.name}
+                          image={image}
+                          rating={game.rating}
+                          action={action}
+                          duration={duration}
+                          onClick={() => handleGameClick(game.id)}
+                        />
+                      );
+                    })}
+                  </Box>
+                )
               ) : (
                 <Box
                   sx={{
