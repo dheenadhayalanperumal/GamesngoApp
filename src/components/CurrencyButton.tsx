@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Box, Typography, Popover } from "@mui/material";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import WalletIcon from "../assets/images/svg/wallet.svg";
 import StrikesIcon from "../assets/images/svg/strikes.svg";
 import CoinIcon from "../assets/icons/coin.png";
@@ -21,6 +22,7 @@ const CurrencyButton: React.FC<CurrencyButtonProps> = ({
   coins,
   coupons,
 }) => {
+  const router = useRouter();
   const isWallet = type === "Wallet";
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
@@ -33,6 +35,16 @@ const CurrencyButton: React.FC<CurrencyButtonProps> = ({
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleCoinsClick = () => {
+    handleClose();
+    router.push('/coins-history');
+  };
+
+  const handleCouponsClick = () => {
+    handleClose();
+    router.push('/coupons');
   };
 
   const open = Boolean(anchorEl);
@@ -142,16 +154,21 @@ const CurrencyButton: React.FC<CurrencyButtonProps> = ({
             }}
           >
             <Box
+              onClick={handleCoinsClick}
               sx={{
                 display: "flex",
-
                 alignItems: "center",
-                // justifyContent:"space-evenly",
                 gap: 1,
                 mb: 1.5,
-                // padding: "8px 8px",
-                // backgroundColor: "rgba(255, 255, 255, 0.2)",
+                padding: "8px 12px",
+                backgroundColor: "rgba(255, 255, 255, 0.2)",
                 borderRadius: "12px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  transform: "translateY(-1px)",
+                },
               }}
             >
               <Image
@@ -170,25 +187,23 @@ const CurrencyButton: React.FC<CurrencyButtonProps> = ({
               >
                 {coins || 0}
               </Typography>
-              {/* <Typography
-                sx={{
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  color: "#FFFFFF",
-                }}
-              >
-                Coins
-              </Typography> */}
             </Box>
 
             <Box
+              onClick={handleCouponsClick}
               sx={{
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                // padding: "8px 12px",
-                // backgroundColor: "rgba(255, 255, 255, 0.2)",
+                padding: "8px 12px",
+                backgroundColor: "rgba(255, 255, 255, 0.2)",
                 borderRadius: "12px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  transform: "translateY(-1px)",
+                },
               }}
             >
               <img
@@ -206,15 +221,6 @@ const CurrencyButton: React.FC<CurrencyButtonProps> = ({
               >
                 {coupons || 0}
               </Typography>
-              {/* <Typography
-                sx={{
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  color: "#FFFFFF",
-                }}
-              >
-                Coupons
-              </Typography> */}
             </Box>
           </Box>
         </Popover>
