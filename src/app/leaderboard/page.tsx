@@ -207,13 +207,11 @@ export default function Leaderboard() {
   };
 
   // Get current data based on active tab
-  // For weekly, use previousWeekTop for winners (past week result)
+  // For weekly, use current week's leaderboard top 3 for winners
   // For all-time, use the current leaderboard top 3
   const currentWinners: Winner[] = leaderboardData
     ? activeTab === 'weekly'
-      ? leaderboardData.weekly.previousWeekTop
-        ? transformToWinners(leaderboardData.weekly.previousWeekTop)
-        : []
+      ? transformToWinners(leaderboardData.weekly.leaderboard)
       : transformToWinners(leaderboardData.allTime.leaderboard)
     : [];
 
@@ -273,6 +271,8 @@ export default function Leaderboard() {
         bottom: 0,
         background: 'linear-gradient(180deg, #3C3CD2 0%, #3C3CD2 100%)',
         zIndex: -1,
+ 
+       
       }} />
 
       <Header sx={{
@@ -328,7 +328,7 @@ export default function Leaderboard() {
             {/* Winner Podium */}
             <WinnerPodium
               winners={currentWinners}
-              title={activeTab === 'weekly' ? 'Past Week Result' : 'All Time Result'}
+              title={activeTab === 'weekly' ? 'This Week Top 3' : 'All Time Top 3'}
             />
 
             {/* Prizes Section - Only show for weekly */}

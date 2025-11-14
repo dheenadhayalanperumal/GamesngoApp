@@ -28,6 +28,7 @@ export default function PlayerCard({
         gap: 2,
         backgroundColor: isCurrentUser ? '#C8E6C9' : '#F5F5F5',
         borderRadius: 3,
+        border: '1px solid #C8E6C9',
         p: 2,
       }}
     >
