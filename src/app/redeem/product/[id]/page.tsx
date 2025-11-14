@@ -431,6 +431,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <CardContent sx={{ 
               p: { xs: 2.5, sm: 3, md: 3.5 },
               background: 'transparent',
+              width: '100%',
               height: '100%',
               display: 'flex',
               flexDirection: 'column',

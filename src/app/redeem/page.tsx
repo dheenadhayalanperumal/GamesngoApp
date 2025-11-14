@@ -31,6 +31,7 @@ interface Category {
   id: number;
   name: string;
   slug: string;
+  iconUrl: string | null;
 }
 
 interface Product {
@@ -89,6 +90,9 @@ export default function RedeemPage() {
   // Category products state
   const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
   const [isLoadingCategoryProducts, setIsLoadingCategoryProducts] = useState(false);
+  
+  // Track failed image loads for categories
+  const [failedImageLoads, setFailedImageLoads] = useState<Set<number>>(new Set());
 
   // Fetch offers data from API
   useEffect(() => {
@@ -381,11 +385,29 @@ export default function RedeemPage() {
                   border: '2px solid white',
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
                   transition: 'all 0.3s ease',
+                  overflow: 'hidden',
                 }}
               >
-                <Typography sx={{ fontSize: 24, fontWeight: 600, color: activeCategory === category.id ? 'white' : '#6E6EFF' }}>
-                  {category.name.charAt(0).toUpperCase()}
-                </Typography>
+                {category.iconUrl && !failedImageLoads.has(category.id) ? (
+                  <Image
+                    src={category.iconUrl}
+                    alt={category.name}
+                    width={80}
+                    height={80}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                    onError={() => {
+                      setFailedImageLoads((prev) => new Set(prev).add(category.id));
+                    }}
+                  />
+                ) : (
+                  <Typography sx={{ fontSize: 24, fontWeight: 600, color: activeCategory === category.id ? 'white' : '#6E6EFF' }}>
+                    {category.name.charAt(0).toUpperCase()}
+                  </Typography>
+                )}
               </Box>
               <Typography
                 sx={{
