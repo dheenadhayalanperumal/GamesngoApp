@@ -226,7 +226,9 @@ const EventsPage = () => {
         
         // Refresh live events list to update player counts
         if (activeTab === 0) {
-          const refreshResponse = await fetch('/api/public/events?scope=live');
+          const refreshResponse = await fetch('/api/public/events?scope=live', {
+            credentials: isLoggedIn ? 'include' : 'omit',
+          });
           const refreshData = await refreshResponse.json();
           if (refreshResponse.ok && refreshData.status === 'success' && refreshData.events) {
             const transformedEvents = refreshData.events.map(transformEvent);
@@ -305,7 +307,9 @@ const EventsPage = () => {
     // Fetch event details
     setIsLoadingEventDetails(true);
     try {
-      const response = await fetch(`/api/public/events/${eventId}`);
+      const response = await fetch(`/api/public/events/${eventId}`, {
+        credentials: isLoggedIn ? 'include' : 'omit',
+      });
       const data = await response.json();
       
       console.log('Event details response:', data);
@@ -326,7 +330,9 @@ const EventsPage = () => {
     // Fetch event leaderboard
     setIsLoadingLeaderboard(true);
     try {
-      const leaderboardResponse = await fetch(`/api/public/events/${eventId}/leaderboard`);
+      const leaderboardResponse = await fetch(`/api/public/events/${eventId}/leaderboard`, {
+        credentials: isLoggedIn ? 'include' : 'omit',
+      });
       const leaderboardData = await leaderboardResponse.json();
       
       console.log('Event leaderboard response:', leaderboardData);
@@ -413,7 +419,10 @@ const EventsPage = () => {
       
       try {
         setIsLoadingLiveEvents(true);
-        const response = await fetch('/api/public/events');
+        // If user is logged in, send credentials; otherwise call without credentials
+        const response = await fetch('/api/public/events', {
+          credentials: isLoggedIn ? 'include' : 'omit',
+        });
         const data = await response.json();
 
         console.log('API Response:', data);
@@ -437,7 +446,7 @@ const EventsPage = () => {
     };
 
     fetchLiveEvents();
-  }, [activeTab]);
+  }, [activeTab, isLoggedIn]);
 
   // Transform "My Events" API response to EventData format
   const transformMyEvent = (myEventApi: MyEventApiResponse): EventData => {

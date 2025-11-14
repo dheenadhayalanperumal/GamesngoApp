@@ -25,14 +25,21 @@ export async function GET(request: NextRequest) {
     
     const url = `${apiUrl}/api/public/events?${params.toString()}`;
     
+    // Get cookies from the request (if user is logged in)
+    const cookies = request.headers.get('cookie');
+    
     console.log('Public Events API - Calling:', url);
+    console.log('Public Events API - Has cookies:', !!cookies);
     
     // Forward the request to the actual API
+    // Include cookies in headers if they exist (user is logged in)
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
+        ...(cookies ? { 'Cookie': cookies } : {}),
       },
+      credentials: cookies ? 'include' : 'omit',
     });
 
     console.log('Public Events API - Response status:', response.status);

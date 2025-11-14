@@ -28,13 +28,14 @@ export async function GET(
     console.log('Event Leaderboard API - Calling:', url);
     
     // Forward the request to the actual API
+    // Include cookies in headers if they exist (user is logged in)
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
         ...(cookies ? { 'Cookie': cookies } : {}),
       },
-      credentials: 'include',
+      credentials: cookies ? 'include' : 'omit',
     });
 
     console.log('Event Leaderboard API - Response status:', response.status);
