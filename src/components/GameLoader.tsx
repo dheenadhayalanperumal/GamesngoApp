@@ -136,6 +136,37 @@ const GameLoader: React.FC<GameLoaderProps> = ({ gameId, onClose }) => {
     return () => iframe.removeEventListener('load', handleLoad);
   }, [gameUrl, apiBaseUrl, gameData, gameId]);
 
+  // Listen for messages from the game (e.g., game completion, coin updates)
+  useEffect(() => {
+    if (!gameUrl) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      // Listen for game completion or coin update messages
+      // Games can send messages like: { type: 'GAME_COMPLETE', coins: 100 } or { type: 'COINS_UPDATED', coins: 150 }
+      if (event.data && typeof event.data === 'object') {
+        const messageType = event.data.type;
+        
+        if (messageType === 'GAME_COMPLETE' || messageType === 'GAME_FINISHED' || messageType === 'COINS_UPDATED') {
+          console.log('GameLoader: Game completion/update message received:', event.data);
+          
+          // Dispatch custom event to notify GameHeader to refresh coins
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('gameCompleted', {
+              detail: {
+                coins: event.data.coins,
+                gameId: gameId,
+                message: event.data.message || 'Game completed successfully'
+              }
+            }));
+          }
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [gameUrl, gameId]);
+
   const handleBack = () => {
     if (onClose) {
       onClose();

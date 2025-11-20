@@ -68,6 +68,25 @@ const GameHeader: React.FC<GameHeaderProps> = ({ sx }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn]);
 
+  // Listen for game completion events to refresh coins in real-time
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const handleGameCompleted = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      console.log('GameHeader: Game completed event received, refreshing coins...', customEvent.detail);
+      
+      if (isLoggedIn) {
+        // Immediately refresh coin count
+        fetchUserData();
+      }
+    };
+    
+    window.addEventListener('gameCompleted', handleGameCompleted as EventListener);
+    return () => window.removeEventListener('gameCompleted', handleGameCompleted as EventListener);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn]);
+
   // Fetch user data when login status changes
   useEffect(() => {
     if (isLoggedIn) {
@@ -84,10 +103,10 @@ const GameHeader: React.FC<GameHeaderProps> = ({ sx }) => {
   useEffect(() => {
     // Only fetch if user is logged in
     if (isLoggedIn) {
-      // Poll every 30 seconds for updates
+      // Poll every 10 seconds for updates (more frequent during gameplay)
       const interval = setInterval(() => {
         fetchUserData();
-      }, 30000); // 30 seconds
+      }, 10000); // 10 seconds for real-time updates
 
       return () => clearInterval(interval);
     }
@@ -125,7 +144,7 @@ const GameHeader: React.FC<GameHeaderProps> = ({ sx }) => {
           <img
             src={logo.src}
             alt="Logo"
-            style={{ width: "110px", height: "24px" }}
+            style={{ width: "110px", height: "32px" }}
           />
         </Box>
 
