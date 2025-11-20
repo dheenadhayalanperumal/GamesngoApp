@@ -160,12 +160,12 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
 
   // Check if position is overridden in sx prop
   const sxPosition = sx && typeof sx === 'object' && 'position' in sx 
-    ? (sx as any).position 
+    ? (sx as Record<string, unknown>).position 
     : null;
   
   // Use position from sx if provided, otherwise use the default behavior
   const appBarPosition = sxPosition !== null && sxPosition !== undefined 
-    ? sxPosition 
+    ? sxPosition as "fixed" | "absolute" | "relative" | "static" | "sticky"
     : (isFixed ? "fixed" : "absolute");
 
   return (

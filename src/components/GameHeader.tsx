@@ -65,6 +65,7 @@ const GameHeader: React.FC<GameHeaderProps> = ({ sx }) => {
     
     window.addEventListener('scratchRedeemed', handleScratchRedeemed);
     return () => window.removeEventListener('scratchRedeemed', handleScratchRedeemed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn]);
 
   // Fetch user data when login status changes
@@ -95,12 +96,12 @@ const GameHeader: React.FC<GameHeaderProps> = ({ sx }) => {
 
   // Check if position is overridden in sx prop
   const sxPosition = sx && typeof sx === 'object' && 'position' in sx 
-    ? (sx as any).position 
+    ? (sx as Record<string, unknown>).position 
     : null;
   
   // Use position from sx if provided, otherwise use relative
   const appBarPosition = sxPosition !== null && sxPosition !== undefined 
-    ? sxPosition 
+    ? sxPosition as "fixed" | "absolute" | "relative" | "static" | "sticky"
     : "relative";
 
   return (
