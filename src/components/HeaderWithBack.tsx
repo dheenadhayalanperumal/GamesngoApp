@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, SxProps, Theme } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 
@@ -10,13 +10,15 @@ interface HeaderWithBackProps {
   backgroundColor?: string;
   showBackButton?: boolean;
   onBackClick?: () => void;
+  sx?: SxProps<Theme>;
 }
 
 function HeaderWithBack({ 
   title = "Back", 
   backgroundColor = '#3C3CD2',
   showBackButton = true,
-  onBackClick
+  onBackClick,
+  sx
 }: HeaderWithBackProps) {
   const router = useRouter();
 
@@ -35,7 +37,8 @@ function HeaderWithBack({
       color: 'white',
       display: 'flex',
       alignItems: 'center',
-      gap: 1
+      gap: 1,
+      ...sx
     }}>
       {showBackButton && (
         <Box 

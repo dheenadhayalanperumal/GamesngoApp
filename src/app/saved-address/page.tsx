@@ -176,7 +176,7 @@ function SavedAddressContent() {
       >
         <HeaderWithBack 
           title="Back" 
-          backgroundColor="#3F51B5"
+          backgroundColor="#4848DB"
           onBackClick={() => {
             // If coming from redeem flow, go back to product page
             if (isFromRedeem && productId) {
@@ -184,6 +184,16 @@ function SavedAddressContent() {
             } else {
               router.back();
             }
+          }}
+          sx={{
+            backgroundColor: '#4848DB',
+            textAlign: 'center',
+            color: 'white',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1100,
           }}
         />
         {/* Page Title - Show when coming from redeem */}

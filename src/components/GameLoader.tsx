@@ -32,6 +32,7 @@ const GameLoader: React.FC<GameLoaderProps> = ({ gameId, onClose }) => {
   const [error, setError] = useState<string | null>(null);
   const [gameUrl, setGameUrl] = useState<string | null>(null);
   const [apiBaseUrl, setApiBaseUrl] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const router = useRouter();
 
@@ -164,15 +165,47 @@ const GameLoader: React.FC<GameLoaderProps> = ({ gameId, onClose }) => {
     };
 
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
   }, [gameUrl, gameId]);
 
+  // Cleanup on unmount - ensure iframe is removed
+  useEffect(() => {
+    return () => {
+      // Cleanup when component unmounts
+      if (iframeRef.current) {
+        iframeRef.current.src = 'about:blank'; // Clear iframe content
+      }
+    };
+  }, []);
+
   const handleBack = () => {
+    // Immediately hide the component
+    setIsVisible(false);
+    
+    // Clear iframe to stop any ongoing processes and prevent navigation
+    if (iframeRef.current) {
+      try {
+        // Remove iframe src to stop loading
+        iframeRef.current.src = 'about:blank';
+        // Remove iframe from DOM
+        iframeRef.current.remove();
+      } catch (e) {
+        console.log('Error clearing iframe:', e);
+      }
+    }
+    
+    // Call onClose to update parent state first
     if (onClose) {
       onClose();
-    } else {
-      router.back();
     }
+    
+    // Use setTimeout to ensure state updates before navigation
+    setTimeout(() => {
+      // Navigate back to exit the game page completely
+      router.back();
+    }, 100);
   };
 
   if (isLoading) {
@@ -298,6 +331,11 @@ const GameLoader: React.FC<GameLoaderProps> = ({ gameId, onClose }) => {
         </Box>
       </Box>
     );
+  }
+
+  // Don't render if component is being closed
+  if (!isVisible) {
+    return null;
   }
 
   return (

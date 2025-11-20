@@ -25,7 +25,15 @@ import RedeemRewardsImg from '@/assets/images/banner/Redeem_rewards.svg';
 const HeaderWithBack = () => {
   const router = useRouter();
   return (
-    <Box sx={{ 
+    <Box sx={{
+      backgroundColor: '#4848DB',
+      textAlign: 'center',
+      color: 'white',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1100, 
       backgroundColor: '#3C3CD2', 
       padding: '16px 20px',
       display: 'flex',

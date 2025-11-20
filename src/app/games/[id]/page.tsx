@@ -127,18 +127,21 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
   };
 
   const handleCloseGame = () => {
+    // Reset all game-related state immediately
     setShowGame(false);
     setSelectedGameId(null);
+    // Clear any offerId state if needed
+    // This ensures the component fully unmounts
   };
 
   // Show game loader if playing outlet game
   if (showGame && offerId) {
-    return <OutletGameLoader offerId={offerId} onClose={handleCloseGame} />;
+    return <OutletGameLoader key={`outlet-${offerId}`} offerId={offerId} onClose={handleCloseGame} />;
   }
 
   // Show game loader if playing regular game
   if (showGame && selectedGameId) {
-    return <GameLoader gameId={selectedGameId} onClose={handleCloseGame} />;
+    return <GameLoader key={`game-${selectedGameId}`} gameId={selectedGameId} onClose={handleCloseGame} />;
   }
 
   if (isLoading) {
@@ -154,7 +157,17 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
       >
         <HeaderWithBack 
           title="Back" 
-          backgroundColor="#3F51B5"
+          backgroundColor="#4848DB"
+          sx={{
+            backgroundColor: '#4848DB',
+            textAlign: 'center',
+            color: 'white',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1100,
+          }}
         />
         <Box
           sx={{
@@ -185,7 +198,17 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
       >
         <HeaderWithBack 
           title="Back" 
-          backgroundColor="#3F51B5"
+          backgroundColor="#4848DB"
+          sx={{
+            backgroundColor: '#4848DB',
+            textAlign: 'center',
+            color: 'white',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1100,
+          }}
         />
         <Box sx={{ padding: 4 }}>
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -217,7 +240,17 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
       >
         <HeaderWithBack 
           title="Back" 
-          backgroundColor="#3F51B5"
+          backgroundColor="#4848DB"
+          sx={{
+            backgroundColor: '#4848DB',
+            textAlign: 'center',
+            color: 'white',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1100,
+          }}
         />
         <Box sx={{ padding: 4 }}>
           <Typography variant="h6">Game not found</Typography>
@@ -246,7 +279,19 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
         margin: '0 -15px', // Counteract global padding
       }}
     >
-      <HeaderWithBack />
+      <HeaderWithBack 
+        sx={{
+          backgroundColor: '#4848DB',
+          textAlign: 'center',
+          color: 'white',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+        }}
+      />
+      
       
       <Box sx={{ padding: 2 }}>
 
@@ -447,7 +492,17 @@ const GameDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
       >
         <HeaderWithBack 
           title="Back" 
-          backgroundColor="#3F51B5"
+          backgroundColor="#4848DB"
+          sx={{
+            backgroundColor: '#4848DB',
+            textAlign: 'center',
+            color: 'white',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1100,
+          }}
         />
         <Box
           sx={{

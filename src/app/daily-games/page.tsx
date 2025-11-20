@@ -207,7 +207,17 @@ const DailyGames = () => {
       }}>
         <HeaderWithBack 
           title="Back" 
-          backgroundColor="#3F51B5"
+          backgroundColor="#4848DB"
+          sx={{
+            backgroundColor: '#4848DB',
+            textAlign: 'center',
+            color: 'white',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1100,
+          }}
         />
         <Box sx={{ padding: 2, paddingTop: '15px' }}>
           <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
@@ -227,7 +237,17 @@ const DailyGames = () => {
       }}>
         <HeaderWithBack 
           title="Back" 
-          backgroundColor="#3F51B5"
+          backgroundColor="#4848DB"
+          sx={{
+            backgroundColor: '#4848DB',
+            textAlign: 'center',
+            color: 'white',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1100,
+          }}
         />
         <Box sx={{ padding: 2, paddingTop: '15px' }}>
           <Alert severity="info">No daily games available.</Alert>
@@ -247,7 +267,18 @@ const DailyGames = () => {
       fontFamily: 'Paytone One, sans-serif',
       fontWeight: '400',
     }}>
-      <HeaderWithBack />
+      <HeaderWithBack 
+        sx={{
+          backgroundColor: '#4848DB',
+          textAlign: 'center',
+          color: 'white',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+        }}
+      />
 
       <Box sx={{ padding: 2, paddingTop: '15px', display: 'flex', flexDirection: 'column', gap: 2 }}>
         {/* Daily Games Card */}
