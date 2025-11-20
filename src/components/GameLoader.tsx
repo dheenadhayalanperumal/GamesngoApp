@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Box, CircularProgress, Typography, Alert, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation';
+import GameHeader from './GameHeader';
 
 interface GameData {
   id: number;
@@ -283,43 +284,72 @@ const GameLoader: React.FC<GameLoaderProps> = ({ gameId, onClose }) => {
         zIndex: 9999,
         margin: 0,
         padding: 0,
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
+      {/* Header at the top */}
       <Box
         sx={{
-          position: 'absolute',
-          top: 16,
-          left: 16,
-          zIndex: 1000,
+          flexShrink: 0,
+          zIndex: 10000,
         }}
       >
-        <IconButton
-          onClick={handleBack}
+        <GameHeader sx={{
+          backgroundColor: '#4848DB',
+          textAlign: 'center',
+          color: 'white',
+          position: 'relative',
+        }} />
+      </Box>
+      
+      {/* Iframe container below header */}
+      <Box
+        sx={{
+          position: 'relative',
+          flex: 1,
+          overflow: 'hidden',
+          minHeight: 0,
+        }}
+      >
+        <iframe
+          ref={iframeRef}
+          title="Game"
+          src={gameUrl}
+          allowFullScreen
+          style={{
+            width: '100%',
+            height: '100%',
+            border: 'none',
+            display: 'block',
+            margin: 0,
+            padding: 0,
+          }}
+        />
+        
+        {/* Back button overlaid on top */}
+        <Box
           sx={{
-            color: 'white',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            },
+            position: 'absolute',
+            top: 16,
+            left: 16,
+            zIndex: 10001,
           }}
         >
-          <ArrowBackIcon />
-        </IconButton>
+          <IconButton
+            onClick={handleBack}
+            sx={{
+              color: 'white',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              },
+            }}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+        </Box>
       </Box>
-      <iframe
-        ref={iframeRef}
-        title="Game"
-        src={gameUrl}
-        allowFullScreen
-        style={{
-          width: '100%',
-          height: '100%',
-          border: 'none',
-          display: 'block',
-          margin: 0,
-          padding: 0,
-        }}
-      />
     </Box>
   );
 };

@@ -158,9 +158,19 @@ const Header: React.FC<HeaderProps> = ({ sx }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn]);
 
+  // Check if position is overridden in sx prop
+  const sxPosition = sx && typeof sx === 'object' && 'position' in sx 
+    ? (sx as any).position 
+    : null;
+  
+  // Use position from sx if provided, otherwise use the default behavior
+  const appBarPosition = sxPosition !== null && sxPosition !== undefined 
+    ? sxPosition 
+    : (isFixed ? "fixed" : "absolute");
+
   return (
     <AppBar
-      position={isFixed ? "fixed" : "absolute"}
+      position={appBarPosition as "fixed" | "absolute" | "relative" | "static" | "sticky"}
       sx={{
         top: 0,
         // marginTop: '15px',
