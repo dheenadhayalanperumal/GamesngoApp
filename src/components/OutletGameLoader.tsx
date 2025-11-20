@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Box, CircularProgress, Typography, Alert, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation';
@@ -143,50 +143,8 @@ const OutletGameLoader: React.FC<OutletGameLoaderProps> = ({ offerId, onClose })
     return () => iframe.removeEventListener('load', handleLoad);
   }, [gameUrl, apiBaseUrl, gameData, offerId]);
 
-  // Listen for messages from the game (e.g., game completion, coin updates)
-  useEffect(() => {
-    if (!gameUrl) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      // Listen for game completion or coin update messages
-      // Games can send messages like: { type: 'GAME_COMPLETE', coins: 100 } or { type: 'COINS_UPDATED', coins: 150 }
-      if (event.data && typeof event.data === 'object') {
-        const messageType = event.data.type;
-        
-        if (messageType === 'GAME_COMPLETE' || messageType === 'GAME_FINISHED' || messageType === 'COINS_UPDATED') {
-          console.log('OutletGameLoader: Game completion/update message received:', event.data);
-          
-          // Dispatch custom event to notify GameHeader to refresh coins
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('gameCompleted', {
-              detail: {
-                coins: event.data.coins,
-                offerId: offerId,
-                message: event.data.message || 'Game completed successfully'
-              }
-            }));
-          }
-        }
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, [gameUrl, offerId]);
-
-  // Cleanup on unmount - ensure iframe is removed
-  useEffect(() => {
-    return () => {
-      // Cleanup when component unmounts
-      if (iframeRef.current) {
-        iframeRef.current.src = 'about:blank'; // Clear iframe content
-      }
-    };
-  }, []);
-
-  const handleBack = () => {
+  // Define handleBack before using it in useEffect
+  const handleBack = useCallback(() => {
     // Immediately hide the component
     setIsVisible(false);
     
@@ -212,7 +170,61 @@ const OutletGameLoader: React.FC<OutletGameLoaderProps> = ({ offerId, onClose })
       // Navigate back to exit the game page completely
       router.back();
     }, 100);
-  };
+  }, [onClose, router]);
+
+  // Listen for messages from the game (e.g., game completion, coin updates, close)
+  useEffect(() => {
+    if (!gameUrl) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      // Listen for game completion, coin update, or close messages
+      // Games can send messages like: 
+      // { type: 'GAME_COMPLETE', coins: 100 }
+      // { type: 'COINS_UPDATED', coins: 150 }
+      // { type: 'CLOSE' } or { type: 'close' }
+      if (event.data && typeof event.data === 'object') {
+        const messageType = event.data.type;
+        
+        // Handle close message - exit the game
+        if (messageType === 'CLOSE' || messageType === 'close') {
+          console.log('OutletGameLoader: Close message received from game');
+          handleBack();
+          return;
+        }
+        
+        // Handle game completion or coin update messages
+        if (messageType === 'GAME_COMPLETE' || messageType === 'GAME_FINISHED' || messageType === 'COINS_UPDATED') {
+          console.log('OutletGameLoader: Game completion/update message received:', event.data);
+          
+          // Dispatch custom event to notify GameHeader to refresh coins
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('gameCompleted', {
+              detail: {
+                coins: event.data.coins,
+                offerId: offerId,
+                message: event.data.message || 'Game completed successfully'
+              }
+            }));
+          }
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [gameUrl, offerId, handleBack]);
+
+  // Cleanup on unmount - ensure iframe is removed
+  useEffect(() => {
+    return () => {
+      // Cleanup when component unmounts
+      if (iframeRef.current) {
+        iframeRef.current.src = 'about:blank'; // Clear iframe content
+      }
+    };
+  }, []);
 
   if (isLoading) {
     return (
