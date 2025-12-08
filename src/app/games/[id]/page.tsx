@@ -276,7 +276,7 @@ function GameDetailsContent({ params }: { params: Promise<{ id: string }> }) {
         minHeight: '100vh',
         backgroundColor: '#f5f5f5',
         paddingBottom: '80px', // Space for TabBar
-        margin: '0 -15px', // Counteract global padding
+        margin: '75px -15px', // Counteract global padding
       }}
     >
       <HeaderWithBack 
